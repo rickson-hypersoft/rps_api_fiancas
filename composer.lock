@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e4fc4f9e49f3c515c16792e880a7370b",
+    "content-hash": "e6b4177117b775f9e66209b6f2105752",
     "packages": [
         {
             "name": "brick/math",
@@ -1055,6 +1055,57 @@
             "time": "2025-02-03T10:55:03+00:00"
         },
         {
+            "name": "harrygulliford/laravel-firebird",
+            "version": "v3.3.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/harrygulliford/laravel-firebird.git",
+                "reference": "e86ecbd7d4826cd067541afba2689e2cd1137f51"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/harrygulliford/laravel-firebird/zipball/e86ecbd7d4826cd067541afba2689e2cd1137f51",
+                "reference": "e86ecbd7d4826cd067541afba2689e2cd1137f51",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/container": "^8.65|^9.33|^10.0|^11.0",
+                "illuminate/database": "^8.65|^9.33|^10.0|^11.0",
+                "illuminate/events": "^8.65|^9.33|^10.0|^11.0",
+                "illuminate/support": "^8.65|^9.33|^10.0|^11.0",
+                "php": "^7.4|^8.0"
+            },
+            "require-dev": {
+                "fakerphp/faker": "^1.15",
+                "mockery/mockery": "^1.4",
+                "orchestra/testbench": "^6.19|^7.0|^8.0|^9.0",
+                "phpunit/phpunit": "^9.6.11|^10.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "HarryGulliford\\Firebird\\FirebirdServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "HarryGulliford\\Firebird\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Firebird database driver for the Laravel Framework",
+            "support": {
+                "issues": "https://github.com/harrygulliford/laravel-firebird/issues",
+                "source": "https://github.com/harrygulliford/laravel-firebird/tree/v3.3.0"
+            },
+            "time": "2024-10-08T10:04:17+00:00"
+        },
+        {
             "name": "laravel/framework",
             "version": "v11.44.7",
             "source": {
@@ -1327,6 +1378,70 @@
                 "source": "https://github.com/laravel/prompts/tree/v0.3.5"
             },
             "time": "2025-02-11T13:34:40+00:00"
+        },
+        {
+            "name": "laravel/sanctum",
+            "version": "v4.1.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/laravel/sanctum.git",
+                "reference": "a360a6a1fd2400ead4eb9b6a9c1bb272939194f5"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/laravel/sanctum/zipball/a360a6a1fd2400ead4eb9b6a9c1bb272939194f5",
+                "reference": "a360a6a1fd2400ead4eb9b6a9c1bb272939194f5",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "illuminate/console": "^11.0|^12.0",
+                "illuminate/contracts": "^11.0|^12.0",
+                "illuminate/database": "^11.0|^12.0",
+                "illuminate/support": "^11.0|^12.0",
+                "php": "^8.2",
+                "symfony/console": "^7.0"
+            },
+            "require-dev": {
+                "mockery/mockery": "^1.6",
+                "orchestra/testbench": "^9.0|^10.0",
+                "phpstan/phpstan": "^1.10",
+                "phpunit/phpunit": "^11.3"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Laravel\\Sanctum\\SanctumServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Laravel\\Sanctum\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Taylor Otwell",
+                    "email": "taylor@laravel.com"
+                }
+            ],
+            "description": "Laravel Sanctum provides a featherweight authentication system for SPAs and simple APIs.",
+            "keywords": [
+                "auth",
+                "laravel",
+                "sanctum"
+            ],
+            "support": {
+                "issues": "https://github.com/laravel/sanctum/issues",
+                "source": "https://github.com/laravel/sanctum"
+            },
+            "time": "2025-04-23T13:03:38+00:00"
         },
         {
             "name": "laravel/serializable-closure",
