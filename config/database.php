@@ -114,6 +114,16 @@ return [
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
 
+        'firebird' => [
+            'driver'   => 'firebird',
+            'host'     => env('DB_FIREBIRD_HOST', '127.0.0.1'),
+            'port'     => env('DB_FIREBIRD_PORT', '3050'),
+            'database' => env('DB_FIREBIRD_DATABASE', 'C:\\Bancos\\FINANCAS\\DADOS.FDB'),
+            'username' => env('DB_FIREBIRD_USERNAME', 'SYSDBA'),
+            'password' => env('DB_FIREBIRD_PASSWORD', 'masterkey'),
+            'charset'  => env('DB_FIREBIRD_CHARSET', 'ISO8859_1'),
+            'role'     => null,
+        ],
     ],
 
     /*
