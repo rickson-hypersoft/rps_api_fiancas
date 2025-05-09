@@ -13,11 +13,11 @@ return new class () extends Migration
      */
     public function up(): void
     {
-        Schema::connection('firebird')->create('IMOBILIARIAS_SETUP', function (Blueprint $table) {
-            $table->integer('ID')->primary();
-            $table->integer('ID_IMOBILIARIA')->nullable();
-            $table->double('TAXA')->nullable();
-            $table->integer('ATIVO')->nullable();
+        Schema::connection('firebird')->create('imobiliarias_setup', function (Blueprint $table) {
+            $table->integer('id')->primary();
+            $table->integer('id_imobiliaria')->nullable();
+            $table->double('taxa')->nullable();
+            $table->integer('ativo')->nullable();
         });
     }
 
@@ -26,6 +26,6 @@ return new class () extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('IMOBILIARIAS_SETUP');
+        Schema::connection('firebird')->dropIfExists('imobiliarias_setup');
     }
 };

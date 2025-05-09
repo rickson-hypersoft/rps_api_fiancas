@@ -13,37 +13,36 @@ return new class () extends Migration
      */
     public function up(): void
     {
-        Schema::connection('firebird')->create('JOBS', function (Blueprint $table) {
-            $table->integer('ID')->primary();
-            $table->string('QUEUE')->index();
-            $table->longText('PAYLOAD');
-            $table->unsignedTinyInteger('ATTEMPTS');
-            $table->unsignedInteger('RESERVED_AT')->nullable();
-            $table->unsignedInteger('AVAILABLE_AT');
-            $table->unsignedInteger('CREATED_AT');
+        Schema::connection('firebird')->create('jobs', function (Blueprint $table) {
+            $table->integer('id')->primary();
+            $table->string('queue')->index();
+            $table->longText('payload');
+            $table->unsignedTinyInteger('attempts');
+            $table->unsignedInteger('reserved_at')->nullable();
+            $table->unsignedInteger('available_at');
+            $table->unsignedInteger('created_at');
         });
 
-        Schema::connection('firebird')->create('JOB_BATCHES', function (Blueprint $table) {
-            $table->integer('ID')->primary();
-            $table->string('NAME');
-            $table->integer('TOTAL_JOBS');
-            $table->integer('PENDING_JOBS');
-            $table->integer('FAILED_JOBS');
-            $table->longText('FAILED_JOB_IDS');
-            $table->mediumText('OPTIONS')->nullable();
-            $table->integer('CANCELLED_AT')->nullable();
-            $table->integer('CREATED_AT');
-            $table->integer('FINISHED_AT')->nullable();
+        Schema::connection('firebird')->create('job_batches', function (Blueprint $table) {
+            $table->integer('id')->primary();
+            $table->string('name');
+            $table->integer('total_jobs');
+            $table->integer('pending_jobs');
+            $table->integer('failed_jobs');
+            $table->longText('failed_job_ids');
+            $table->mediumText('options')->nullable();
+            $table->integer('cancelled_at')->nullable();
+            $table->integer('created_at');
+            $table->integer('finished_at')->nullable();
         });
 
-        Schema::connection('firebird')->create('FAILED_JOBS', function (Blueprint $table) {
-            $table->id();
-            $table->string('UUID')->primary();
-            $table->text('CONNECTION');
-            $table->text('QUEUE');
-            $table->longText('PAYLOAD');
-            $table->longText('EXCEPTION');
-            $table->timestamp('FAILED_AT')->useCurrent();
+        Schema::connection('firebird')->create('failed_jobs', function (Blueprint $table) {
+            $table->string('uuid')->primary();
+            $table->text('connection');
+            $table->text('queue');
+            $table->longText('payload');
+            $table->longText('exception');
+            $table->timestamp('failed_at')->useCurrent();
         });
     }
 
@@ -52,8 +51,8 @@ return new class () extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('JOBS');
-        Schema::dropIfExists('JOB_BATCHES');
-        Schema::dropIfExists('FAILED_JOBS');
+        Schema::connection('firebird')->dropIfExists('jobs');
+        Schema::connection('firebird')->dropIfExists('job_batches');
+        Schema::connection('firebird')->dropIfExists('failed_jobs');
     }
 };

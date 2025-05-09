@@ -13,15 +13,20 @@ return new class () extends Migration
      */
     public function up(): void
     {
-        Schema::connection('firebird')->create('PERSONAL_ACCESS_TOKENS', function (Blueprint $table) {
-            $table->integer('ID')->primary();
-            $table->morphs('TOKENABLE');
-            $table->string('NAME');
-            $table->string('TOKEN', 2000)->unique();
-            $table->text('ABILITIES')->nullable();
-            $table->timestamp('LAST_USED_AT')->nullable();
-            $table->timestamp('EXPIRES_AT')->nullable();
-            $table->timestamps();
+        Schema::connection('firebird')->create('personal_access_tokens', function (Blueprint $table) {
+            $table->integer('id')->primary();
+            $table->string('tokenable_type');
+            $table->integer('tokenable_id');
+            $table->string('name');
+            $table->string('token', 2000)->unique();
+            $table->text('abilities')->nullable();
+            $table->timestamp('last_used_at')->nullable();
+            $table->timestamp('expires_at')->nullable();
+            $table->timestamp('created_at')->nullable();
+            $table->timestamp('updated_at')->nullable();
+
+            // Se quiser índice para morphs
+            $table->index(['tokenable_type', 'tokenable_id']);
         });
     }
 
@@ -30,6 +35,6 @@ return new class () extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('PERSONAL_ACCESS_TOKENS');
+        Schema::connection('firebird')->dropIfExists('personal_access_tokens');
     }
 };

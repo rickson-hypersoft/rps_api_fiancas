@@ -13,23 +13,23 @@ return new class () extends Migration
      */
     public function up(): void
     {
-        Schema::connection('firebird')->create('EMPRESAS', function (Blueprint $table) {
-            $table->integer('ID')->primary();
-            $table->string('RAZAO', 100)->nullable();
-            $table->string('FANTASIA', 100)->nullable();
-            $table->string('CNPJ', 14)->nullable();
-            $table->string('ENDERECO', 100)->nullable();
-            $table->string('NUMERO', 30)->nullable();
-            $table->string('BAIRRO', 100)->nullable();
-            $table->string('CIDADE', 100)->nullable();
-            $table->string('UF', 2)->nullable();
-            $table->string('CEP', 10)->nullable();
-            $table->string('COMPLEMENTO', 100)->nullable();
-            $table->string('TELEFONE', 16)->nullable();
-            $table->string('CONTATO', 100)->nullable();
-            $table->string('CARGO', 100)->nullable();
-            $table->string('REPRESENTANTE', 100)->nullable();
-            $table->string('EMAIL', 150)->nullable();
+        Schema::connection('firebird')->create('empresas', function (Blueprint $table) {
+            $table->integer('id')->primary();
+            $table->string('razao', 100)->nullable();
+            $table->string('fantasia', 100)->nullable();
+            $table->string('cnpj', 14)->nullable();
+            $table->string('endereco', 100)->nullable();
+            $table->string('numero', 30)->nullable();
+            $table->string('bairro', 100)->nullable();
+            $table->string('cidade', 100)->nullable();
+            $table->string('uf', 2)->nullable();
+            $table->string('cep', 10)->nullable();
+            $table->string('complemento', 100)->nullable();
+            $table->string('telefone', 16)->nullable();
+            $table->string('contato', 100)->nullable();
+            $table->string('cargo', 100)->nullable();
+            $table->string('representante', 100)->nullable();
+            $table->string('email', 150)->nullable();
         });
     }
 
@@ -38,6 +38,6 @@ return new class () extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('EMPRESAS');
+        Schema::connection('firebird')->dropIfExists('empresas');
     }
 };
