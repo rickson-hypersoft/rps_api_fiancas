@@ -13,16 +13,16 @@ return new class () extends Migration
      */
     public function up(): void
     {
-        Schema::connection('firebird')->create('cache', function (Blueprint $table) {
-            $table->string('key')->primary();
-            $table->mediumText('value');
-            $table->integer('expiration');
+        Schema::connection('firebird')->create('CACHE', function (Blueprint $table) {
+            $table->string('KEY')->primary();
+            $table->mediumText('VALUE');
+            $table->integer('EXPIRATION');
         });
 
-        Schema::connection('firebird')->create('cache_locks', function (Blueprint $table) {
-            $table->string('key')->primary();
-            $table->string('owner');
-            $table->integer('expiration');
+        Schema::connection('firebird')->create('CACHE_LOCKS', function (Blueprint $table) {
+            $table->string('KEY')->primary();
+            $table->string('OWNER');
+            $table->integer('EXPIRATION');
         });
     }
 
@@ -31,7 +31,7 @@ return new class () extends Migration
      */
     public function down(): void
     {
-        Schema::connection('firebird')->dropIfExists('cache');
-        Schema::connection('firebird')->dropIfExists('cache_locks');
+        Schema::connection('firebird')->dropIfExists('CACHE');
+        Schema::connection('firebird')->dropIfExists('CACHE_LOCKS');
     }
 };
