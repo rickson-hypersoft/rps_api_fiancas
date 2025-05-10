@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompanyController;
@@ -14,4 +14,5 @@ Route::middleware('api')->group(function () {
     Route::post('/users', [UserController::class, 'store']);
     Route::get('/companies', [CompanyController::class, 'index']);
     Route::post('/companies', [CompanyController::class, 'store']);
+    Route::put('/companies/{company}', [CompanyController::class, 'update']);
 });
