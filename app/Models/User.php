@@ -12,9 +12,9 @@ class User extends Authenticatable implements JWTSubject
 {
     protected $connection = 'firebird';
 
-    protected $table = 'usuarios';
+    protected $table = 'USUARIOS';
 
-    protected $primaryKey = 'id';
+    protected $primaryKey = 'ID';
 
     public $incrementing = false;
 
@@ -24,18 +24,24 @@ class User extends Authenticatable implements JWTSubject
 
     public function getAuthPassword()
     {
-        return $this->senha;
+        return $this->SENHA;
     }
 
-    // Retorna o identificador que será armazenado no token JWT
+    public function getAuthIdentifierName()
+    {
+        return "EMAIL";
+    }
+
     public function getJWTIdentifier()
     {
         return $this->getKey(); // geralmente o ID do usuário
     }
 
-    // Retorna um array com claims personalizados, se quiser
-    public function getJWTCustomClaims()
+    /**
+     * @return array<string, mixed>
+     */
+    public function getJWTCustomClaims(): array
     {
-        return []; // ou adicione claims aqui
+        return [];
     }
 }
