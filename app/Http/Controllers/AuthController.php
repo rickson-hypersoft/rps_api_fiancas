@@ -4,37 +4,51 @@ declare(strict_types = 1);
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
-    public function login(Request $request)
+    public function login(Request $request): JsonResponse
     {
-        // Valide as credenciais
+        $loginData     = $this->sanitizeInput($request->input('login'));
+        $loginPassword = $request->input('password');
+
         $credentials = [
-            'email'    => $request->input('email'),
-            'password' => $request->input('senha'),
+            $this->getAuthenticateData($loginData) => utf8_decode($loginData),
+            'password'                             => $loginPassword,
         ];
 
         if ($token = JWTAuth::attempt($credentials)) {
-            // Aqui você pode adicionar dados personalizados ao payload
             $user = auth()->user();
 
             $customClaims = [
-                'user_role'        => $user->nivel,
-                'user_permissions' => $user->permissoes,
+                'user_category'    => mb_convert_encoding($user->CATEGORIA, 'UTF-8', 'ISO-8859-1'),
+                'user_role'        => mb_convert_encoding($user->NIVEL, 'ISO-8859-1', 'UTF-8'),
+                'user_permissions' => mb_convert_encoding($user->PERMISSOES, 'ISO-8859-1', 'UTF-8'),
             ];
 
-            // Gerar um novo token com os dados personalizados
             $token = JWTAuth::claims($customClaims)->attempt($credentials);
 
             return response()->json([
                 'token' => $token,
-                'user'  => $user,
             ]);
         }
 
-        return response()->json(['error' => 'Unauthorized'], 401);
+        return response()->json(['success' => false, 'message' => 'Credenciais inválidas!'], 401);
+    }
+
+    private function getAuthenticateData(string $authenticate): string
+    {
+        if (strpos($authenticate, "@") != false) {
+            return 'EMAIL';
+        }
+
+        if (ctype_digit($authenticate)) {
+            return 'CPF';
+        }
+
+        return 'USUARIO';
     }
 }
