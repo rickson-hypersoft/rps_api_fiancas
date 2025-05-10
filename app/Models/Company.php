@@ -7,13 +7,13 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class Comapny extends Authenticatable
+class Company extends Authenticatable
 {
     protected $connection = 'firebird';
 
-    protected $table = 'empresas';
+    protected $table = 'EMPRESAS';
 
-    protected $primaryKey = 'id';
+    protected $primaryKey = 'ID';
 
     public $incrementing = false;
 
