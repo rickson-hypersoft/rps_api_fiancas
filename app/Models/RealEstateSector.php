@@ -11,13 +11,18 @@ class RealEstateSector extends Authenticatable
 {
     protected $connection = 'firebird';
 
-    protected $table = 'imobiliarias';
+    protected $table = 'IMOBILIARIAS';
 
-    protected $primaryKey = 'id';
+    protected $primaryKey = 'ID';
 
     public $incrementing = false;
 
     public $timestamps = false;
 
     protected $guarded = [];
+
+    public function setup()
+    {
+        return $this->hasOne(RealEstateSectorSetup::class, 'ID_IMOBILIARIA', 'ID');
+    }
 }

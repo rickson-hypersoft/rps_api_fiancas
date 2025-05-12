@@ -11,9 +11,9 @@ class RealEstateSectorSetup extends Authenticatable
 {
     protected $connection = 'firebird';
 
-    protected $table = 'imobiliarias_setup';
+    protected $table = 'IMOBILIARIAS_SETUP';
 
-    protected $primaryKey = 'id';
+    protected $primaryKey = 'ID';
 
     public $incrementing = false;
 
