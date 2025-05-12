@@ -10,15 +10,17 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class User extends Authenticatable implements JWTSubject
 {
-    protected $connection = 'firebird';
-
     protected $table = 'USUARIOS';
 
     protected $primaryKey = 'ID';
 
     public $incrementing = false;
 
+    protected $keyType = 'int';
+
     public $timestamps = false;
+
+    protected $connection = 'firebird';
 
     protected $guarded = [];
 
@@ -27,10 +29,10 @@ class User extends Authenticatable implements JWTSubject
         return $this->SENHA;
     }
 
-    public function getAuthIdentifierName()
-    {
-        return "EMAIL";
-    }
+    // public function getAuthIdentifierName()
+    // {
+    //     return "EMAIL";
+    // }
 
     public function getJWTIdentifier()
     {
@@ -40,7 +42,7 @@ class User extends Authenticatable implements JWTSubject
     /**
      * @return array<string, mixed>
      */
-    public function getJWTCustomClaims(): array
+    public function getJWTCustomClaims()
     {
         return [];
     }
