@@ -17,6 +17,7 @@ return new class () extends Migration
             $table->integer('ID')->primary();
             $table->string('RAZAO', 100)->nullable();
             $table->string('FANTASIA', 100)->nullable();
+            $table->string('CRECI', 50)->nullable();
             $table->string('CNPJ', 14)->nullable();
             $table->string('ENDERECO', 100)->nullable();
             $table->string('NUMERO', 30)->nullable();
