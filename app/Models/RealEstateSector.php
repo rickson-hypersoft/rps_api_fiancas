@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Models;
 
@@ -21,6 +21,9 @@ class RealEstateSector extends Authenticatable
 
     protected $guarded = [];
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
     public function setup()
     {
         return $this->hasOne(RealEstateSectorSetup::class, 'ID_IMOBILIARIA', 'ID');

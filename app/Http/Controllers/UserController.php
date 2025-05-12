@@ -17,7 +17,7 @@ class UserController extends Controller
     {
         $users = UserResource::collection(User::all());
 
-        return response()->json(['users' => $users]);
+        return response()->json(['data' => $users]);
     }
 
     public function store(Request $request): JsonResponse

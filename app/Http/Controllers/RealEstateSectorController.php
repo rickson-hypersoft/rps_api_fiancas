@@ -17,7 +17,7 @@ class RealEstateSectorController extends Controller
     {
         $realEstateSectors = RealEstateSector::with('setup')->get();
 
-        return response()->json(RealEstateSectorResource::collection($realEstateSectors));
+        return response()->json(["data" => RealEstateSectorResource::collection($realEstateSectors)]);
     }
 
     public function store(Request $request): JsonResponse

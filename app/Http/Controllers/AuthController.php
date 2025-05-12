@@ -21,7 +21,7 @@ class AuthController extends Controller
         ];
 
         if ($token = JWTAuth::attempt($credentials)) {
-            $user = auth()->user();
+            $user = auth('api')->user();
 
             $customClaims = [
                 'user_category'    => mb_convert_encoding($user->CATEGORIA, 'UTF-8', 'ISO-8859-1'),
