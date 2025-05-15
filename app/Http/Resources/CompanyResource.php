@@ -23,6 +23,7 @@ class CompanyResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
+            'id'            => $this->ID,
             'razao'         => $this->toUtf8($this->RAZAO),
             'fantasia'      => $this->toUtf8($this->FANTASIA),
             'cnpj'          => $this->formatCnpj($this->CNPJ),

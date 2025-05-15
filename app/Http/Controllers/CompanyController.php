@@ -9,6 +9,7 @@ use App\Models\Company;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class CompanyController extends Controller
 {
@@ -64,18 +65,24 @@ class CompanyController extends Controller
     {
         $company = Company::query()->where("ID", "=", $id)->firstOrFail();
 
-        $requestSanitize = $this->sanitizeData($request->all(), ['cep', 'telefone']);
+        $requestSanitize = $this->sanitizeData($request->all(), ['cnpj', 'cep', 'telefone']);
 
         $validator = Validator::make($requestSanitize, [
-            'razao'         => 'required|string|max:100',
-            'fantasia'      => 'required|string|max:100',
+            'razao'    => 'required|string|max:100',
+            'fantasia' => 'required|string|max:100',
+            'cnpj'     => [
+                'required',
+                'string',
+                'max:14',
+                Rule::unique('EMPRESAS', 'CNPJ')->ignore($id, 'ID'),
+            ],
             'endereco'      => 'nullable|string|max:100',
             'numero'        => 'nullable|string|max:30',
             'bairro'        => 'nullable|string|max:100',
             'cidade'        => 'nullable|string|max:100',
             'uf'            => 'nullable|string|max:2',
             'cep'           => 'nullable|string|max:10',
-            'complemento'   => 'nullable|string|100',
+            'complemento'   => 'nullable|string|max:100',
             'telefone'      => 'nullable|string|max:16',
             'contato'       => 'nullable|string|max:100',
             'cargo'         => 'nullable|string|max:100',

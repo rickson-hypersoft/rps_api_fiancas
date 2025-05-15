@@ -46,4 +46,9 @@ class User extends Authenticatable implements JWTSubject
     {
         return [];
     }
+
+    public function realEstatesSector()
+    {
+        return $this->hasOne(RealEstateSector::class, 'ID_IMOBILIARIA', 'ID');
+    }
 }

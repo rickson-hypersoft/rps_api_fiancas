@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Http\Resources;
 
@@ -24,6 +24,7 @@ class RealEstateSectorResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
+            'id'              => $this->ID,
             'razao'           => $this->toUtf8($this->RAZAO),
             'fantasia'        => $this->toUtf8($this->FANTASIA),
             'creci'           => $this->toUtf8($this->CRECI),
@@ -44,12 +45,7 @@ class RealEstateSectorResource extends JsonResource
             'taxa_padrao'     => $this->TAXA_PADRAO,
             'custo_saida'     => $this->CUSTO_SAIDA,
             'cobertura_total' => $this->COBERTURA_TOTAL,
-            'setup'           => $this->whenLoaded('setup', function () {
-                return [
-                    'taxa'  => $this->setup->TAXA ?? null,
-                    'ativo' => $this->setup->ATIVO ?? null,
-                ];
-            }),
+            'setup'           => SetupResource::collection($this->whenLoaded('setups')),
         ];
     }
 }
