@@ -22,7 +22,7 @@ class CompanyController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        $requestSanitize = $this->sanitizeData($request->all(), ['cnpj', 'cep', 'telefone']);
+        $requestSanitize = $this->sanitizeData($request->all(), ['cnpj', 'cep', 'telefone']) ?? [];
 
         $validator = Validator::make($requestSanitize, [
             'razao'         => 'required|string|max:100',
@@ -34,7 +34,7 @@ class CompanyController extends Controller
             'cidade'        => 'nullable|string|max:100',
             'uf'            => 'nullable|string|max:2',
             'cep'           => 'nullable|string|max:10',
-            'complemento'   => 'nullable|string|100',
+            'complemento'   => 'nullable|string|max:100',
             'telefone'      => 'nullable|string|max:16',
             'contato'       => 'nullable|string|max:100',
             'cargo'         => 'nullable|string|max:100',
@@ -49,8 +49,7 @@ class CompanyController extends Controller
             ], 422);
         }
 
-        $companies = $validator->validated();
-        $companies = $this->convertIsoAndTransformUpperCase($companies);
+        $companies = $this->convertIsoAndTransformUpperCase($validator->validated() ?? []);
 
         $company = Company::create($companies);
 
@@ -65,7 +64,7 @@ class CompanyController extends Controller
     {
         $company = Company::query()->where("ID", "=", $id)->firstOrFail();
 
-        $requestSanitize = $this->sanitizeData($request->all(), ['cnpj', 'cep', 'telefone']);
+        $requestSanitize = $this->sanitizeData($request->all(), ['cnpj', 'cep', 'telefone']) ?? [];
 
         $validator = Validator::make($requestSanitize, [
             'razao'    => 'required|string|max:100',
@@ -98,7 +97,7 @@ class CompanyController extends Controller
         }
 
         $companies = $validator->validated();
-        $companies = $this->convertIsoAndTransformUpperCase($companies);
+        $companies = $this->convertIsoAndTransformUpperCase($validator->validated() ?? []);
 
         $company->update($companies);
 

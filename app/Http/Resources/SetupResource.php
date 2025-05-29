@@ -17,8 +17,11 @@ class SetupResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'    => $this->ID,
-            'taxa'  => $this->TAXA,
+            'id'   => $this->ID,
+            'taxa' => $this->TAXA !== null
+                ? number_format(floatval($this->TAXA), 2, ',', '') . '%'
+                : null,
+
             'ativo' => $this->ATIVO,
         ];
     }

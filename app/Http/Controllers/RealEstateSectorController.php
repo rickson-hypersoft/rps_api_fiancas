@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Http\Controllers;
 
@@ -49,8 +49,10 @@ class RealEstateSectorController extends Controller
             return [
                 'id'             => $item->ID,
                 'id_imobiliaria' => $item->ID_IMOBILIARIA,
-                'taxa'           => $item->TAXA,
-                'ativo'          => $item->ATIVO,
+                'taxa'           => $item->TAXA !== null
+                    ? number_format(floatval($item->TAXA), 2, ',', '') . '%'
+                    : null,
+                'ativo' => $item->ATIVO,
             ];
         });
 
@@ -107,9 +109,6 @@ class RealEstateSectorController extends Controller
     public function update(int | string $id, Request $request): JsonResponse
     {
         $realEstateSector = RealEstateSector::query()->where("ID", "=", $id)->firstOrFail();
-
-
-
 
         $requestSanitize = $request->all();
         $requestSanitize = $this->sanitizeData($request->all(), ['telefone', 'cep']);

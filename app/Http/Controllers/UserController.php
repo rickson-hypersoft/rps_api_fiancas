@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Http\Controllers;
 
@@ -18,6 +18,19 @@ class UserController extends Controller
         $perPage = $request->get('per_page', 4);
 
         $users = User::orderBy('NOME', 'ASC')->paginate($perPage);
+
+        return UserResource::collection($users)
+            ->response()
+            ->setStatusCode(200);
+    }
+
+    public function indexUserRealEstateSector(string | int $idImobiliaria, Request $request): JsonResponse
+    {
+        $perPage = $request->get('per_page', 4);
+
+        $users = User::where('ID_IMOBILIARIA', $idImobiliaria)
+            ->orderBy('NOME', 'ASC')
+            ->paginate($perPage);
 
         return UserResource::collection($users)
             ->response()

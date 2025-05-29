@@ -2,21 +2,31 @@
 
 declare(strict_types = 1);
 
+use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\Financial\FinancialAccountController;
+use App\Http\Controllers\Financial\FinancialCategoryController;
+use App\Http\Controllers\Financial\FinancialMoviController;
 use App\Http\Controllers\RealEstateSectorController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('login', [AuthController::class, 'login']);
 
+Route::get('/teste', function () {
+    echo "Teste";
+});
+
 Route::middleware(['api.auth'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 
     Route::get('/users', [UserController::class, 'index']);
+    Route::get('/users/realEstateSector/{user}', [UserController::class, 'indexUserRealEstateSector']);
     Route::get('/users/{user}', [UserController::class, 'find']);
     Route::post('/users', [UserController::class, 'store']);
     Route::put('/users/{user}', [UserController::class, 'update']);
+
     Route::get('/companies', [CompanyController::class, 'index']);
     Route::post('/companies', [CompanyController::class, 'store']);
     Route::put('/companies/{company}', [CompanyController::class, 'update']);
@@ -30,4 +40,24 @@ Route::middleware(['api.auth'])->group(function () {
     Route::get('/realestatesectorsetup/{realestatesector}', [RealEstateSectorController::class, 'findSetup']);
     Route::post('/realestatesectorsetup/{realestatesector}', [RealEstateSectorController::class, 'storeSetup']);
     Route::put('/realestatesectorsetup/{realestatesector}', [RealEstateSectorController::class, 'updateSetup']);
+
+    Route::get('/financial/financial_account/{id}', [FinancialAccountController::class, 'index']);
+    Route::get('/financial/{financial_account}/financial_account/', [FinancialAccountController::class, 'find']);
+    Route::post('/financial/financial_account/', [FinancialAccountController::class, 'store']);
+    Route::put('/financial/financial_account/{financial_account}', [FinancialAccountController::class, 'update']);
+
+    Route::get('/financial/financial_category/{id}', [FinancialCategoryController::class, 'index']);
+    Route::get('/financial/{financial_category}/financial_category', [FinancialCategoryController::class, 'find']);
+    Route::post('/financial/financial_category', [FinancialCategoryController::class, 'store']);
+    Route::put('/financial/financial_category/{financial_category}', [FinancialCategoryController::class, 'update']);
+
+    Route::get('/financial/financial_movi', [FinancialMoviController::class, 'index']);
+    Route::get('/financial/financial_movi/{financial_movi}', [FinancialMoviController::class, 'find']);
+    Route::post('/financial/financial_movi', [FinancialMoviController::class, 'store']);
+    Route::put('/financial/financial_movi/{financial_movi}', [FinancialMoviController::class, 'update']);
+
+    Route::get('/financial/attachment', [AttachmentController::class, 'index']);
+    Route::get('/financial/attachment/{attachment}', [AttachmentController::class, 'find']);
+    Route::post('/financial/attachment', [AttachmentController::class, 'store']);
+    Route::put('/financial/attachment/{attachment}', [AttachmentController::class, 'update']);
 });

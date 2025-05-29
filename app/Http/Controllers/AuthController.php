@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Http\Controllers;
 
@@ -18,8 +18,18 @@ class AuthController extends Controller
 {
     public function login(Request $request): JsonResponse
     {
-        $loginData     = $this->sanitizeInput($request->input('login'));
+        $loginDataRaw  = $request->input('login');
         $loginPassword = $request->input('password');
+
+        if (! is_string($loginDataRaw)) {
+            return response()->json(['success' => false, 'message' => 'Login inválido!'], 422);
+        }
+
+        $loginData = $this->sanitizeInput($loginDataRaw);
+
+        if ($loginData === null) {
+            return response()->json(['success' => false, 'message' => 'Login inválido!'], 422);
+        }
 
         $credentials = [
             $this->getAuthenticateData($loginData) => utf8_decode($loginData),
@@ -29,22 +39,31 @@ class AuthController extends Controller
         if ($token = JWTAuth::attempt($credentials)) {
             $user = auth('api')->user();
 
+            if (! $user) {
+                return response()->json(['success' => false, 'message' => 'Usuário não autenticado!'], 401);
+            }
+
             $customClaims = [
-                'user_category'    => mb_convert_encoding($user->CATEGORIA, 'UTF-8', 'ISO-8859-1'),
-                'user_role'        => mb_convert_encoding($user->NIVEL, 'ISO-8859-1', 'UTF-8'),
-                'user_permissions' => mb_convert_encoding($user->PERMISSOES, 'ISO-8859-1', 'UTF-8'),
+                'user_category'    => is_string($user->CATEGORIA) ? mb_convert_encoding($user->CATEGORIA, 'UTF-8', 'ISO-8859-1') : null,
+                'user_role'        => is_string($user->NIVEL) ? mb_convert_encoding($user->NIVEL, 'ISO-8859-1', 'UTF-8') : null,
+                'user_permissions' => is_string($user->PERMISSOES) ? mb_convert_encoding($user->PERMISSOES, 'ISO-8859-1', 'UTF-8') : null,
             ];
 
             $token = JWTAuth::claims($customClaims)->attempt($credentials);
 
-            $company = Company::find(1);
-            $realEstateSector = RealEstateSector::find($user['id_imobiliaria']);
+            $company          = Company::find(1);
+            $realEstateSector = isset($user->ID_IMOBILIARIA)
+                ? RealEstateSector::find($user->ID_IMOBILIARIA)
+                : null;
+
+            $category = mb_convert_encoding($user->CATEGORIA, 'UTF-8', 'ISO-8859-1');
 
             return response()->json([
-                'token'   => $token,
-                'user'    => new UserResource($user),
-                'company' => new CompanyResource($company),
-                'realEstateSector' => $realEstateSector ? new RealEstateSectorResource($realEstateSector) : []
+                'token'                     => $token,
+                'user'                      => new UserResource($user),
+                'realEstateSectorOrCompany' => $category == 'Imobiliária' ?
+                    new RealEstateSectorResource($realEstateSector) :
+                    new CompanyResource($company),
             ]);
         }
 
@@ -54,7 +73,13 @@ class AuthController extends Controller
     public function logout(Request $request): JsonResponse
     {
         try {
-            JWTAuth::invalidate(JWTAuth::getToken());
+            $token = JWTAuth::getToken();
+
+            if (! $token) {
+                return response()->json(['success' => false, 'message' => 'Token inválido.'], 400);
+            }
+
+            JWTAuth::invalidate($token);
 
             return response()->json([
                 'success' => true,
