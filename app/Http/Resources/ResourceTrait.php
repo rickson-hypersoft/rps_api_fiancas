@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Http\Resources;
 
@@ -9,6 +9,27 @@ trait ResourceTrait
     private function toUtf8(?string $value): ?string
     {
         return is_string($value) ? mb_convert_encoding($value, 'UTF-8', 'ISO-8859-1') : $value;
+    }
+
+    private function formatCpfCnpj(?string $documento): ?string
+    {
+        if (! $documento) {
+            return $documento;
+        }
+
+        $documento = preg_replace('/\D/', '', $documento); // remove tudo que não é número
+
+        if (strlen($documento) === 11) {
+            // CPF
+            return preg_replace('/(\d{3})(\d{3})(\d{3})(\d{2})/', '$1.$2.$3-$4', $documento);
+        }
+
+        if (strlen($documento) === 14) {
+            // CNPJ
+            return preg_replace('/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/', '$1.$2.$3/$4-$5', $documento);
+        }
+
+        return $documento; // retorna como está se não for CPF nem CNPJ válido
     }
 
     private function formatCpf(?string $cpf): ?string

@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
@@ -50,7 +50,10 @@ class RealEstateSectorController extends Controller
                 'id'             => $item->ID,
                 'id_imobiliaria' => $item->ID_IMOBILIARIA,
                 'taxa'           => $item->TAXA !== null
-                    ? number_format(floatval($item->TAXA), 2, ',', '') . '%'
+                    ? 'R$ ' . number_format(floatval($item->TAXA), 2, ',', '') . ''
+                    : null,
+                'taxa_formatada'  => $item->TAXA > 0
+                    ? 'R$ ' . number_format(floatval($item->TAXA), 2, ',', '') . ' em até 3x de R$ ' . number_format(floatval($item->TAXA) / 3, 2, ',', '')
                     : null,
                 'ativo' => $item->ATIVO,
             ];

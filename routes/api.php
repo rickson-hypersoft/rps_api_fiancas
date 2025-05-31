@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\AuthController;
@@ -8,6 +8,7 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\Financial\FinancialAccountController;
 use App\Http\Controllers\Financial\FinancialCategoryController;
 use App\Http\Controllers\Financial\FinancialMoviController;
+use App\Http\Controllers\Propostal\PropostalController;
 use App\Http\Controllers\RealEstateSectorController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -60,4 +61,8 @@ Route::middleware(['api.auth'])->group(function () {
     Route::get('/financial/attachment/{attachment}', [AttachmentController::class, 'find']);
     Route::post('/financial/attachment', [AttachmentController::class, 'store']);
     Route::put('/financial/attachment/{attachment}', [AttachmentController::class, 'update']);
+
+    // Propostas
+    Route::get('/propostal/propostal/{propostal}', [PropostalController::class, 'find']);
+    Route::post('/propostal/propostal/create', [PropostalController::class, 'store']);
 });
