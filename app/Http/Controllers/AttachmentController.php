@@ -1,12 +1,13 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
 use App\Models\Attachment;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class AttachmentController extends Controller
@@ -28,11 +29,12 @@ class AttachmentController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'id_imobiliaria' => 'required|numeric',
-            'id_movi'        => 'required|numeric',
+            'id_imobiliaria' => 'nullable|numeric',
+            'id_movi'        => 'nullable|numeric',
             'movi'           => 'nullable|string|max:50',
             'movi_sub'       => 'nullable|string|max:50',
-            'data'           => 'required|timestamp',
+            'data'           => 'nullable',
+            'ext'            => 'nullable|string|max:4',
             'nome_arquivo'   => 'nullable|string|max:100',
             'descricao'      => 'nullable|string|max:100',
         ]);
@@ -56,8 +58,7 @@ class AttachmentController extends Controller
 
         return response()->json([
             "success" => true,
-            "message" => "Anexo criado com sucesso!",
-            "data"    => $attachment,
+            "message" => "Anexo criado com sucesso!"
         ], 201);
     }
 
@@ -71,6 +72,7 @@ class AttachmentController extends Controller
             'movi'           => 'nullable|string|max:50',
             'movi_sub'       => 'nullable|string|max:50',
             'data'           => 'required|timestamp',
+            'nome_arquivo_original' => 'required|string|max:100',
             'nome_arquivo'   => 'nullable|string|max:100',
             'descricao'      => 'nullable|string|max:100',
         ]);
@@ -97,5 +99,16 @@ class AttachmentController extends Controller
             "message" => "Anexo atualizado com sucesso!",
             "data"    => $attachment,
         ], 200);
+    }
+
+    public function exists(Request $request): JsonResponse
+    {
+        $exists = Attachment::where('ID_IMOBILIARIA', $request->id_imobiliaria)
+            ->where('ID_MOVI', $request->id_movi)
+            ->where('NOME_ARQUIVO_ORIGINAL', $request->nome_arquivo_original)
+            ->exists(); // aqui deve ser exists(), não get()
+
+
+        return response()->json(['exists' => $exists]);
     }
 }

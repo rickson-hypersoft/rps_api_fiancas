@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::connection('firebird')->table('PROPOSTAS', function (Blueprint $table) {
-            $table->string('UNIQUE_ID', 36)->nullable()->unique();
+            $table->date('DATA_NASCIMENTO')->nullable();
         });
     }
 
@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::connection('firebird')->table('PROPOSTAS', function (Blueprint $table) {
-            $table->dropColumn('UNIQUE_ID');
+        Schema::connection('firebird')->table('ANEXOS', function (Blueprint $table) {
+            $table->dropColumn('DATA_NASCIMENTO');
         });
     }
 };

@@ -58,6 +58,7 @@ Route::middleware(['api.auth'])->group(function () {
     Route::put('/financial/financial_movi/{financial_movi}', [FinancialMoviController::class, 'update']);
 
     Route::get('/financial/attachment', [AttachmentController::class, 'index']);
+    Route::get('/financial/attachment/exists', [AttachmentController::class, 'exists']);
     Route::get('/financial/attachment/{attachment}', [AttachmentController::class, 'find']);
     Route::post('/financial/attachment', [AttachmentController::class, 'store']);
     Route::put('/financial/attachment/{attachment}', [AttachmentController::class, 'update']);

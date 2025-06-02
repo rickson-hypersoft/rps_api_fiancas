@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Resources\Propostal;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Http\Resources\ResourceTrait;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -23,6 +24,8 @@ class PropostalResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $dataFormatada = Carbon::parse($this->DATA_NASCIMENTO)->format('d/m/Y');
+
         return [
             'id'                    => $this->ID,
             'id_imobiliaria'        => $this->ID_IMOBILIARIA,
@@ -71,8 +74,9 @@ class PropostalResource extends JsonResource
             'proposta_tipo_pagador' => $this->toUtf8($this->PROPOSTA_TIPO_PAGADOR),
             'proposta_status'       => $this->toUtf8($this->PROPOSTA_STATUS),
             'contrato_id'           => $this->CONTRATO_ID,
+            'data_nascimento'       => $dataFormatada,
             'contrato_status'       => $this->toUtf8($this->CONTRATO_STATUS),
-            'unique_id'             => $this->UNIQUE_ID
+            'endereco_completo'     => "{$this->toUtf8($this->IMOVEL_ENDERECO)}, {$this->toUtf8($this->IMOVEL_NUMERO)}, {$this->toUtf8($this->IMOVEL_BAIRRO)}, {$this->toUtf8($this->IMOVEL_CIDADE)} - {$this->toUtf8($this->IMOVEL_ESTADO)}"
         ];
     }
 }
