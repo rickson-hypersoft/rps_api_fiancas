@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Http\Controllers\Financial;
 
@@ -16,7 +16,9 @@ class FinancialCategoryController extends Controller
     public function index(Request $request, string | int $id): JsonResponse
     {
         $perPage           = $request->get('per_page', 5);
-        $financialCategory = FinancialCategory::where('ID_IMOBILIARIA', $id)->paginate($perPage);
+        $financialCategory = FinancialCategory::where('ID_IMOBILIARIA', $id)
+            ->orderBy('DESCRICAO', 'asc')
+            ->paginate($perPage);
 
         return FinancialCategoryResource::collection($financialCategory)->response()->setStatusCode(200);
     }

@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Http\Controllers\Financial;
 
@@ -16,7 +16,9 @@ class FinancialAccountController extends Controller
     public function index(Request $request, string | int $id): JsonResponse
     {
         $perPage           = $request->get('per_page', 5);
-        $financialAccounts = FinancialAccount::where('ID_IMOBILIARIA', $id)->paginate($perPage);
+        $financialAccounts = FinancialAccount::where('ID_IMOBILIARIA', $id)
+            ->orderBy('DESCRICAO', 'asc')
+            ->paginate($perPage);
 
         return FinancialAccountResource::collection($financialAccounts)
             ->response()
