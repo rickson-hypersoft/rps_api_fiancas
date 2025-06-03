@@ -103,4 +103,23 @@ class FinancialAccountController extends Controller
             "message" => "Conta financeira atualizada com sucesso!",
         ], 200);
     }
+
+    public function destroy(int | string $id): JsonResponse
+    {
+        $financialAccount = FinancialAccount::query()->where("ID", "=", $id)->first();
+
+        if (! $financialAccount) {
+            return response()->json([
+                "success" => false,
+                "message" => "Conta financeira não encontrada.",
+            ], 404);
+        }
+
+        $financialAccount->delete();
+
+        return response()->json([
+            "success" => true,
+            "message" => "Conta financeira deletada com sucesso.",
+        ], 200);
+    }
 }

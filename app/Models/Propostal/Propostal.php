@@ -1,10 +1,9 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Models\Propostal;
 
-use Illuminate\Support\Str;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Facades\DB;
 
@@ -28,7 +27,7 @@ class Propostal extends Authenticatable
 
         static::creating(function ($model) {
             if (empty($model->ID)) {
-                $novoId = DB::select("SELECT GEN_ID(GEN_PROPOSTAS_ID, 1) AS ID FROM RDB\$DATABASE");
+                $novoId    = DB::select("SELECT GEN_ID(GEN_PROPOSTAS_ID, 1) AS ID FROM RDB\$DATABASE");
                 $model->ID = $novoId[0]->ID;
             }
         });

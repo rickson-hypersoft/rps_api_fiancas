@@ -13,7 +13,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * @mixin \App\Models\Propostal\Propostal
  * @property \App\Models\Propostal\Propostal $resource
  */
-class PropostalResource extends JsonResource
+class PropostalIndexResource extends JsonResource
 {
     use ResourceTrait;
 
@@ -55,22 +55,32 @@ class PropostalResource extends JsonResource
                 'C'     => 'Comercial',
                 default => 'Tipo Desconhecido',
             },
-            'imovel_aluguel'          => $this->IMOVEL_ALUGUEL,
-            'imovel_condominio'       => $this->IMOVEL_CONDOMINIO,
-            'imovel_taxas'            => $this->IMOVEL_TAXAS,
-            'imovel_cep'              => $this->formatZipCode($this->IMOVEL_CEP),
-            'imovel_endereco'         => $this->toUtf8($this->IMOVEL_ENDERECO),
-            'imovel_bairro'           => $this->toUtf8($this->IMOVEL_BAIRRO),
-            'imovel_cidade'           => $this->toUtf8($this->IMOVEL_CIDADE),
-            'imovel_estado'           => $this->toUtf8($this->IMOVEL_ESTADO),
-            'imovel_numero'           => $this->toUtf8($this->IMOVEL_NUMERO),
-            'imovel_complemento'      => $this->toUtf8($this->IMOVEL_COMPLEMENTO),
-            'imovel_subtipo'          => $this->toUtf8($this->IMOVEL_SUBTIPO),
-            'imovel_tag'              => $this->toUtf8($this->IMOVEL_TAG),
-            'imovel_ramo_atv'         => $this->toUtf8($this->IMOVEL_RAMO_ATV),
-            'proposta_total_valor'    => $this->PROPOSTA_TOTAL_VALOR,
-            'proposta_total_parc'     => $this->PROPOSTA_TOTAL_PARC,
-            'proposta_setup_valor'    => $this->PROPOSTA_SETUP_VALOR,
+            'imovel_aluguel' => $this->IMOVEL_ALUGUEL !== null
+                ? 'R$ ' . number_format(floatval($this->IMOVEL_ALUGUEL, ), 2, ',', '')
+                : null,
+            'imovel_condominio' => $this->IMOVEL_CONDOMINIO !== null
+                ? 'R$ ' . number_format(floatval($this->IMOVEL_CONDOMINIO, ), 2, ',', '')
+                : null,
+            'imovel_taxas' => $this->IMOVEL_TAXAS !== null
+                ? 'R$ ' . number_format(floatval($this->IMOVEL_TAXAS, ), 2, ',', '')
+                : null,
+            'imovel_cep'           => $this->formatZipCode($this->IMOVEL_CEP),
+            'imovel_endereco'      => $this->toUtf8($this->IMOVEL_ENDERECO),
+            'imovel_bairro'        => $this->toUtf8($this->IMOVEL_BAIRRO),
+            'imovel_cidade'        => $this->toUtf8($this->IMOVEL_CIDADE),
+            'imovel_estado'        => $this->toUtf8($this->IMOVEL_ESTADO),
+            'imovel_numero'        => $this->toUtf8($this->IMOVEL_NUMERO),
+            'imovel_complemento'   => $this->toUtf8($this->IMOVEL_COMPLEMENTO),
+            'imovel_subtipo'       => $this->toUtf8($this->IMOVEL_SUBTIPO),
+            'imovel_tag'           => $this->toUtf8($this->IMOVEL_TAG),
+            'imovel_ramo_atv'      => $this->toUtf8($this->IMOVEL_RAMO_ATV),
+            'proposta_total_valor' => $this->PROPOSTA_TOTAL_VALOR !== null
+                ? 'R$ ' . number_format(floatval($this->PROPOSTA_TOTAL_VALOR, ), 2, ',', '')
+                : null,
+            'proposta_total_parc'  => $this->PROPOSTA_TOTAL_PARC,
+            'proposta_setup_valor' => $this->PROPOSTA_SETUP_VALOR !== null
+                ? 'R$ ' . number_format(floatval($this->PROPOSTA_SETUP_VALOR, ), 2, ',', '')
+                : null,
             'proposta_setup_parc'     => $this->PROPOSTA_SETUP_PARC,
             'proposta_tipo_pagador'   => $this->toUtf8($this->PROPOSTA_TIPO_PAGADOR),
             'proposta_status'         => $this->toUtf8($this->PROPOSTA_STATUS),

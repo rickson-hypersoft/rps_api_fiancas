@@ -87,4 +87,23 @@ class FinancialCategoryController extends Controller
             "message" => "Categoria financeira atualizada com sucesso!",
         ], 200);
     }
+
+    public function destroy(int | string $id): JsonResponse
+    {
+        $financialCategory = FinancialCategory::query()->where("ID", "=", $id)->first();
+
+        if (! $financialCategory) {
+            return response()->json([
+                "success" => false,
+                "message" => "Categoria financeira não encontrada.",
+            ], 404);
+        }
+
+        $financialCategory->delete();
+
+        return response()->json([
+            "success" => true,
+            "message" => "Categoria financeira deletada com sucesso.",
+        ], 200);
+    }
 }

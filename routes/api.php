@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\AuthController;
@@ -46,11 +46,13 @@ Route::middleware(['api.auth'])->group(function () {
     Route::get('/financial/{financial_account}/financial_account/', [FinancialAccountController::class, 'find']);
     Route::post('/financial/financial_account/', [FinancialAccountController::class, 'store']);
     Route::put('/financial/financial_account/{financial_account}', [FinancialAccountController::class, 'update']);
+    Route::delete('/financial/financial_account/{financial_account}', [FinancialAccountController::class, 'destroy']);
 
     Route::get('/financial/financial_category/{id}', [FinancialCategoryController::class, 'index']);
     Route::get('/financial/{financial_category}/financial_category', [FinancialCategoryController::class, 'find']);
     Route::post('/financial/financial_category', [FinancialCategoryController::class, 'store']);
     Route::put('/financial/financial_category/{financial_category}', [FinancialCategoryController::class, 'update']);
+    Route::delete('/financial/financial_category/{financial_category}', [FinancialCategoryController::class, 'delete']);
 
     Route::get('/financial/financial_movi', [FinancialMoviController::class, 'index']);
     Route::get('/financial/financial_movi/{financial_movi}', [FinancialMoviController::class, 'find']);
@@ -64,6 +66,8 @@ Route::middleware(['api.auth'])->group(function () {
     Route::put('/financial/attachment/{attachment}', [AttachmentController::class, 'update']);
 
     // Propostas
+    Route::get('/propostal/{idRealEstateSector}', [PropostalController::class, 'index']);
     Route::get('/propostal/propostal/{propostal}', [PropostalController::class, 'find']);
     Route::post('/propostal/propostal/create', [PropostalController::class, 'store']);
+    Route::post('/propostal/propostal/canceled/{id}', [PropostalController::class, 'canceled']);
 });

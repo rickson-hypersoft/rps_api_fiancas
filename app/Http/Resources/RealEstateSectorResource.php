@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Http\Resources;
 
@@ -45,9 +45,9 @@ class RealEstateSectorResource extends JsonResource
             'taxa_padrao'    => $this->TAXA_PADRAO !== null
                 ? number_format(floatval($this->TAXA_PADRAO), 2, ',', '')
                 : null,
-            'custo_saida' => $this->CUSTO_SAIDA,
+            'custo_saida'     => $this->CUSTO_SAIDA,
             'cobertura_total' => $this->COBERTURA_TOTAL,
-            'setup' => SetupResource::collection($this->whenLoaded('setups')),
+            'setup'           => SetupResource::collection($this->whenLoaded('setups')),
         ];
     }
 }

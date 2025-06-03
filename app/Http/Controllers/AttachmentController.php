@@ -1,13 +1,12 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Http\Controllers;
 
 use App\Models\Attachment;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class AttachmentController extends Controller
@@ -58,7 +57,7 @@ class AttachmentController extends Controller
 
         return response()->json([
             "success" => true,
-            "message" => "Anexo criado com sucesso!"
+            "message" => "Anexo criado com sucesso!",
         ], 201);
     }
 
@@ -67,14 +66,14 @@ class AttachmentController extends Controller
         $attachment = Attachment::query()->where("ID", "=", $id)->firstOrFail();
 
         $validator = Validator::make($request->all(), [
-            'id_imobiliaria' => 'required|numeric',
-            'id_movi'        => 'required|numeric',
-            'movi'           => 'nullable|string|max:50',
-            'movi_sub'       => 'nullable|string|max:50',
-            'data'           => 'required|timestamp',
+            'id_imobiliaria'        => 'required|numeric',
+            'id_movi'               => 'required|numeric',
+            'movi'                  => 'nullable|string|max:50',
+            'movi_sub'              => 'nullable|string|max:50',
+            'data'                  => 'required|timestamp',
             'nome_arquivo_original' => 'required|string|max:100',
-            'nome_arquivo'   => 'nullable|string|max:100',
-            'descricao'      => 'nullable|string|max:100',
+            'nome_arquivo'          => 'nullable|string|max:100',
+            'descricao'             => 'nullable|string|max:100',
         ]);
 
         if ($validator->fails()) {
@@ -107,7 +106,6 @@ class AttachmentController extends Controller
             ->where('ID_MOVI', $request->id_movi)
             ->where('NOME_ARQUIVO_ORIGINAL', $request->nome_arquivo_original)
             ->exists(); // aqui deve ser exists(), não get()
-
 
         return response()->json(['exists' => $exists]);
     }
