@@ -121,7 +121,7 @@ class RealEstateSectorController extends Controller
             'fantasia' => 'required|string|max:100',
             'creci'    => 'required|string|max:50',
             'cnpj'     => [
-                'required',
+                'nullable',
                 'string',
                 'max:14',
 

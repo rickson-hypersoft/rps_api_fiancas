@@ -74,6 +74,7 @@ class PropostalResource extends JsonResource
             'proposta_tipo_pagador' => $this->toUtf8($this->PROPOSTA_TIPO_PAGADOR),
             'proposta_status'       => $this->toUtf8($this->PROPOSTA_STATUS),
             'contrato_id'           => $this->CONTRATO_ID,
+            'proposta_credito_status'           => $this->PROPOSTA_CREDITO_STATUS,
             'data_nascimento'       => $dataFormatada,
             'contrato_status'       => $this->toUtf8($this->CONTRATO_STATUS),
             'endereco_completo'     => "{$this->toUtf8($this->IMOVEL_ENDERECO)}, {$this->toUtf8($this->IMOVEL_NUMERO)}, {$this->toUtf8($this->IMOVEL_BAIRRO)}, {$this->toUtf8($this->IMOVEL_CIDADE)} - {$this->toUtf8($this->IMOVEL_ESTADO)}"

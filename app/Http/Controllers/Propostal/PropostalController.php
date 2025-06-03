@@ -52,6 +52,7 @@ class PropostalController extends Controller
             'proposta_tipo_pagador'     => 'nullable|string|max:50',
             'data_nascimento'     => 'nullable|date',
             'proposta_status'     => 'nullable|string|max:50',
+            'proposta_credito_status'     => 'nullable|string|max:50',
             'contrato_status'     => 'nullable|string|max:50',
         ]);
 
