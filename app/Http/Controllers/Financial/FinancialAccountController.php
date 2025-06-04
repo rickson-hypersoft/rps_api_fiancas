@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Http\Controllers\Financial;
 
@@ -15,9 +15,17 @@ class FinancialAccountController extends Controller
 {
     public function index(Request $request, string | int $id): JsonResponse
     {
-        $perPage           = $request->get('per_page', 5);
-        $financialAccounts = FinancialAccount::where('ID_IMOBILIARIA', $id)
-            ->orderBy('DESCRICAO', 'asc')
+        $perPage = $request->get('per_page', 5);
+        $query   = FinancialAccount::where('ID_IMOBILIARIA', $id);
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('DESCRICAO', 'like', "%$search%");
+            });
+        }
+
+        $financialAccounts = $query->orderBy('DESCRICAO', 'asc')
             ->paginate($perPage);
 
         return FinancialAccountResource::collection($financialAccounts)
@@ -74,7 +82,7 @@ class FinancialAccountController extends Controller
         $financialAccount = FinancialAccount::query()->where("ID", "=", $id)->firstOrFail();
 
         $validator = Validator::make($request->all(), [
-            'id_imobiliaria'   => 'nullable|numeric',
+            'id_imobiliaria'   => 'required|numeric',
             'tipo_conta'       => 'nullable|string|max:50',
             'descricao'        => 'nullable|string|max:100',
             'banco_titular'    => 'nullable|string|max:100',

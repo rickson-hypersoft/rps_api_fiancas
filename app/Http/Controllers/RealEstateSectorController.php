@@ -18,8 +18,25 @@ class RealEstateSectorController extends Controller
     {
         $perPage = $request->get('per_page', 7);
 
-        $realEstateSectors = RealEstateSector::with('setups')
-            ->orderBy('RAZAO', 'ASC')->paginate($perPage);
+        $query = RealEstateSector::with('setups');
+
+        if ($request->filled('search')) {
+            $search = strtolower($request->input('search'));
+
+            // Se parecer com um CNPJ
+            if (preg_match('/^\d{14}$/', $search)) {
+                // não precisa de strtolower aqui, pois é só número
+                $search = substr($search, 0, 14);
+            }
+
+            $query->where(function ($q) use ($search) {
+                $q->whereRaw('LOWER(RAZAO) LIKE ?', ['%' . strtolower($search) . '%'])
+                    ->orWhereRaw('LOWER(FANTASIA) LIKE ?', ['%' . strtolower($search) . '%'])
+                    ->orWhereRaw('LOWER(CNPJ) LIKE ?', ['%' . strtolower($search) . '%']);
+            });
+        }
+
+        $realEstateSectors = $query->orderBy('RAZAO', 'ASC')->paginate($perPage);
 
         return RealEstateSectorResource::collection($realEstateSectors)
             ->response()
@@ -232,6 +249,29 @@ class RealEstateSectorController extends Controller
         return response()->json([
             "success" => true,
             "message" => "Configuração da Imobiliária atualizado com sucesso!",
+        ], 200);
+    }
+
+    public function destroy(string | int $id): JsonResponse
+    {
+        $realEstateSector = RealEstateSector::with('setups')->where('ID', $id)->first();
+
+        if (! $realEstateSector) {
+            return response()->json([
+                "success" => false,
+                "message" => "Imobiliária não encontrada.",
+            ], 404);
+        }
+
+        // Excluir os setups relacionados primeiro
+        $realEstateSector->setups()->delete();
+
+        // Agora exclui a imobiliária
+        $realEstateSector->delete();
+
+        return response()->json([
+            "success" => true,
+            "message" => "Imobiliária e suas configurações excluídas com sucesso!",
         ], 200);
     }
 }

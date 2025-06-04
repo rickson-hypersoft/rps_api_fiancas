@@ -27,6 +27,7 @@ Route::middleware(['api.auth'])->group(function () {
     Route::get('/users/{user}', [UserController::class, 'find']);
     Route::post('/users', [UserController::class, 'store']);
     Route::put('/users/{user}', [UserController::class, 'update']);
+    Route::delete('/users/{user}', [UserController::class, 'destroy']);
 
     Route::get('/companies', [CompanyController::class, 'index']);
     Route::post('/companies', [CompanyController::class, 'store']);
@@ -37,6 +38,7 @@ Route::middleware(['api.auth'])->group(function () {
     Route::get('/realestatesector/{realestate}', [RealEstateSectorController::class, 'find']);
     Route::post('/realestatesector', [RealEstateSectorController::class, 'store']);
     Route::put('/realestatesector/{realestatesector}', [RealEstateSectorController::class, 'update']);
+    Route::delete('/realestatesector/{realestatesector}', [RealEstateSectorController::class, 'destroy']);
 
     Route::get('/realestatesectorsetup/{realestatesector}', [RealEstateSectorController::class, 'findSetup']);
     Route::post('/realestatesectorsetup/{realestatesector}', [RealEstateSectorController::class, 'storeSetup']);
@@ -52,7 +54,7 @@ Route::middleware(['api.auth'])->group(function () {
     Route::get('/financial/{financial_category}/financial_category', [FinancialCategoryController::class, 'find']);
     Route::post('/financial/financial_category', [FinancialCategoryController::class, 'store']);
     Route::put('/financial/financial_category/{financial_category}', [FinancialCategoryController::class, 'update']);
-    Route::delete('/financial/financial_category/{financial_category}', [FinancialCategoryController::class, 'delete']);
+    Route::delete('/financial/financial_category/{financial_category}', [FinancialCategoryController::class, 'destroy']);
 
     Route::get('/financial/financial_movi', [FinancialMoviController::class, 'index']);
     Route::get('/financial/financial_movi/{financial_movi}', [FinancialMoviController::class, 'find']);

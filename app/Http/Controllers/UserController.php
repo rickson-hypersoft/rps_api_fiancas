@@ -15,9 +15,19 @@ class UserController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $perPage = $request->get('per_page', 4);
+        $perPage = $request->get('per_page', 7);
+        $query   = User::orderBy('NOME', 'ASC');
 
-        $users = User::orderBy('NOME', 'ASC')->paginate($perPage);
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->whereRaw('LOWER(NOME) LIKE ?', ['%' . strtolower($search) . '%'])
+                    ->orWhereRaw('LOWER(USUARIO) LIKE ?', ['%' . strtolower($search) . '%'])
+                    ->orWhereRaw('LOWER(CPF) LIKE ?', ['%' . strtolower($search) . '%']);
+            });
+        }
+
+        $users = $query->paginate($perPage);
 
         return UserResource::collection($users)
             ->response()
@@ -26,10 +36,20 @@ class UserController extends Controller
 
     public function indexUserRealEstateSector(string | int $idImobiliaria, Request $request): JsonResponse
     {
-        $perPage = $request->get('per_page', 4);
+        $perPage = $request->get('per_page', 7);
 
-        $users = User::where('ID_IMOBILIARIA', $idImobiliaria)
-            ->orderBy('NOME', 'ASC')
+        $query = User::where('ID_IMOBILIARIA', $idImobiliaria);
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->whereRaw('LOWER(NOME) LIKE ?', ['%' . strtolower($search) . '%'])
+                    ->orWhereRaw('LOWER(USUARIO) LIKE ?', ['%' . strtolower($search) . '%'])
+                    ->orWhereRaw('LOWER(CPF) LIKE ?', ['%' . strtolower($search) . '%']);
+            });
+        }
+
+        $users = $query->orderBy('NOME', 'ASC')
             ->paginate($perPage);
 
         return UserResource::collection($users)
@@ -131,6 +151,25 @@ class UserController extends Controller
             "success" => true,
             "message" => "Usuário atualizado com sucesso!",
             "data"    => new UserResource($user),
+        ], 200);
+    }
+
+    public function destroy(int | string $id): JsonResponse
+    {
+        $user = User::query()->where("ID", "=", $id)->first();
+
+        if (! $user) {
+            return response()->json([
+                "success" => false,
+                "message" => "Usuário não encontrada.",
+            ], 404);
+        }
+
+        $user->delete();
+
+        return response()->json([
+            "success" => true,
+            "message" => "Usuário deletado com sucesso.",
         ], 200);
     }
 }

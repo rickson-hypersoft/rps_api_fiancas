@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Http\Controllers\Financial;
 
@@ -15,9 +15,17 @@ class FinancialCategoryController extends Controller
 {
     public function index(Request $request, string | int $id): JsonResponse
     {
-        $perPage           = $request->get('per_page', 5);
-        $financialCategory = FinancialCategory::where('ID_IMOBILIARIA', $id)
-            ->orderBy('DESCRICAO', 'asc')
+        $perPage = $request->get('per_page', 5);
+        $query   = FinancialCategory::where('ID_IMOBILIARIA', $id);
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('DESCRICAO', 'like', "%$search%");
+            });
+        }
+
+        $financialCategory = $query->orderBy('DESCRICAO', 'asc')
             ->paginate($perPage);
 
         return FinancialCategoryResource::collection($financialCategory)->response()->setStatusCode(200);
