@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Http\Controllers\Financial;
 
@@ -77,11 +77,12 @@ class FinancialAccountController extends Controller
         ], 201);
     }
 
-    public function update(int | string $id, Request $request): JsonResponse
+    public function update(int|string $id, Request $request): JsonResponse
     {
-        $financialAccount = FinancialAccount::query()->where("ID", "=", $id)->firstOrFail();
+        $financialAccount = FinancialAccount::findOrFail($id);
 
-        $validator = Validator::make($request->all(), [
+        // Use o helper validate para simplificar
+        $data = $request->validate([
             'id_imobiliaria'   => 'required|numeric',
             'tipo_conta'       => 'nullable|string|max:50',
             'descricao'        => 'nullable|string|max:100',
@@ -95,22 +96,14 @@ class FinancialAccountController extends Controller
             'ativo'            => 'nullable|numeric|between:0,1',
         ]);
 
-        if ($validator->failed()) {
-            return response()->json([
-                "success" => false,
-                "message" => $validator->errors(),
-            ], 422);
-        }
+        // (opcional) transforme campos aqui
+        $data = $this->convertIsoAndTransformUpperCase($data);
 
-        $financialAccountData = $validator->validated();
-
-        $financialAccountData = $this->convertIsoAndTransformUpperCase($financialAccountData);
-
-        $financialAccount->update($financialAccountData);
+        $financialAccount->update($data);
 
         return response()->json([
-            "success" => true,
-            "message" => "Conta financeira atualizada com sucesso!",
+            'success' => true,
+            'message' => 'Conta financeira atualizada com sucesso!',
         ], 200);
     }
 

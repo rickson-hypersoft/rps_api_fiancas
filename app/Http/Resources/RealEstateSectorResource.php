@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Http\Resources;
 
@@ -48,6 +48,7 @@ class RealEstateSectorResource extends JsonResource
             'custo_saida'     => $this->CUSTO_SAIDA,
             'cobertura_total' => $this->COBERTURA_TOTAL,
             'setup'           => SetupResource::collection($this->whenLoaded('setups')),
+            'ativo' => $this->ATIVO
         ];
     }
 }

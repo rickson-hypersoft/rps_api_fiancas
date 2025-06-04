@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
@@ -159,6 +159,7 @@ class RealEstateSectorController extends Controller
             'taxa_padrao'     => 'nullable|numeric|between:0,9999999.99',
             'custo_saida'     => 'nullable|numeric|between:0,9999999.99',
             'cobertura_total' => 'nullable|numeric|between:0,9999999.99',
+            'ativo'            => 'nullable|numeric|between:0,1',
         ]);
 
         if ($validator->failed()) {
