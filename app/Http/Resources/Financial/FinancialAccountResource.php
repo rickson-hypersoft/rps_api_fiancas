@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Http\Resources\Financial;
 
@@ -9,9 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @mixin \App\Models\RealEstateSector
- * @property \App\Models\RealEstateSector $resource
- * @property-read \App\Models\Setup|null $setup
+ * @mixin \App\Models\FinancialAccount
+ * @property \App\Models\FinancialAccount $resource
  */
 class FinancialAccountResource extends JsonResource
 {

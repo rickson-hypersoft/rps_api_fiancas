@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Http\Controllers\Propostal;
 
@@ -8,12 +8,13 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Propostal\PropostalIndexResource;
 use App\Http\Resources\Propostal\PropostalResource;
 use App\Models\Propostal\Propostal;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class PropostalController extends Controller
 {
-    public function index(Request $request, int | string $idRealEstateSector)
+    public function index(Request $request, int | string $idRealEstateSector): JsonResponse
     {
         $query = Propostal::where('ID_IMOBILIARIA', '=', $idRealEstateSector);
 
@@ -40,7 +41,7 @@ class PropostalController extends Controller
         return response()->json(['data' => PropostalIndexResource::collection($propostals)]);
     }
 
-    public function find(string | int $id)
+    public function find(string | int $id): JsonResponse
     {
         $propostal = Propostal::where('ID', '=', $id)->first();
         $propostal = new PropostalResource($propostal);
@@ -48,7 +49,7 @@ class PropostalController extends Controller
         return response()->json($propostal);
     }
 
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
         $requestSanitize = $this->sanitizeData($request->all(), ['pessoa_doc', 'imovel_cep']) ?? [];
 
@@ -118,7 +119,7 @@ class PropostalController extends Controller
         ], 201);
     }
 
-    public function canceled(Request $request, string | int $id)
+    public function canceled(Request $request, string | int $id): JsonResponse
     {
         $propostal = Propostal::query()->where("ID", "=", $id)->firstOrFail();
 

@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Http\Resources;
 
@@ -10,7 +10,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 /**
  * @mixin \App\Models\RealEstateSector
  * @property \App\Models\RealEstateSector $resource
- * @property-read \App\Models\Setup|null $setup
+ * @property-read \App\Models\RealEstateSectorSetup|null $setup
  */
 class RealEstateSectorResource extends JsonResource
 {

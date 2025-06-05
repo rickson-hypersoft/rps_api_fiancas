@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
@@ -79,7 +79,7 @@ class AuthController extends Controller
                 return response()->json(['success' => false, 'message' => 'Token inválido.'], 400);
             }
 
-            JWTAuth::invalidate($token);
+            JWTAuth::invalidate();
 
             return response()->json([
                 'success' => true,

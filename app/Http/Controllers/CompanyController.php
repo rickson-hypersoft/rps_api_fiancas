@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
@@ -49,7 +49,7 @@ class CompanyController extends Controller
             ], 422);
         }
 
-        $companies = $this->convertIsoAndTransformUpperCase($validator->validated() ?? []);
+        $companies = $this->convertIsoAndTransformUpperCase($validator->validated());
 
         $company = Company::create($companies);
 
@@ -97,7 +97,7 @@ class CompanyController extends Controller
         }
 
         $companies = $validator->validated();
-        $companies = $this->convertIsoAndTransformUpperCase($validator->validated() ?? []);
+        $companies = $this->convertIsoAndTransformUpperCase($validator->validated());
 
         $company->update($companies);
 

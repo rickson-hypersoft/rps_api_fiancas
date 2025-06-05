@@ -1,10 +1,11 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class RealEstateSector extends Authenticatable
@@ -22,9 +23,9 @@ class RealEstateSector extends Authenticatable
     protected $guarded = [];
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @phpstan-return HasMany<RealEstateSectorSetup, RealEstateSector>
      */
-    public function setups()
+    public function setups(): HasMany
     {
         return $this->hasMany(RealEstateSectorSetup::class, 'ID_IMOBILIARIA', 'ID');
     }
