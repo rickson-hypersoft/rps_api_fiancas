@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Http\Controllers\Financial;
 
@@ -77,7 +77,7 @@ class FinancialAccountController extends Controller
         ], 201);
     }
 
-    public function update(int|string $id, Request $request): JsonResponse
+    public function update(int | string $id, Request $request): JsonResponse
     {
         $financialAccount = FinancialAccount::findOrFail($id);
 
