@@ -22,7 +22,8 @@ class PropostalController extends Controller
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('ID', 'like', "%$search%")
-                    ->orWhere('PESSOA_NOME', 'like', "%$search%")
+                    ->orWhereRaw('LOWER(PESSOA_NOME) LIKE ?', ['%' . strtolower($search) . '%'])
+                    ->orWhereRaw('LOWER(PESSOA_FANTASIA) LIKE ?', ['%' . strtolower($search) . '%'])
                     ->orWhere('PESSOA_DOC', 'like', "%$search%")
                     ->orWhere('IMOVEL_TAG', 'like', "%$search%");
             });
@@ -43,9 +44,8 @@ class PropostalController extends Controller
 
     public function find(string | int $id): JsonResponse
     {
-        $propostal = Propostal::where('ID', '=', $id)->first();
-        $propostal = new PropostalResource($propostal);
-
+        $propostal = Propostal::where('ID', '=', $id)->firstOrFail();
+        $propostal = new PropostalIndexResource($propostal);
         return response()->json($propostal);
     }
 
@@ -84,6 +84,10 @@ class PropostalController extends Controller
             'proposta_credito_status' => 'nullable|string|max:50',
             'contrato_status'         => 'nullable|string|max:50',
             'observacao'              => 'nullable|string|max:2000',
+            'data'                    => 'nullable|date',
+            'hora'                    => 'nullable',
+            'data_ultima_atualizacao' => 'nullable|date',
+            'hora_ultima_atualizacao' => 'nullable',
         ]);
 
         if ($validator->fails()) {
@@ -93,9 +97,7 @@ class PropostalController extends Controller
             ], 422);
         }
 
-        $propostalData         = $validator->validated();
-        $propostalData['data'] = date('Y-m-d');
-        $propostalData['hora'] = date('H:i:s');
+        $propostalData = $validator->validated();
 
         if (isset($requestSanitize['id'])) {
             if ($requestSanitize['id'] != "null") {

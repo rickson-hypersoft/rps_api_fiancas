@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Http\Resources\Financial;
 
@@ -29,9 +29,9 @@ class FinancialCategoryResource extends JsonResource
             'descricao'      => $this->toUtf8($this->DESCRICAO),
             'sistema'        => $this->SISTEMA,
             'tipo'           => match ($this->TIPO) {
-                'C' => 'Crédito',
-                'D' => 'Débito',
-                'E' => 'Escolher',
+                'C'     => 'Crédito',
+                'D'     => 'Débito',
+                'E'     => 'Escolher',
                 default => 'Desconhecido',
             },
             'ativo' => $this->ATIVO,
