@@ -131,7 +131,7 @@ class UserController extends Controller
             'nivel'          => 'nullable|string|max:50',
             'categoria'      => 'nullable|string|max:50',
             'id_imobiliaria' => 'nullable|numeric',
-            'ativo'          => 'nullable|numeric',
+            'ativo'          => 'nullable|numeric|between:0,1',
             'permissoes'     => 'nullable|string|max:2000',
         ]);
 
