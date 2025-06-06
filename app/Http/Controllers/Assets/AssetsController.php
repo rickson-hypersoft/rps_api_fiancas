@@ -22,4 +22,14 @@ class AssetsController extends Controller
 
         return response()->json(['data' => $propostal]);
     }
+
+    public function faceId(Request $request, string $linkHash)
+    {
+        $asset = Propostal::where('LINK_HASH', '=', $linkHash)->firstOrFail();
+        $faceId = ['FACIAL' => 1];
+
+        $asset->update($faceId);
+
+        return response()->json("Facial atualizda");
+    }
 }

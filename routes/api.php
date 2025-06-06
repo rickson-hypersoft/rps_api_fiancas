@@ -82,4 +82,5 @@ Route::middleware(['api.auth'])->group(function () {
 
     // Contratos
     Route::get('/assets/active/{link_hash}', [AssetsController::class, 'active']);
+    Route::get('/assets/faceId/{link_hash}', [AssetsController::class, 'faceId']);
 });
