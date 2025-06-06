@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Http\Controllers\Propostal;
 
@@ -10,6 +10,7 @@ use App\Http\Resources\Propostal\PropostalResource;
 use App\Models\Propostal\Propostal;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 class PropostalController extends Controller
@@ -132,7 +133,6 @@ class PropostalController extends Controller
             'proposta_status'         => 'nullable|string|max:50',
             'proposta_credito_status' => 'nullable|string|max:50',
             'contrato_status'         => 'nullable|string|max:50',
-            'observacao'              => 'nullable|string|max:2000',
         ]);
 
         if ($validator->fails()) {
@@ -160,5 +160,17 @@ class PropostalController extends Controller
             "success" => true,
             "message" => "Proposta cancelada com sucesso!",
         ], 200);
+    }
+
+    public function hashLink(string|int $id): JsonResponse
+    {
+        $propostal = Propostal::query()->where("ID", "=", $id)->firstOrFail();
+        $propostalData = ['LINK_HASH' => substr(hash('sha1', $id . config('app.key')), 0, 12)];
+        $propostal->update($propostalData);
+
+        return response()->json([
+            "success" => true,
+            "message" => "Hash feito com sucesso!",
+        ], 201);
     }
 }

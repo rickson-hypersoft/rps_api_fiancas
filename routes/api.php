@@ -1,7 +1,8 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
+use App\Http\Controllers\Assets\AssetsController;
 use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompanyController;
@@ -73,8 +74,12 @@ Route::middleware(['api.auth'])->group(function () {
     Route::get('/propostal/{propostal}', [PropostalController::class, 'find']);
     Route::post('/propostal/create', [PropostalController::class, 'store']);
     Route::post('/propostal/canceled/{id}', [PropostalController::class, 'canceled']);
+    Route::post('/propostal/hash/{id}', [PropostalController::class, 'hashLink']);
 
     // Histórico
     Route::post('/history/create', [HistoryController::class, 'store']);
     Route::get('/histories/{id_movi}', [HistoryController::class, 'index']);
+
+    // Contratos
+    Route::get('/assets/active/{link_hash}', [AssetsController::class, 'active']);
 });
