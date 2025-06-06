@@ -8,6 +8,7 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\Financial\FinancialAccountController;
 use App\Http\Controllers\Financial\FinancialCategoryController;
 use App\Http\Controllers\Financial\FinancialMoviController;
+use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\Propostal\PropostalController;
 use App\Http\Controllers\RealEstateSectorController;
 use App\Http\Controllers\UserController;
@@ -68,8 +69,12 @@ Route::middleware(['api.auth'])->group(function () {
     Route::put('/financial/attachment/{attachment}', [AttachmentController::class, 'update']);
 
     // Propostas
-    Route::get('/propostal/{idRealEstateSector}', [PropostalController::class, 'index']);
-    Route::get('/propostal/propostal/{propostal}', [PropostalController::class, 'find']);
-    Route::post('/propostal/propostal/create', [PropostalController::class, 'store']);
-    Route::post('/propostal/propostal/canceled/{id}', [PropostalController::class, 'canceled']);
+    Route::get('/propostals/{idRealEstateSector}', [PropostalController::class, 'index']);
+    Route::get('/propostal/{propostal}', [PropostalController::class, 'find']);
+    Route::post('/propostal/create', [PropostalController::class, 'store']);
+    Route::post('/propostal/canceled/{id}', [PropostalController::class, 'canceled']);
+
+    // Histórico
+    Route::post('/history/create', [HistoryController::class, 'store']);
+    Route::get('/histories/{id_movi}', [HistoryController::class, 'index']);
 });

@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Http\Controllers\Propostal;
 
@@ -46,6 +46,7 @@ class PropostalController extends Controller
     {
         $propostal = Propostal::where('ID', '=', $id)->firstOrFail();
         $propostal = new PropostalIndexResource($propostal);
+
         return response()->json($propostal);
     }
 

@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Http\Resources\Propostal;
 
@@ -24,18 +24,18 @@ class PropostalResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $dataNascimentoFormatada = Carbon::parse($this->DATA_NASCIMENTO)->format('d/m/Y');
-        $dataFormatada           = Carbon::parse($this->DATA)->format('d/m/Y');
-        $dataUltimaAtualizacaoFormatada           = Carbon::parse($this->DATA_ULTIMA_ATUALIZACAO)->format('d/m/Y');
+        $dataNascimentoFormatada        = Carbon::parse($this->DATA_NASCIMENTO)->format('d/m/Y');
+        $dataFormatada                  = Carbon::parse($this->DATA)->format('d/m/Y');
+        $dataUltimaAtualizacaoFormatada = Carbon::parse($this->DATA_ULTIMA_ATUALIZACAO)->format('d/m/Y');
 
         return [
-            'id'             => $this->ID,
-            'id_imobiliaria' => $this->ID_IMOBILIARIA,
-            'data'           => $dataFormatada,
-            'hora'           => $this->HORA,
-            'data_ultima_atualizacao'           => $dataUltimaAtualizacaoFormatada,
-            'hora_ultima_atualizacao'           => $this->HORA_ULTIMA_ATUALIZACAO,
-            'pessoa_tipo'    => match ($this->PESSOA_TIPO) {
+            'id'                      => $this->ID,
+            'id_imobiliaria'          => $this->ID_IMOBILIARIA,
+            'data'                    => $dataFormatada,
+            'hora'                    => $this->HORA,
+            'data_ultima_atualizacao' => $dataUltimaAtualizacaoFormatada,
+            'hora_ultima_atualizacao' => $this->HORA_ULTIMA_ATUALIZACAO,
+            'pessoa_tipo'             => match ($this->PESSOA_TIPO) {
                 'pf'    => 'Pessoa Física',
                 'pj'    => 'Pessoa Jurídica',
                 default => 'Tipo Desconhecido',
