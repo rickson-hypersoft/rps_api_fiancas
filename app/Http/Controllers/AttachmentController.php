@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
@@ -28,14 +28,14 @@ class AttachmentController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'id_imobiliaria' => 'nullable|numeric',
-            'id_movi'        => 'nullable|numeric',
-            'movi'           => 'nullable|string|max:50',
-            'movi_sub'       => 'nullable|string|max:50',
-            'data'           => 'nullable',
-            'ext'            => 'nullable|string|max:4',
-            'nome_arquivo'   => 'nullable|string|max:100',
-            'descricao'      => 'nullable|string|max:100',
+            'id_imobiliaria'        => 'required|numeric',
+            'id_movi'               => 'required|numeric',
+            'movi'                  => 'nullable|string|max:50',
+            'movi_sub'              => 'nullable|string|max:50',
+            'data'                  => 'required|timestamp',
+            'nome_arquivo_original' => 'required|string|max:100',
+            'nome_arquivo'          => 'nullable|string|max:100',
+            'descricao'             => 'nullable|string|max:100',
         ]);
 
         if ($validator->fails()) {

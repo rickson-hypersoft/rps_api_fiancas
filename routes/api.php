@@ -1,20 +1,21 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
-use App\Http\Controllers\Assets\AssetsController;
-use App\Http\Controllers\AttachmentController;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\CompanyController;
-use App\Http\Controllers\Financial\FinancialAccountController;
-use App\Http\Controllers\Financial\FinancialCategoryController;
-use App\Http\Controllers\Financial\FinancialMoviController;
-use App\Http\Controllers\HistoryController;
-use App\Http\Controllers\Propostal\PropostalController;
-use App\Http\Controllers\PropostalPayments\PaymentsController;
-use App\Http\Controllers\RealEstateSectorController;
-use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\HistoryController;
+use App\Http\Controllers\AttachmentController;
+use App\Http\Controllers\Assets\AssetsController;
+use App\Http\Controllers\RealEstateSectorController;
+use App\Http\Controllers\Propostal\PropostalController;
+use App\Http\Controllers\Financial\FinancialMoviController;
+use App\Http\Controllers\Financial\FinancialAccountController;
+use App\Http\Controllers\PropostalPayments\PaymentsController;
+use App\Http\Controllers\Financial\FinancialCategoryController;
+use App\Http\Controllers\PropostalPayments\PaymentAsaasController;
 
 Route::post('login', [AuthController::class, 'login']);
 
@@ -84,9 +85,9 @@ Route::middleware(['api.auth'])->group(function () {
     // Contratos
     Route::get('/assets/active/{link_hash}', [AssetsController::class, 'active']);
     Route::get('/assets/faceId/{link_hash}', [AssetsController::class, 'faceId']);
-    Route::post('/assets/checkout/{link_hash}', [AssetsController::class, 'checkout']);
 
     // Pagamentos
-    Route::get('/propostal/payment/{id_movi}', [PaymentsController::class, 'index']);
-    Route::post('/propostal/payment/{id_movi}', [PaymentsController::class, 'store'])->name('propostal_payment.store');
+    Route::post('/payment/checkout/{link_hash}', [PaymentAsaasController::class, 'checkout']);
+    Route::get('/payment/{id_movi}', [PaymentsController::class, 'index']);
+    Route::post('/payment/{id_movi}', [PaymentsController::class, 'store'])->name('propostal_payment.store');
 });

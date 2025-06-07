@@ -1,11 +1,12 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
 use App\Http\Resources\HistoryResource;
 use App\Models\History;
+use DateTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -22,11 +23,16 @@ class HistoryController extends Controller
 
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $dataRequest  = $request->all();
+        $dataFormatada = DateTime::createFromFormat('Y-m-d H:i:s', $dataRequest['data']);
+        $dataRequest['data'] = $dataFormatada->format('Y-m-d');
+
+        $validator = Validator::make($dataRequest, [
             'id_imobiliaria' => 'required|numeric',
             'id_movi'        => 'required|numeric',
             'movi'           => 'required|string|max:50',
             'data'           => 'required|date',
+            'hora'           => 'required',
             'historico'      => 'required|string|max:2000',
             'id_usuario'     => 'required|numeric',
         ]);
@@ -44,7 +50,7 @@ class HistoryController extends Controller
         $existing = History::where('ID_IMOBILIARIA', $historyData['ID_IMOBILIARIA'])
             ->where('ID_MOVI', $historyData['ID_MOVI'])
             ->where('MOVI', $historyData['MOVI'])
-            ->where('DATA', $historyData['DATA'])
+            ->where('HISTORICO', $historyData['HISTORICO'])
             ->where('ID_USUARIO', $historyData['ID_USUARIO'])
             ->first();
 
@@ -66,7 +72,5 @@ class HistoryController extends Controller
         ], 201);
     }
 
-    public function update()
-    {
-    }
+    public function update() {}
 }

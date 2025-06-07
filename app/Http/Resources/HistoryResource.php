@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Http\Resources;
 
@@ -19,14 +19,13 @@ class HistoryResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $data = Carbon::parse($this->DATA)->format('d/m/Y H:i');
-
         return [
             'id'             => $this->ID,
             'id_imobiliaria' => $this->ID_IMOBILIARIA,
             'id_movi'        => $this->ID_MOVI,
             'movi'           => $this->toUtf8($this->MOVI),
-            'data'           => $data,
+            'data'           => $this->DATA,
+            'hora'           => $this->HORA,
             'historico'      => $this->toUtf8($this->HISTORICO),
             'id_usuario'     => $this->ID_USUARIO,
         ];
