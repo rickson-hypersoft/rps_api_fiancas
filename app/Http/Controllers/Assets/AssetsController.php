@@ -11,6 +11,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
+use App\Models\Propostal\PropostalPayments;
 use App\Http\Resources\Propostal\PropostalIndexResource;
 
 class AssetsController extends Controller
@@ -68,7 +69,7 @@ class AssetsController extends Controller
                 return response()->json([
                     'success' => false,
                     'error' => 'Erro ao criar cliente no Asaas.',
-                    'details' => $response->json()
+                    'details' => $response
                 ], $response->status());
             }
 
@@ -111,6 +112,42 @@ class AssetsController extends Controller
             'value'       => $data['data']['PROPOSTA_TOTAL_VALOR'],
             'dueDate'    => date('Y-m-d')
         ];
+
+        $query = Propostal::where('LINK_HASH', '=', $linkHash)->firstOrFail();
+        $propostal = new PropostalIndexResource($query);
+
+        $pagamentos = [
+            "ID_IMOBILIARIA" => $propostal['ID_IMOBILIARIA'],
+            "ID_MOVI"  => $propostal['ID'],
+            "ID_INTEGRACAO"  => $idIntegracao,
+            "METODO_PAGAMENTO"  => $paymentMethod,
+            "VALOR"  => $propostal['ID_IMOBILIARIA'],
+            "STATUS"  => $propostal['ID_IMOBILIARIA'],
+            "ID_USUARIO" => null,
+            "DATA" => date('Y-m-d'),
+            "HORA" => date('H:i:s'),
+        ];
+
+        // Inserir na tabela propostas pagamentos
+        $payment = PropostalPayments::create($pagamentos);
+        dd($payment);
+
+        if ($responsePagamentos->successful()) {
+            // Tudo certo
+            $dados = $responsePagamentos->json();
+        } else {
+            // Algo deu errado
+            dd($responsePagamentos->status(), $responsePagamentos->body());
+        }
+
+        // Se falhar ao criar o cliente
+        if (!$response->successful()) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Erro ao criar cliente no Asaas.',
+                'details' => $response
+            ], $response->status());
+        }
 
         $response = Http::withHeaders([
             'accept' => 'application/json',
