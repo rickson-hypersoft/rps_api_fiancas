@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types = 1);
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
+return new class () extends Migration
 {
     /**
      * Run the migrations.
@@ -15,7 +17,7 @@ return new class extends Migration
             $table->integer('ID');
             $table->integer('ID_IMOBILIARIA');
             $table->integer('ID_MOVI');
-            $table->integer('ID_INTEGRACAO');
+            $table->string('ID_USUARIO_INTEGRACAO', 100);
             $table->string('METODO_PAGAMENTO', '50')->nullable();
             $table->float('VALOR')->nullable();
             $table->string('STATUS', '100')->nullable();

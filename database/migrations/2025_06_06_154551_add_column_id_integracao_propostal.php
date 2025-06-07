@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types = 1);
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
+return new class () extends Migration
 {
     /**
      * Run the migrations.
@@ -12,7 +14,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::connection('firebird')->table('PROPOSTAS', function (Blueprint $table) {
-            $table->string('ID_INTEGRACAO', 255)->nullable();
+            $table->string('ID_USUARIO_INTEGRACAO', 255)->nullable();
         });
     }
 
@@ -22,7 +24,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::connection('firebird')->table('PROPOSTAS', function (Blueprint $table) {
-            $table->dropColumn('ID_INTEGRACAO');
+            $table->dropColumn('ID_USUARIO_INTEGRACAO');
         });
     }
 };

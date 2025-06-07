@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Http\Controllers\Propostal;
 
@@ -10,7 +10,6 @@ use App\Http\Resources\Propostal\PropostalResource;
 use App\Models\Propostal\Propostal;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 class PropostalController extends Controller
@@ -45,7 +44,11 @@ class PropostalController extends Controller
 
     public function find(string | int $id): JsonResponse
     {
-        $propostal = Propostal::where('ID', '=', $id)->firstOrFail();
+        if (is_numeric($id)) {
+            $propostal = Propostal::where('ID', '=', $id)->firstOrFail();
+        } else {
+            $propostal = Propostal::where('LINK_HASH', '=', $id)->firstOrFail();
+        }
         $propostal = new PropostalIndexResource($propostal);
 
         return response()->json($propostal);
@@ -162,9 +165,9 @@ class PropostalController extends Controller
         ], 200);
     }
 
-    public function hashLink(string|int $id): JsonResponse
+    public function hashLink(string | int $id): JsonResponse
     {
-        $propostal = Propostal::query()->where("ID", "=", $id)->firstOrFail();
+        $propostal     = Propostal::query()->where("ID", "=", $id)->firstOrFail();
         $propostalData = ['LINK_HASH' => substr(hash('sha1', $id . config('app.key')), 0, 12)];
         $propostal->update($propostalData);
 
