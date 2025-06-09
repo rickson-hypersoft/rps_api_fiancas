@@ -47,7 +47,6 @@ class PaymentsController extends Controller
 
         $paymentData = $this->convertIsoAndTransformUpperCase($validated);
 
-        /** @var array<string, mixed> $attributes */
         $payment = $paymentData;
 
         $payment = PropostalPayments::create($payment);

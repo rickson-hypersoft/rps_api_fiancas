@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Http\Controllers;
 
@@ -23,8 +23,8 @@ class HistoryController extends Controller
 
     public function store(Request $request)
     {
-        $dataRequest  = $request->all();
-        $dataFormatada = DateTime::createFromFormat('Y-m-d H:i:s', $dataRequest['data']);
+        $dataRequest         = $request->all();
+        $dataFormatada       = DateTime::createFromFormat('Y-m-d H:i:s', $dataRequest['data']);
         $dataRequest['data'] = $dataFormatada->format('Y-m-d');
 
         $validator = Validator::make($dataRequest, [
@@ -72,5 +72,7 @@ class HistoryController extends Controller
         ], 201);
     }
 
-    public function update() {}
+    public function update()
+    {
+    }
 }

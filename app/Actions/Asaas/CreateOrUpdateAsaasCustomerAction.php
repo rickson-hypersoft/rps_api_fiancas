@@ -49,11 +49,11 @@ class CreateOrUpdateAsaasCustomerAction
             'cpfCnpj'           => $propostal->PESSOA_DOC,
             'email'             => $propostal->PESSOA_EMAIL,
             'mobilePhone'       => $propostal->PESSOA_TELEFONE,
-            'address'           => $propostal->IMOVEL_ENDERECO,
-            'addressNumber'     => $propostal->IMOVEL_NUMERO,
-            'complement'        => $propostal->IMOVEL_COMPLEMENTO,
-            'province'          => $propostal->IMOVEL_BAIRRO,
-            'postalCode'        => $propostal->IMOVEL_CEP,
+            'address'           => $propostal->PESSOA_ENDERECO,
+            'addressNumber'     => $propostal->PESSOA_NUMERO,
+            'complement'        => $propostal->PESSOA_COMPLEMENTO,
+            'province'          => $propostal->PESSOA_BAIRRO,
+            'postalCode'        => $propostal->PESSOA_CEP,
             'externalReference' => $propostal->ID,
         ];
     }

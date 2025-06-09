@@ -1,11 +1,10 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Http\Resources\Propostal;
 
 use App\Http\Resources\ResourceTrait;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -58,13 +57,13 @@ class PropostalIndexResource extends JsonResource
                 default => 'Tipo Desconhecido',
             },
             'imovel_aluguel' => $this->IMOVEL_ALUGUEL !== null
-                ? 'R$ ' . number_format(floatval($this->IMOVEL_ALUGUEL,), 2, ',', '')
+                ? 'R$ ' . number_format(floatval($this->IMOVEL_ALUGUEL, ), 2, ',', '')
                 : null,
             'imovel_condominio' => $this->IMOVEL_CONDOMINIO !== null
-                ? 'R$ ' . number_format(floatval($this->IMOVEL_CONDOMINIO,), 2, ',', '')
+                ? 'R$ ' . number_format(floatval($this->IMOVEL_CONDOMINIO, ), 2, ',', '')
                 : null,
             'imovel_taxas' => $this->IMOVEL_TAXAS !== null
-                ? 'R$ ' . number_format(floatval($this->IMOVEL_TAXAS,), 2, ',', '')
+                ? 'R$ ' . number_format(floatval($this->IMOVEL_TAXAS, ), 2, ',', '')
                 : null,
             'imovel_cep'           => $this->formatZipCode($this->IMOVEL_CEP),
             'imovel_endereco'      => $this->toUtf8($this->IMOVEL_ENDERECO),
@@ -77,11 +76,11 @@ class PropostalIndexResource extends JsonResource
             'imovel_tag'           => $this->toUtf8($this->IMOVEL_TAG),
             'imovel_ramo_atv'      => $this->toUtf8($this->IMOVEL_RAMO_ATV),
             'proposta_total_valor' => $this->PROPOSTA_TOTAL_VALOR !== null
-                ? 'R$ ' . number_format(floatval($this->PROPOSTA_TOTAL_VALOR,), 2, ',', '')
+                ? 'R$ ' . number_format(floatval($this->PROPOSTA_TOTAL_VALOR, ), 2, ',', '')
                 : null,
             'proposta_total_parc'  => $this->PROPOSTA_TOTAL_PARC,
             'proposta_setup_valor' => $this->PROPOSTA_SETUP_VALOR !== null
-                ? 'R$ ' . number_format(floatval($this->PROPOSTA_SETUP_VALOR,), 2, ',', '')
+                ? 'R$ ' . number_format(floatval($this->PROPOSTA_SETUP_VALOR, ), 2, ',', '')
                 : null,
             'proposta_setup_parc'     => $this->PROPOSTA_SETUP_PARC,
             'proposta_tipo_pagador'   => $this->toUtf8($this->PROPOSTA_TIPO_PAGADOR),
@@ -94,7 +93,7 @@ class PropostalIndexResource extends JsonResource
             'endereco_completo'       => "{$this->toUtf8($this->IMOVEL_ENDERECO)}, {$this->toUtf8($this->IMOVEL_NUMERO)}, {$this->toUtf8($this->IMOVEL_BAIRRO)}, {$this->toUtf8($this->IMOVEL_CIDADE)} - {$this->toUtf8($this->IMOVEL_ESTADO)}",
             'link_hash'               => $this->LINK_HASH,
             'valor_total_pagamento'   => $valorTotalPagamento !== null
-                ? 'R$ ' . number_format(floatval($valorTotalPagamento,), 2, ',', '')
+                ? 'R$ ' . number_format(floatval($valorTotalPagamento, ), 2, ',', '')
                 : null,
         ];
     }

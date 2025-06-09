@@ -1,9 +1,8 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Http\Controllers\Assets;
-
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Propostal\PropostalIndexResource;
@@ -24,10 +23,10 @@ class AssetsController extends Controller
 
     public function faceId(Request $request, string $linkHash)
     {
-        $asset  = Propostal::where('LINK_HASH', '=', $linkHash)->firstOrFail();
-        $faceId = ['FACIAL' => 1];
+        $asset = Propostal::where('LINK_HASH', '=', $linkHash)->firstOrFail();
+        $data  = ['PROPOSTA_CREDITO_STATUS' => 'Aguardando Pagamento', 'FACIAL' => 1];
 
-        $asset->update($faceId);
+        $asset->update($data);
 
         return response()->json("Facial atualizda");
     }
