@@ -122,7 +122,7 @@ class PropostalController extends Controller
 
         return response()->json([
             "success" => true,
-            "message" => isset($propostalData['id']) ? "Proposta atualizada com sucesso!" : "Proposta criada com sucesso!",
+            "message" => isset($propostal->ID) ? "Proposta atualizada com sucesso!" : "Proposta criada com sucesso!",
             "data"    => new PropostalResource($propostal),
         ], 201);
     }
