@@ -45,9 +45,11 @@ class PaymentAsaasController extends Controller
         }
 
         $asaasService = new AsaasClientService();
-        $payloads     = $this->buildPayloadPayment($propostal, $request);
 
-        $responses = [];
+        $payloads = $this->buildPayloadPayment($propostal, $requestSanitize);
+
+        $responses         = [];
+        $detailedResponses = [];
 
         foreach ($payloads as $payload) {
             $response     = $asaasService->createPayment($payload);
@@ -61,13 +63,16 @@ class PaymentAsaasController extends Controller
             if ($response['success'] && isset($response['data']['id'])) {
                 $statusPagamento = $response['data']['status'] ?? null;
 
+                $result  = preg_replace('/.*?(\d+)\s+de\s+(\d+).*/', '$1-$2', $response['data']['description']);
+                $parcela = explode("-", $result);
+
                 $payment = PropostalPayments::create([
                     'ID_IMOBILIARIA'          => $propostal->ID_IMOBILIARIA,
                     'ID_MOVI'                 => $propostal->ID,
                     'ID_USUARIO_INTEGRACAO'   => $customerId,
                     'ID_PAGAMENTO_INTEGRACAO' => $response['data']['id'] ?? null,
                     'METODO_PAGAMENTO'        => $requestSanitize['metodo_pagamento'],
-                    'VALOR'                   => $propostal->PROPOSTA_TOTAL_VALOR,
+                    'VALOR'                   => $response['data']['value'] * floatval($parcela[1]),
                     'STATUS'                  => $response['data']['status'] ?? null,
                     'ID_USUARIO'              => $requestSanitize['id_usuario'],
                     'DATA'                    => now()->toDateString(),
@@ -78,6 +83,11 @@ class PaymentAsaasController extends Controller
 
                 if ($statusPagamento !== 'CONFIRMED') {
                     $allConfirmed = false;
+                }
+
+                if ($requestSanitize['metodo_pagamento'] === 'CREDIT_CARD') {
+                    $detalhe             = $asaasService->getPaymentById($response['data']['id']); // você precisa implementar isso
+                    $detailedResponses[] = is_array($detalhe) ? $detalhe : json_decode(json_encode($detalhe), true);
                 }
             } else {
                 $allConfirmed = false;
@@ -91,9 +101,16 @@ class PaymentAsaasController extends Controller
             ]);
         }
 
+        if (! empty($detailedResponses)) {
+            return response()->json([
+                'success'             => true,
+                'detalhes_pagamentos' => $detailedResponses,
+            ]);
+        }
+
         return response()->json([
-            'success'  => $response['success'],
-            'response' => $response['data'] ?? null,
+            'success'  => true,
+            'response' => $responses,
         ]);
     }
 

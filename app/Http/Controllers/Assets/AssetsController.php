@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 
 class AssetsController extends Controller
 {
-    public function active(string $linkHash)
+    public function find(string $linkHash)
     {
         $query = Propostal::where('LINK_HASH', '=', $linkHash)->firstOrFail();
 

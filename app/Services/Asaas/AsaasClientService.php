@@ -23,6 +23,11 @@ class AsaasClientService
         return Http::withHeaders($this->headers())->get("$this->url/customers/$id")->json();
     }
 
+    public function getPaymentById(string $id): array
+    {
+        return Http::withHeaders($this->headers())->get("$this->url/payments/$id")->json();
+    }
+
     public function updateCustomer(string $id, array $data): bool
     {
         $response = Http::withHeaders($this->headers())->put("$this->url/customers/$id", $data);

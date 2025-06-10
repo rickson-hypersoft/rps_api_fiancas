@@ -65,11 +65,11 @@ Route::middleware(['api.auth'])->group(function () {
     Route::post('/financial/financial_movi', [FinancialMoviController::class, 'store']);
     Route::put('/financial/financial_movi/{financial_movi}', [FinancialMoviController::class, 'update']);
 
-    Route::get('/financial/attachment', [AttachmentController::class, 'index']);
-    Route::get('/financial/attachment/exists', [AttachmentController::class, 'exists']);
-    Route::get('/financial/attachment/{attachment}', [AttachmentController::class, 'find']);
-    Route::post('/financial/attachment', [AttachmentController::class, 'store']);
-    Route::put('/financial/attachment/{attachment}', [AttachmentController::class, 'update']);
+    Route::get('/attachment', [AttachmentController::class, 'index']);
+    Route::get('/attachment/exists', [AttachmentController::class, 'exists']);
+    Route::get('/attachment/{attachment}', [AttachmentController::class, 'find']);
+    Route::post('/attachment', [AttachmentController::class, 'store']);
+    Route::put('/attachment/{attachment}', [AttachmentController::class, 'update']);
 
     // Propostas
     Route::get('/propostals/{idRealEstateSector}', [PropostalController::class, 'index']);
@@ -83,7 +83,7 @@ Route::middleware(['api.auth'])->group(function () {
     Route::get('/histories/{id_movi}', [HistoryController::class, 'index']);
 
     // Contratos
-    Route::get('/assets/active/{link_hash}', [AssetsController::class, 'active']);
+    Route::get('/assets/{link_hash}', [AssetsController::class, 'find']);
     Route::get('/assets/faceId/{link_hash}', [AssetsController::class, 'faceId']);
 
     // Pagamentos
