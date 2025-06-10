@@ -49,6 +49,7 @@ class PropostalController extends Controller
         } else {
             $propostal = Propostal::where('LINK_HASH', '=', $id)->firstOrFail();
         }
+
         $propostal = new PropostalIndexResource($propostal);
 
         return response()->json($propostal);

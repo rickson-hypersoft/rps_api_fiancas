@@ -15,6 +15,7 @@ use App\Http\Controllers\PropostalPayments\PaymentAsaasController;
 use App\Http\Controllers\PropostalPayments\PaymentsController;
 use App\Http\Controllers\RealEstateSectorController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\WhatsAppController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('login', [AuthController::class, 'login']);
@@ -90,4 +91,6 @@ Route::middleware(['api.auth'])->group(function () {
     Route::post('/payment/checkout/{link_hash}', [PaymentAsaasController::class, 'checkout']);
     Route::get('/payment/{id_movi}', [PaymentsController::class, 'index']);
     Route::post('/payment/{id_movi}', [PaymentsController::class, 'store'])->name('propostal_payment.store');
+
+    Route::post('/enviar-whatsapp/{messageType}/{linkHash}', [WhatsAppController::class, 'sendMessageByType']);
 });

@@ -6,7 +6,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\HistoryResource;
 use App\Models\History;
-use DateTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -23,9 +22,7 @@ class HistoryController extends Controller
 
     public function store(Request $request)
     {
-        $dataRequest         = $request->all();
-        $dataFormatada       = DateTime::createFromFormat('Y-m-d H:i:s', $dataRequest['data']);
-        $dataRequest['data'] = $dataFormatada->format('Y-m-d');
+        $dataRequest = $request->all();
 
         $validator = Validator::make($dataRequest, [
             'id_imobiliaria' => 'required|numeric',

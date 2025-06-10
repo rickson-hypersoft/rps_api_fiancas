@@ -34,8 +34,8 @@ class PropostalIndexResource extends JsonResource
             'data_ultima_atualizacao' => $this->DATA_ULTIMA_ATUALIZACAO,
             'hora_ultima_atualizacao' => $this->HORA_ULTIMA_ATUALIZACAO,
             'pessoa_tipo'             => match ($this->PESSOA_TIPO) {
-                'pf'    => 'Pessoa Física',
-                'pj'    => 'Pessoa Jurídica',
+                'PF'    => 'Pessoa Física',
+                'PJ'    => 'Pessoa Jurídica',
                 default => 'Tipo Desconhecido',
             },
             'pessoa_doc'        => $this->formatCpfCnpj($this->PESSOA_DOC),
