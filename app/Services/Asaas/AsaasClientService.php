@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Services\Asaas;
 
@@ -31,6 +31,11 @@ class AsaasClientService
     public function getQRCodeById(string $id): array
     {
         return Http::withHeaders($this->headers())->get("$this->url/payments/$id/pixQrCode")->json();
+    }
+
+    public function getLineBoletoById(string $id): array
+    {
+        return Http::withHeaders($this->headers())->get("$this->url/payments/$id/identificationField")->json();
     }
 
     public function updateCustomer(string $id, array $data): bool

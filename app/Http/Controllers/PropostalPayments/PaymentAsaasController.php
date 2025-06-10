@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Http\Controllers\PropostalPayments;
 
@@ -83,12 +83,17 @@ class PaymentAsaasController extends Controller
 
                 if ($requestSanitize['metodo_pagamento'] === 'CREDIT_CARD') {
                     $detalhe             = $asaasService->getPaymentById($response['data']['id']); // você precisa implementar isso
-                    $detailedResponses[] = is_array($detalhe) ? $detalhe : json_decode(json_encode($detalhe), true);
+                    $detailedResponses = is_array($detalhe) ? $detalhe : json_decode(json_encode($detalhe), true);
                 }
 
                 if ($requestSanitize['metodo_pagamento'] === 'PIX') {
                     $detalhe             = $asaasService->getQRCodeById($response['data']['id']); // você precisa implementar isso
-                    $detailedResponses[] = is_array($detalhe) ? $detalhe : json_decode(json_encode($detalhe), true);
+                    $detailedResponses = is_array($detalhe) ? $detalhe : json_decode(json_encode($detalhe), true);
+                }
+
+                if ($requestSanitize['metodo_pagamento'] === 'BOLETO') {
+                    $detalhe             = $asaasService->getLineBoletoById($response['data']['id']); // você precisa implementar isso
+                    $detailedResponses = is_array($detalhe) ? $detalhe : json_decode(json_encode($detalhe), true);
                 }
             } else {
                 $allConfirmed = false;
@@ -112,7 +117,7 @@ class PaymentAsaasController extends Controller
         if (! empty($detailedResponses)) {
             return response()->json([
                 'success'             => true,
-                'detalhes_pagamentos' => $detailedResponses,
+                'detalhes_pagamentos' => $detailedResponses['id'],
             ]);
         }
 
