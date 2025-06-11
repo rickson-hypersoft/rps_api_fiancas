@@ -33,6 +33,16 @@ class AsaasClientService
         return Http::withHeaders($this->headers())->put("$this->url/payments/$id", $data)->json();
     }
 
+    public function payWithCreditCard(string $id, array $data)
+    {
+        $response = Http::withHeaders($this->headers())->post("$this->url/payments/{$id}/payWithCreditCard", $data);
+
+        return [
+            'success' => $response->successful(),
+            'data'    => $response->json(),
+        ];
+    }
+
     public function getQRCodeById(string $id): array
     {
         return Http::withHeaders($this->headers())->get("$this->url/payments/$id/pixQrCode")->json();

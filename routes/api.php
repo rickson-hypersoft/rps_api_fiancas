@@ -10,6 +10,7 @@ use App\Http\Controllers\Financial\FinancialAccountController;
 use App\Http\Controllers\Financial\FinancialCategoryController;
 use App\Http\Controllers\Financial\FinancialMoviController;
 use App\Http\Controllers\HistoryController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Propostal\PropostalController;
 use App\Http\Controllers\PropostalPayments\PaymentAsaasController;
 use App\Http\Controllers\PropostalPayments\PaymentsController;
@@ -97,10 +98,14 @@ Route::middleware(['api.auth'])->group(function () {
 
     // Pagamentos (Métodos)
     Route::post('/payment/create/{link_hash}', [PaymentAsaasController::class, 'checkoutBase']);
+    Route::post('/payment/credit_card/{id}/{link_hash}', [PaymentAsaasController::class, 'checkoutCreditCard']);
 
     Route::post('/payment/pix/{link_hash}', [PaymentAsaasController::class, 'checkoutPix']);
-    Route::post('/payment/credit_card/{link_hash}', [PaymentAsaasController::class, 'checkoutCreditCard']);
     Route::post('/payment/boleto/{link_hash}', [PaymentAsaasController::class, 'checkoutBoleto']);
 
     Route::post('/enviar-whatsapp/{messageType}/{linkHash}', [WhatsAppController::class, 'sendMessageByType']);
+
+
+    // Home
+    Route::get('/home/{idImobiliaria}', [HomeController::class, 'index']);
 });

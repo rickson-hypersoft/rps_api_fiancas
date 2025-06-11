@@ -23,6 +23,7 @@ class PaymentAsaasController extends Controller
 
         $requestSanitize = $this->sanitizeData($request->all(), ['pessoa_cep', 'pessoa_doc', 'numero_cartao']) ?? [];
 
+
         // Atualizar o cliente com as informações pessoais dele
         if (
             ! empty($requestSanitize['pessoa_cep']) ||
@@ -49,9 +50,12 @@ class PaymentAsaasController extends Controller
             $propostal->update($dataUpdatePropostal);
         }
 
+
+
         $customerId = (new CreateOrUpdateAsaasCustomerAction(
             new AsaasClientService()
         ))->execute($propostal);
+
 
         if (! $customerId) {
             return response()->json([
@@ -124,6 +128,7 @@ class PaymentAsaasController extends Controller
         ]);
     }
 
+
     public function checkoutPix(Request $request, string $linkHash)
     {
         // dd($this->initCheckout($request, $linkHash));
@@ -192,7 +197,84 @@ class PaymentAsaasController extends Controller
         }
     }
 
-    public function checkoutCreditCard(Request $request, string $linkHash) {}
+    public function checkoutCreditCard(Request $request, string $idpayment, string $linkHash)
+    {
+        list($customerId, $propostal) = $this->initCheckout($request, $linkHash);
+
+        $requestSanitize = $request->all();
+        $payloads = $this->buildPayloadPayment($propostal, $requestSanitize) ?? [];
+
+        if (empty($payloads)) {
+            return response()->json(['success' => false, 'message' => 'Dados do payload inválidos'], 400);
+        }
+
+        $detalhesPagamentos = [];
+        $pagamentoConfirmado = true;
+
+        foreach ($payloads as $index => $payload) {
+            // Defina o identificador específico para cada tipo de pagamento
+            $descricao = $payload['description'] ?? '';
+            if (str_contains($descricao, 'Setup')) {
+                $idPagamentoAtual = $idpayment . '_setup';
+            } elseif (str_contains($descricao, 'Imóvel')) {
+                $idPagamentoAtual = $idpayment; // mantém o original para o pagamento principal
+            } else {
+                $idPagamentoAtual = $idpayment . "_{$index}";
+            }
+
+            // Verifica se existe pagamento com este ID
+            $pagamentoExistente = PropostalPayments::where('ID_PAGAMENTO_INTEGRACAO', $idPagamentoAtual)->first();
+            if ($pagamentoExistente) {
+                $asaasResponse = $this->asaasService->updatePayment($pagamentoExistente->ID_PAGAMENTO_INTEGRACAO, $payload);
+                $paymentId = $pagamentoExistente->ID_PAGAMENTO_INTEGRACAO;
+            } else {
+                $asaasResponse = $this->asaasService->createPayment($payload);
+                $paymentId = $asaasResponse['data']['id'] ?? null;
+            }
+
+            if (!$paymentId) {
+                return response()->json(['success' => false, 'message' => 'Erro ao criar ou atualizar o pagamento'], 500);
+            }
+
+            $payWithCardResponse = $this->asaasService->payWithCreditCard($paymentId, $payload);
+            $responseData = is_array($payWithCardResponse) ? $payWithCardResponse : json_decode(json_encode($payWithCardResponse), true);
+
+            if (!isset($responseData['success']) || !$responseData['success']) {
+                $pagamentoConfirmado = false;
+                continue;
+            }
+
+            $asaasPaymentId = $responseData['data']['id'];
+            $statusPagamento = $responseData['data']['status'] ?? null;
+
+            // Atualiza ou cria o pagamento no banco
+            $paymentData = $this->buildInsertPaymentPropostal($propostal, $responseData, $customerId, $request);
+            PropostalPayments::updateOrCreate(
+                ['ID_PAGAMENTO_INTEGRACAO' => $idPagamentoAtual],
+                $paymentData
+            );
+
+            // Verifica status do pagamento
+            if ($statusPagamento !== 'CONFIRMED') {
+                $pagamentoConfirmado = false;
+            }
+
+            // Coleta detalhes
+            $detalhes = $this->asaasService->getPaymentById($asaasPaymentId);
+            $detalhesPagamentos[] = is_array($detalhes) ? $detalhes : json_decode(json_encode($detalhes), true);
+        }
+
+        // Atualiza status da proposta
+        $propostal->update([
+            'CONTRATO_STATUS' => $pagamentoConfirmado ? 'Ativo' : 'Pendente',
+            'PROPOSTA_CREDITO_STATUS' => $pagamentoConfirmado ? 'Pagamento Efetuado' : utf8_decode('Pagamento em Análise')
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'detalhes_pagamentos' => $detalhesPagamentos,
+        ]);
+    }
 
     public function checkoutBoleto(Request $request, string $linkHash) {}
 
@@ -246,6 +328,93 @@ class PaymentAsaasController extends Controller
         }
 
         return response()->json(['success' => true]);
+    }
+
+    private function buildPayloadPayment($propostal, $request)
+    {
+        $valorSetup  = (float) $propostal->PROPOSTA_SETUP_VALOR;
+        $valorImovel = (float) $propostal->PROPOSTA_TOTAL_VALOR;
+
+        $parcelasImovel = (int) $propostal->PROPOSTA_TOTAL_PARC;
+        $parcelasSetup  = (int) $propostal->PROPOSTA_SETUP_PARC;
+
+        $buildCartaoPayload = function ($valor, $parcelas, $descricao) use ($request, $propostal) {
+            $valorParcela = round($valor / $parcelas, 2);
+
+            return [
+                'billingType'      => 'CREDIT_CARD',
+                'description'      => $descricao,
+                'customer'         => $propostal->ID_USUARIO_INTEGRACAO,
+                'value'            => $valor,
+                'dueDate'          => now()->toDateString(),
+                'installmentCount' => $parcelas,
+                'installmentValue' => $valorParcela,
+                'creditCard'       => [
+                    'holderName'  => $request['nome_cartao'],
+                    'number'      => preg_replace('/\D/', '', $request['numero_cartao']),
+                    'expiryMonth' => substr($request['data_vencimento'], 0, 2),
+                    'expiryYear'  => '20' . substr($request['data_vencimento'], -2),
+                    'ccv'         => $request['cvv'],
+                ],
+                'creditCardHolderInfo' => [
+                    'name'          => $propostal->PESSOA_NOME,
+                    'email'         => $propostal->PESSOA_EMAIL,
+                    'cpfCnpj'       => preg_replace('/\D/', '', $propostal->PESSOA_DOC),
+                    'postalCode'    => preg_replace('/\D/', '', $propostal->PESSOA_CEP),
+                    'addressNumber' => $propostal->PESSOA_NUMERO,
+                    'phone'         => $propostal->PESSOA_TELEFONE,
+                    'mobilePhone'   => $propostal->PESSOA_TELEFONE,
+                ],
+            ];
+        };
+
+        // Retornar somente o pagamento do imóvel se valor do setup for 0
+        if ($valorSetup <= 0) {
+            return [
+                $buildCartaoPayload($valorImovel, $parcelasImovel, 'Pagamento da Taxa do Imóvel'),
+            ];
+        }
+
+        // Caso contrário, retorna os dois
+        return [
+            $buildCartaoPayload($valorSetup, $parcelasSetup, 'Pagamento do Setup'),
+            $buildCartaoPayload($valorImovel, $parcelasImovel, 'Pagamento da Taxa do Imóvel'),
+        ];
+    }
+
+    private function buildInsertPaymentPropostal($propostal, $response, $customerId, $request)
+    {
+        $valorUnitario = $response['data']['value'];
+        $parcelas      = 1;
+
+        if (
+            $request['metodo_pagamento'] === 'CREDIT_CARD' &&
+            ! empty($response['data']['description']) &&
+            preg_match('/(\d+)\s+de\s+(\d+)/', $response['data']['description'], $matches)
+        ) {
+            $parcelas = (int) $matches[2];
+        }
+
+        $valor = $valorUnitario * $parcelas;
+
+        if ($request['metodo_pagamento'] !== 'CREDIT_CARD') {
+            $valor = $valorUnitario;
+        }
+
+        return [
+            'ID_IMOBILIARIA'          => $propostal->ID_IMOBILIARIA,
+            'ID_MOVI'                 => $propostal->ID,
+            'ID_USUARIO_INTEGRACAO'   => $customerId,
+            'ID_PAGAMENTO_INTEGRACAO' => $response['data']['id'] ?? null,
+            'METODO_PAGAMENTO'        => $request['metodo_pagamento'],
+            'VALOR'                   => $valor,
+            'STATUS'                  => $response['data']['status'] ?? null,
+            'ID_USUARIO'              => $request['id_usuario'],
+            'DATA'                    => now()->toDateString(),
+            'HORA'                    => now()->toTimeString(),
+            'DATA_VENCIMENTO'         => $response['data']['dueDate'] ?? null,
+            'DATA_PAGAMENTO'          => $response['data']['clientPaymentDate'] ?? null,
+        ];
     }
 
     /*
@@ -350,123 +519,8 @@ class PaymentAsaasController extends Controller
         }
     }
 
-    private function buildPayloadPayment($propostal, $request)
-    {
-        if ($request['metodo_pagamento'] == 'CREDIT_CARD') {
-            $valorSetup  = (float) $propostal->PROPOSTA_SETUP_VALOR;
-            $valorImovel = (float) $propostal->PROPOSTA_TOTAL_VALOR;
 
-            $parcelasImovel = (int) $propostal->PROPOSTA_TOTAL_PARC;
-            $parcelasSetup  = (int) $propostal->PROPOSTA_SETUP_PARC;
 
-            $buildCartaoPayload = function ($valor, $parcelas, $descricao) use ($request, $propostal) {
-                $valorParcela = round($valor / $parcelas, 2);
 
-                return [
-                    'billingType'      => 'CREDIT_CARD',
-                    'description'      => $descricao,
-                    'customer'         => $propostal->ID_USUARIO_INTEGRACAO,
-                    'value'            => $valor,
-                    'dueDate'          => now()->toDateString(),
-                    'installmentCount' => $parcelas,
-                    'installmentValue' => $valorParcela,
-                    'creditCard'       => [
-                        'holderName'  => $request['nome_cartao'],
-                        'number'      => preg_replace('/\D/', '', $request['numero_cartao']),
-                        'expiryMonth' => substr($request['data_vencimento'], 0, 2),
-                        'expiryYear'  => '20' . substr($request['data_vencimento'], -2),
-                        'ccv'         => $request['cvv'],
-                    ],
-                    'creditCardHolderInfo' => [
-                        'name'          => $propostal->PESSOA_NOME,
-                        'email'         => $propostal->PESSOA_EMAIL,
-                        'cpfCnpj'       => preg_replace('/\D/', '', $propostal->PESSOA_DOC),
-                        'postalCode'    => preg_replace('/\D/', '', $propostal->PESSOA_CEP),
-                        'addressNumber' => $propostal->PESSOA_NUMERO,
-                        'phone'         => $propostal->PESSOA_TELEFONE,
-                        'mobilePhone'   => $propostal->PESSOA_TELEFONE,
-                    ],
-                ];
-            };
-
-            return [
-                $buildCartaoPayload($valorSetup, $parcelasSetup, 'Pagamento do Setup'),
-                $buildCartaoPayload($valorImovel, $parcelasImovel, 'Pagamento da Taxa do Imóvel'),
-            ];
-        }
-
-        if ($request['metodo_pagamento'] == 'BOLETO') {
-            return [
-                // 'billingType'      => $request['metodo_pagamento'],
-                // 'customer'         => $customerId,
-                // 'value'            => $proposta->PROPOSTA_TOTAL_VALOR,
-                // 'dueDate'          => now()->toDateString(),
-                // 'installmentCount' => $request['proposta_total_parc'],
-                // 'installmentValue' => $request['valor_parcela'],
-                // 'creditCard'       => [
-                //     'holderName'  => $request['nome_cartao'],
-                //     'number'      => preg_replace('/\D/', '', $request->input('numero_cartao')),
-                //     'expiryMonth' => substr($request->input('data_vencimento'), 0, 2),
-                //     'expiryYear'  => '20' . substr($request->input('data_vencimento'), -2),
-                //     'ccv'         => $request->input('cvv'),
-                // ],
-                // 'creditCardHolderInfo' => [
-                //     'name'          => $request->input('pessoa_nome'),
-                //     'email'         => 'email@email.com',
-                //     'cpfCnpj'       => preg_replace('/\D/', '', $request->input('pessoa_doc')),
-                //     'postalCode'    => preg_replace('/\D/', '', $request->input('pessoa_cep')),
-                //     'addressNumber' => $request->input('pessoa_numero'),
-                //     'phone'         => '34999999999',
-                //     'mobilePhone'   => '34999999999',
-                // ],
-            ];
-        }
-
-        if ($request['metodo_pagamento'] == 'PIX') {
-            return [
-                [
-                    'billingType' => $request['metodo_pagamento'],
-                    'customer'    => $propostal->ID_USUARIO_INTEGRACAO,
-                    'value'       => $propostal->PROPOSTA_TOTAL_VALOR,
-                    'dueDate'     => now()->toDateString(),
-                ],
-            ];
-        }
-    }
-
-    private function buildInsertPaymentPropostal($propostal, $response, $customerId, $request)
-    {
-        $valorUnitario = $response['data']['value'];
-        $parcelas      = 1;
-
-        if (
-            $request['metodo_pagamento'] === 'CREDIT_CARD' &&
-            ! empty($response['data']['description']) &&
-            preg_match('/(\d+)\s+de\s+(\d+)/', $response['data']['description'], $matches)
-        ) {
-            $parcelas = (int) $matches[2];
-        }
-
-        $valor = $valorUnitario * $parcelas;
-
-        if ($request['metodo_pagamento'] !== 'CREDIT_CARD') {
-            $valor = $valorUnitario;
-        }
-
-        return [
-            'ID_IMOBILIARIA'          => $propostal->ID_IMOBILIARIA,
-            'ID_MOVI'                 => $propostal->ID,
-            'ID_USUARIO_INTEGRACAO'   => $customerId,
-            'ID_PAGAMENTO_INTEGRACAO' => $response['data']['id'] ?? null,
-            'METODO_PAGAMENTO'        => $request['metodo_pagamento'],
-            'VALOR'                   => $valor,
-            'STATUS'                  => $response['data']['status'] ?? null,
-            'ID_USUARIO'              => $request['id_usuario'],
-            'DATA'                    => now()->toDateString(),
-            'HORA'                    => now()->toTimeString(),
-            'DATA_VENCIMENTO'         => $response['data']['dueDate'] ?? null,
-            'DATA_PAGAMENTO'          => $response['data']['clientPaymentDate'] ?? null,
-        ];
-    }
         */
 }
