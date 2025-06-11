@@ -93,19 +93,19 @@ Route::middleware(['api.auth'])->group(function () {
     Route::get('/assets/faceId/{link_hash}', [AssetsController::class, 'faceId']);
 
     // Pagamentos
-    Route::post('/payment/checkout/{link_hash}', [PaymentAsaasController::class, 'checkout']);
-    Route::get('/payment/{id_movi}', [PaymentsController::class, 'index']);
-    Route::post('/payment/{id_movi}', [PaymentsController::class, 'store'])->name('propostal_payment.store');
-    Route::get('/payment/info/{id_payment}', [PaymentAsaasController::class, 'getInfoPayment']);
+    Route::prefix('payments')->group(function () {
+        Route::get('/{id_movi}', [PaymentsController::class, 'index']);
+        Route::post('/{id_movi}', [PaymentsController::class, 'store'])->name('propostal_payment.store');
+        Route::get('/info/{id_payment}', [PaymentAsaasController::class, 'getInfoPayment']);
+        Route::post('/{id_payment}/edit', [PaymentAsaasController::class, 'updatePaymentMethod']);
 
-    Route::post('/paymentedit/{id_payment}', [PaymentAsaasController::class, 'updatePaymentMethod']);
-
-    // Pagamentos (Métodos)
-    Route::post('/payment/create/{link_hash}', [PaymentAsaasController::class, 'checkoutBase']);
-    Route::post('/payment/credit_card/{id}/{link_hash}', [PaymentAsaasController::class, 'checkoutCreditCard']);
-
-    Route::post('/payment/pix/{link_hash}', [PaymentAsaasController::class, 'checkoutPix']);
-    Route::post('/payment/boleto/{link_hash}', [PaymentAsaasController::class, 'checkoutBoleto']);
+        // Checkout
+        Route::post('/create/{link_hash}', [PaymentAsaasController::class, 'checkoutBase']);
+        Route::post('/checkout/{link_hash}', [PaymentAsaasController::class, 'checkout']);
+        Route::post('/credit-card/{id}/{link_hash}', [PaymentAsaasController::class, 'checkoutCreditCard']);
+        Route::post('/pix/{link_hash}', [PaymentAsaasController::class, 'checkoutPix']);
+        Route::post('/boleto/{link_hash}', [PaymentAsaasController::class, 'checkoutBoleto']);
+    });
 
     Route::post('/enviar-whatsapp/{messageType}/{linkHash}', [WhatsAppController::class, 'sendMessageByType']);
 

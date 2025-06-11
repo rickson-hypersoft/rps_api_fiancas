@@ -198,11 +198,52 @@ class PaymentAsaasController extends Controller
         list($customerId, $propostal) = $this->initCheckout($request, $linkHash);
 
         $requestSanitize = $request->all();
+
         $payloads = $this->buildPayloadPayment($propostal, $requestSanitize) ?? [];
+        dd($payloads['imovel']);
 
         if (empty($payloads)) {
             return response()->json(['success' => false, 'message' => 'Dados do payload inválidos'], 400);
         }
+
+        $returnResponse = [];
+        if ($payloads['imovel']) {
+            $pagamentoExistente = PropostalPayments::where('ID_PAGAMENTO_INTEGRACAO', $idpayment)->first();
+            if ($pagamentoExistente) {
+                $asaasResponse = $this->asaasService->updatePayment($idpayment, $payloads['imovel']);
+                Log::info("Atualizando informação no AsaaS", [$asaasResponse]);
+                $paymentId = $idpayment;
+
+                if (!$paymentId) {
+                    return response()->json(['success' => false, 'message' => 'Erro ao criar ou atualizar o pagamento'], 500);
+                }
+
+                $payWithCardResponse = $this->asaasService->payWithCreditCard($paymentId, $payloads['imovel']);
+                Log::info("Marcando como pago com cartão no AsaaS", [$payWithCardResponse]);
+                $responseData = is_array($payWithCardResponse) ? $payWithCardResponse : json_decode(json_encode($payWithCardResponse), true);
+                $paymentData = $this->buildInsertPaymentPropostal($propostal, $responseData, $customerId, $request);
+                $asaasPaymentId = $responseData['data']['id'] ?? null;
+                Log::info("ID do pagamento do AsaaS", [$asaasPaymentId]);
+                $returnResponse[] = $this->asaasService->getPaymentById($paymentId);
+
+                $propostalUpdated = PropostalPayments::updateOrCreate(
+                    ['ID_PAGAMENTO_INTEGRACAO' => $asaasPaymentId],
+                    $paymentData
+                );
+
+                Log::info("Tabela de pagamentos atualizada", [$propostalUpdated]);
+            }
+        }
+
+        return response()->json(
+            [
+                'success' => true,
+                'pagamentos' => $returnResponse
+            ]
+        );
+
+        /*
+
 
         $detalhesPagamentos = [];
         $pagamentoConfirmado = true;
@@ -278,6 +319,7 @@ class PaymentAsaasController extends Controller
             'success' => true,
             'detalhes_pagamentos' => $detalhesPagamentos
         ]);
+        */
     }
 
     public function checkoutBoleto(Request $request, string $linkHash) {}
@@ -369,13 +411,13 @@ class PaymentAsaasController extends Controller
 
         if ($valorSetup <= 0) {
             return [
-                $buildCartaoPayload($valorImovel, $parcelasImovel, 'Pagamento da Taxa do Imóvel'),
+                'imovel' => $buildCartaoPayload($valorImovel, $parcelasImovel, 'Pagamento da Taxa do Imóvel'),
             ];
         }
 
         return [
-            $buildCartaoPayload($valorImovel, $parcelasImovel, 'Pagamento da Taxa do Imóvel'),
-            $buildCartaoPayload($valorSetup, $parcelasSetup, 'Pagamento do Setup'),
+            'imovel' => $buildCartaoPayload($valorImovel, $parcelasImovel, 'Pagamento da Taxa do Imóvel'),
+            'setup'  => $buildCartaoPayload($valorSetup, $parcelasSetup, 'Pagamento do Setup'),
         ];
     }
 

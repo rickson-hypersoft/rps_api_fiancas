@@ -93,4 +93,11 @@ class AsaasClientService
             'access_token' => $this->token,
         ];
     }
+
+    protected function deletePayment(string $id): bool
+    {
+        $response = Http::withHeaders($this->headers())->delete("$this->url/payments/$id");
+
+        return $response->successful();
+    }
 }
