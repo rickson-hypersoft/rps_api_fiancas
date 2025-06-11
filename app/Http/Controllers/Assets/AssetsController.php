@@ -12,10 +12,8 @@ use Illuminate\Http\Request;
 
 class AssetsController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, string | int $idImobiliaria)
     {
-        $idImobiliaria = $request->get('id_imobiliaria');
-
         if (!$idImobiliaria) {
             return response()->json(['success' => false, 'message' => 'ID da imobiliária é obrigatório.'], 400);
         }
@@ -26,31 +24,40 @@ class AssetsController extends Controller
 
         // Filtro por status
         if ($request->filled('status')) {
-            $query->where('PROPOSTA_CREDITO_STATUS', $request->get('status'));
+            $query->where('CONTRATO_STATUS', $request->get('status'));
         }
 
         // Filtro por nome (case-insensitive)
-        if ($request->filled('nome')) {
-            $nome = strtolower($request->get('nome'));
-            $query->whereRaw('LOWER(NOME_COMPLETO) LIKE ?', ["%{$nome}%"]);
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('ID', 'like', "%$search%")
+                    ->orWhereRaw('LOWER(PESSOA_NOME) LIKE ?', ['%' . strtolower($search) . '%'])
+                    ->orWhere('PESSOA_DOC', 'like', "%$search%")
+                    ->orWhere('IMOVEL_TAG', 'like', "%$search%");
+            });
         }
 
-        // Filtro por CNJ (case-insensitive)
-        if ($request->filled('cnj')) {
-            $cnj = strtolower($request->get('cnj'));
-            $query->whereRaw('LOWER(CNJ) LIKE ?', ["%{$cnj}%"]);
+        if ($request->filled('created_at')) {
+            $query->where('DATA', $request->input('created_at'));
         }
 
         // Ordenação e paginação
-        $resultados = $query->orderBy('created_at', 'desc')->paginate(15);
+        $assets = $query->orderBy('ID', 'desc')->paginate();
+
+        $contratos = Propostal::selectRaw('CONTRATO_STATUS, COUNT(*) as total')
+            ->where('ID_IMOBILIARIA', $idImobiliaria)
+            ->groupBy('CONTRATO_STATUS')
+            ->get();
 
         return response()->json([
             'success' => true,
-            'data' => PropostalIndexResource::collection($resultados),
+            'data' => PropostalIndexResource::collection($assets),
+            'contratos' => $contratos,
             'pagination' => [
-                'current_page' => $resultados->currentPage(),
-                'total_pages' => $resultados->lastPage(),
-                'total' => $resultados->total()
+                'current_page' => $assets->currentPage(),
+                'total_pages' => $assets->lastPage(),
+                'total' => $assets->total()
             ]
         ]);
     }
@@ -59,6 +66,15 @@ class AssetsController extends Controller
     public function find(string $linkHash)
     {
         $query = Propostal::where('LINK_HASH', '=', $linkHash)->firstOrFail();
+
+        $propostal = new PropostalIndexResource($query);
+
+        return response()->json(['data' => $propostal]);
+    }
+
+    public function findAsset(string $id)
+    {
+        $query = Propostal::where('ID', '=', $id)->firstOrFail();
 
         $propostal = new PropostalIndexResource($query);
 

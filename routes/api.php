@@ -85,6 +85,10 @@ Route::middleware(['api.auth'])->group(function () {
     Route::get('/histories/{id_movi}', [HistoryController::class, 'index']);
 
     // Contratos
+    Route::get('/assetsHome/{idImobiliaria}', [AssetsController::class, 'index']);
+
+    Route::get('/assets/{id}/find', [AssetsController::class, 'findAsset']);
+
     Route::get('/assets/{link_hash}', [AssetsController::class, 'find']);
     Route::get('/assets/faceId/{link_hash}', [AssetsController::class, 'faceId']);
 
@@ -92,7 +96,7 @@ Route::middleware(['api.auth'])->group(function () {
     Route::post('/payment/checkout/{link_hash}', [PaymentAsaasController::class, 'checkout']);
     Route::get('/payment/{id_movi}', [PaymentsController::class, 'index']);
     Route::post('/payment/{id_movi}', [PaymentsController::class, 'store'])->name('propostal_payment.store');
-    Route::get('/payment/info/{id_payment}/{method}', [PaymentAsaasController::class, 'getInfoPayment']);
+    Route::get('/payment/info/{id_payment}', [PaymentAsaasController::class, 'getInfoPayment']);
 
     Route::post('/paymentedit/{id_payment}', [PaymentAsaasController::class, 'updatePaymentMethod']);
 

@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\PropostalPayments;
 
-use App\Actions\Asaas\CreateOrUpdateAsaasCustomerAction;
-use App\Http\Controllers\Controller;
-use App\Models\Propostal\Propostal;
-use App\Models\Propostal\PropostalPayments;
-use App\Services\Asaas\AsaasClientService;
 use Illuminate\Http\Request;
+use App\Models\Propostal\Propostal;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
+use App\Services\Asaas\AsaasClientService;
+use App\Models\Propostal\PropostalPayments;
+use App\Actions\Asaas\CreateOrUpdateAsaasCustomerAction;
+
+use function PHPUnit\Framework\matches;
 
 class PaymentAsaasController extends Controller
 {
@@ -23,8 +26,6 @@ class PaymentAsaasController extends Controller
 
         $requestSanitize = $this->sanitizeData($request->all(), ['pessoa_cep', 'pessoa_doc', 'numero_cartao']) ?? [];
 
-
-        // Atualizar o cliente com as informações pessoais dele
         if (
             ! empty($requestSanitize['pessoa_cep']) ||
             ! empty($requestSanitize['pessoa_endereco']) ||
@@ -49,8 +50,6 @@ class PaymentAsaasController extends Controller
             ];
             $propostal->update($dataUpdatePropostal);
         }
-
-
 
         $customerId = (new CreateOrUpdateAsaasCustomerAction(
             new AsaasClientService()
@@ -85,10 +84,9 @@ class PaymentAsaasController extends Controller
         $payload =  [
             'billingType' => 'UNDEFINED', // Verifique se API aceita esse valor
             'customer'    => $propostal->ID_USUARIO_INTEGRACAO,
-            'value'       => $propostal->PROPOSTA_TOTAL_VALOR,
+            'value'       => $propostal->PROPOSTA_TOTAL_VALOR + $propostal->PROPOSTA_SETUP_VALOR,
             'dueDate'     => now()->toDateString(),
         ];
-
 
         $response = $this->asaasService->createPayment($payload);
 
@@ -128,10 +126,8 @@ class PaymentAsaasController extends Controller
         ]);
     }
 
-
     public function checkoutPix(Request $request, string $linkHash)
     {
-        // dd($this->initCheckout($request, $linkHash));
         list($customerId, $propostal) = $this->initCheckout($request, $linkHash);
 
         $payload =  [
@@ -212,24 +208,35 @@ class PaymentAsaasController extends Controller
         $pagamentoConfirmado = true;
 
         foreach ($payloads as $index => $payload) {
-            // Defina o identificador específico para cada tipo de pagamento
             $descricao = $payload['description'] ?? '';
-            if (str_contains($descricao, 'Setup')) {
-                $idPagamentoAtual = $idpayment . '_setup';
-            } elseif (str_contains($descricao, 'Imóvel')) {
-                $idPagamentoAtual = $idpayment; // mantém o original para o pagamento principal
+
+            if ($index === 0) {
+                $pagamentoExistente = PropostalPayments::where('ID_PAGAMENTO_INTEGRACAO', $idpayment)->first();
             } else {
-                $idPagamentoAtual = $idpayment . "_{$index}";
+                $pagamentoExistente = null;
             }
 
-            // Verifica se existe pagamento com este ID
-            $pagamentoExistente = PropostalPayments::where('ID_PAGAMENTO_INTEGRACAO', $idPagamentoAtual)->first();
             if ($pagamentoExistente) {
-                $asaasResponse = $this->asaasService->updatePayment($pagamentoExistente->ID_PAGAMENTO_INTEGRACAO, $payload);
-                $paymentId = $pagamentoExistente->ID_PAGAMENTO_INTEGRACAO;
+                $asaasResponse = $this->asaasService->updatePayment($idpayment, $payload);
+                $paymentId = $idpayment;
             } else {
                 $asaasResponse = $this->asaasService->createPayment($payload);
                 $paymentId = $asaasResponse['data']['id'] ?? null;
+
+                // Verificação de "Cobrança já confirmada"
+                $erroDescricao = $asaasResponse['data']['errors'][0]['description'] ?? '';
+                if (stripos($erroDescricao, 'Cobrança já confirmada') !== false) {
+                    $pagamentoConfirmado = true;
+                    continue;
+                }
+
+                $paymentData = $this->buildInsertPaymentPropostal($propostal, $asaasResponse, $customerId, $request);
+                PropostalPayments::create(array_merge($paymentData, [
+                    'ID_PAGAMENTO_INTEGRACAO' => $paymentId
+                ]));
+
+                $detalhes = $this->asaasService->getPaymentById($paymentId);
+                $detalhesPagamentos[] = is_array($detalhes) ? $detalhes : json_decode(json_encode($detalhes), true);
             }
 
             if (!$paymentId) {
@@ -237,34 +244,31 @@ class PaymentAsaasController extends Controller
             }
 
             $payWithCardResponse = $this->asaasService->payWithCreditCard($paymentId, $payload);
+
             $responseData = is_array($payWithCardResponse) ? $payWithCardResponse : json_decode(json_encode($payWithCardResponse), true);
+            $paymentData = $this->buildInsertPaymentPropostal($propostal, $responseData, $customerId, $request);
+            $asaasPaymentId = $responseData['data']['id'] ?? null;
+
+            if ($index === 0) {
+                $propostal = PropostalPayments::updateOrCreate(
+                    ['ID_PAGAMENTO_INTEGRACAO' => $asaasPaymentId],
+                    $paymentData
+                );
+            }
 
             if (!isset($responseData['success']) || !$responseData['success']) {
                 $pagamentoConfirmado = false;
                 continue;
             }
 
-            $asaasPaymentId = $responseData['data']['id'];
-            $statusPagamento = $responseData['data']['status'] ?? null;
-
-            // Atualiza ou cria o pagamento no banco
-            $paymentData = $this->buildInsertPaymentPropostal($propostal, $responseData, $customerId, $request);
-            PropostalPayments::updateOrCreate(
-                ['ID_PAGAMENTO_INTEGRACAO' => $idPagamentoAtual],
-                $paymentData
-            );
-
-            // Verifica status do pagamento
-            if ($statusPagamento !== 'CONFIRMED') {
-                $pagamentoConfirmado = false;
+            if (!$asaasPaymentId) {
+                continue;
             }
 
-            // Coleta detalhes
             $detalhes = $this->asaasService->getPaymentById($asaasPaymentId);
             $detalhesPagamentos[] = is_array($detalhes) ? $detalhes : json_decode(json_encode($detalhes), true);
         }
 
-        // Atualiza status da proposta
         $propostal->update([
             'CONTRATO_STATUS' => $pagamentoConfirmado ? 'Ativo' : 'Pendente',
             'PROPOSTA_CREDITO_STATUS' => $pagamentoConfirmado ? 'Pagamento Efetuado' : utf8_decode('Pagamento em Análise')
@@ -272,7 +276,7 @@ class PaymentAsaasController extends Controller
 
         return response()->json([
             'success' => true,
-            'detalhes_pagamentos' => $detalhesPagamentos,
+            'detalhes_pagamentos' => $detalhesPagamentos
         ]);
     }
 
@@ -282,15 +286,12 @@ class PaymentAsaasController extends Controller
     {
         $payment = PropostalPayments::where('ID_PAGAMENTO_INTEGRACAO', $id_payment)->firstOrFail();
 
-        // Valide se o status permite atualização
         if ($payment->STATUS !== 'PENDING') {
             return response()->json(['success' => false, 'message' => 'Cobrança não pode ser atualizada.'], 400);
         }
 
-        // Novo método de pagamento vindo do front (ex: PIX, BOLETO)
-        $novoMetodo = strtoupper($request->input('metodo_pagamento')); // PIX ou BOLETO
+        $novoMetodo = strtoupper($request->input('metodo_pagamento'));
 
-        // Atualiza no Asaas
         $payload = [
             'billingType' => $novoMetodo,
             'dueDate'     => now()->toDateString(),
@@ -303,13 +304,11 @@ class PaymentAsaasController extends Controller
             return response()->json(['success' => false, 'message' => 'Erro ao atualizar cobrança no Asaas.'], 500);
         }
 
-        // Atualiza no banco local
         $payment->update([
             'METODO_PAGAMENTO' => $novoMetodo,
             'DATA_VENCIMENTO'  => $response['dueDate'] ?? now()->toDateString(),
         ]);
 
-        // Se boleto, retorna o link; se pix, pode buscar o QRCode etc.
         if ($novoMetodo === 'BOLETO') {
             $detalhe = $this->asaasService->getLineBoletoById($id_payment);
             return response()->json([
@@ -368,28 +367,24 @@ class PaymentAsaasController extends Controller
             ];
         };
 
-        // Retornar somente o pagamento do imóvel se valor do setup for 0
         if ($valorSetup <= 0) {
             return [
                 $buildCartaoPayload($valorImovel, $parcelasImovel, 'Pagamento da Taxa do Imóvel'),
             ];
         }
 
-        // Caso contrário, retorna os dois
         return [
-            $buildCartaoPayload($valorSetup, $parcelasSetup, 'Pagamento do Setup'),
             $buildCartaoPayload($valorImovel, $parcelasImovel, 'Pagamento da Taxa do Imóvel'),
+            $buildCartaoPayload($valorSetup, $parcelasSetup, 'Pagamento do Setup'),
         ];
     }
 
     private function buildInsertPaymentPropostal($propostal, $response, $customerId, $request)
     {
         $valorUnitario = $response['data']['value'];
-        $parcelas      = 1;
 
+        $parcelas = 1;
         if (
-            $request['metodo_pagamento'] === 'CREDIT_CARD' &&
-            ! empty($response['data']['description']) &&
             preg_match('/(\d+)\s+de\s+(\d+)/', $response['data']['description'], $matches)
         ) {
             $parcelas = (int) $matches[2];
@@ -397,16 +392,12 @@ class PaymentAsaasController extends Controller
 
         $valor = $valorUnitario * $parcelas;
 
-        if ($request['metodo_pagamento'] !== 'CREDIT_CARD') {
-            $valor = $valorUnitario;
-        }
-
         return [
             'ID_IMOBILIARIA'          => $propostal->ID_IMOBILIARIA,
             'ID_MOVI'                 => $propostal->ID,
             'ID_USUARIO_INTEGRACAO'   => $customerId,
             'ID_PAGAMENTO_INTEGRACAO' => $response['data']['id'] ?? null,
-            'METODO_PAGAMENTO'        => $request['metodo_pagamento'],
+            'METODO_PAGAMENTO'        => 'CREDIT_CARD',
             'VALOR'                   => $valor,
             'STATUS'                  => $response['data']['status'] ?? null,
             'ID_USUARIO'              => $request['id_usuario'],
@@ -489,38 +480,25 @@ class PaymentAsaasController extends Controller
             'response' => $responses,
         ]);
     }
+    */
 
-    public function getInfoPayment(Request $request, string $idPayment, string $method)
+
+    public function getInfoPayment(string $idPayment)
     {
-        $requestData = $request->all();
         $asaasService = new AsaasClientService();
 
+        $detalhe             = $asaasService->getPaymentById($idPayment);
+        $detailedResponses = is_array($detalhe) ? $detalhe : json_decode(json_encode($detalhe), true);
 
-        if ($method === 'CREDIT_CARD') {
-            $detalhe             = $asaasService->getPaymentById($idPayment);
-            $detailedResponses = is_array($detalhe) ? $detalhe : json_decode(json_encode($detalhe), true);
-        }
-
-        if ($method === 'PIX') {
-            $detalhe             = $asaasService->getQRCodeById($idPayment);
-            $detailedResponses = is_array($detalhe) ? $detalhe : json_decode(json_encode($detalhe), true);
-        }
-
-        if ($method === 'BOLETO') {
-            $detalhe             = $asaasService->getLineBoletoById($idPayment);
-            $detailedResponses = is_array($detalhe) ? $detalhe : json_decode(json_encode($detalhe), true);
-        }
+        $propostalsPayments = PropostalPayments::where('ID_PAGAMENTO_INTEGRACAO', '=', $idPayment)->first();
+        $propostal = Propostal::where('ID', '=', $propostalsPayments->ID_MOVI)->get();
 
         if (! empty($detailedResponses)) {
             return response()->json([
                 'success'             => true,
                 'detalhes_pagamentos' => [$detailedResponses],
+                'propostas' => $propostal
             ]);
         }
     }
-
-
-
-
-        */
 }
