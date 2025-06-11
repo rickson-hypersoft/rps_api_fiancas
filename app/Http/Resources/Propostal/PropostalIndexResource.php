@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Http\Resources\Propostal;
 
@@ -86,7 +86,7 @@ class PropostalIndexResource extends JsonResource
             'proposta_tipo_pagador'   => $this->toUtf8($this->PROPOSTA_TIPO_PAGADOR),
             'proposta_status'         => $this->toUtf8($this->PROPOSTA_STATUS),
             'contrato_id'             => $this->CONTRATO_ID,
-            'proposta_credito_status' => $this->PROPOSTA_CREDITO_STATUS,
+            'proposta_credito_status' => $this->toUtf8($this->PROPOSTA_CREDITO_STATUS),
             'data_nascimento'         => $this->DATA_NASCIMENTO,
             'contrato_status'         => $this->toUtf8($this->CONTRATO_STATUS),
             'observacao'              => $this->toUtf8($this->OBSERVACAO),

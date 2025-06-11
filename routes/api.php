@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 use App\Http\Controllers\Assets\AssetsController;
 use App\Http\Controllers\AttachmentController;
@@ -91,6 +91,16 @@ Route::middleware(['api.auth'])->group(function () {
     Route::post('/payment/checkout/{link_hash}', [PaymentAsaasController::class, 'checkout']);
     Route::get('/payment/{id_movi}', [PaymentsController::class, 'index']);
     Route::post('/payment/{id_movi}', [PaymentsController::class, 'store'])->name('propostal_payment.store');
+    Route::get('/payment/info/{id_payment}/{method}', [PaymentAsaasController::class, 'getInfoPayment']);
+
+    Route::post('/paymentedit/{id_payment}', [PaymentAsaasController::class, 'updatePaymentMethod']);
+
+    // Pagamentos (Métodos)
+    Route::post('/payment/create/{link_hash}', [PaymentAsaasController::class, 'checkoutBase']);
+
+    Route::post('/payment/pix/{link_hash}', [PaymentAsaasController::class, 'checkoutPix']);
+    Route::post('/payment/credit_card/{link_hash}', [PaymentAsaasController::class, 'checkoutCreditCard']);
+    Route::post('/payment/boleto/{link_hash}', [PaymentAsaasController::class, 'checkoutBoleto']);
 
     Route::post('/enviar-whatsapp/{messageType}/{linkHash}', [WhatsAppController::class, 'sendMessageByType']);
 });

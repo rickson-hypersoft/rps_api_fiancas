@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Http\Controllers\Propostal;
 
@@ -42,6 +42,18 @@ class PropostalController extends Controller
         return response()->json(['data' => PropostalIndexResource::collection($propostals)]);
     }
 
+    private function utf8ize($mixed)
+    {
+        if (is_array($mixed)) {
+            foreach ($mixed as $key => $value) {
+                $mixed[$key] = $this->utf8ize($value);
+            }
+        } elseif (is_string($mixed)) {
+            return mb_convert_encoding($mixed, 'UTF-8', 'UTF-8');
+        }
+        return $mixed;
+    }
+
     public function find(string | int $id): JsonResponse
     {
         if (is_numeric($id)) {
@@ -52,7 +64,9 @@ class PropostalController extends Controller
 
         $propostal = new PropostalIndexResource($propostal);
 
-        return response()->json($propostal);
+        return response()->json(
+            $propostal
+        );
     }
 
     public function store(Request $request): JsonResponse

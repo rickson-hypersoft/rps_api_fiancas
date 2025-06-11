@@ -13,7 +13,11 @@ use Illuminate\Http\Request;
 
 class PaymentAsaasController extends Controller
 {
-    public function checkout(Request $request, string $linkHash)
+    public function __construct(
+        private AsaasClientService $asaasService
+    ) {}
+
+    private function initCheckout(Request $request, string $linkHash)
     {
         $propostal = Propostal::where('LINK_HASH', $linkHash)->firstOrFail();
 
@@ -56,8 +60,197 @@ class PaymentAsaasController extends Controller
             ], 500);
         }
 
-        $asaasService = new AsaasClientService();
+        return [$customerId, $propostal];
+    }
 
+    public function checkoutBase(Request $request, string $linkHash)
+    {
+        list($customerId, $propostal) = $this->initCheckout($request, $linkHash);
+
+        $existingPayment = PropostalPayments::where('ID_MOVI', $propostal->ID)
+            ->whereIn('STATUS', ['PENDING']) // status que você quiser considerar como "ativos"
+            ->first();
+
+        if ($existingPayment) {
+            return response()->json([
+                'success' => true,
+                'id' => $existingPayment->ID_PAGAMENTO_INTEGRACAO,
+            ]);
+        }
+
+        $payload =  [
+            'billingType' => 'UNDEFINED', // Verifique se API aceita esse valor
+            'customer'    => $propostal->ID_USUARIO_INTEGRACAO,
+            'value'       => $propostal->PROPOSTA_TOTAL_VALOR,
+            'dueDate'     => now()->toDateString(),
+        ];
+
+
+        $response = $this->asaasService->createPayment($payload);
+
+        if ($response['success'] && isset($response['data']['id'])) {
+            $paymentId = $response['data']['id'];
+
+            $payment = PropostalPayments::create([
+                'ID_IMOBILIARIA'          => $propostal->ID_IMOBILIARIA,
+                'ID_MOVI'                 => $propostal->ID,
+                'ID_USUARIO_INTEGRACAO'   => $customerId,
+                'ID_PAGAMENTO_INTEGRACAO' => $paymentId,
+                'METODO_PAGAMENTO'        => 'INDEFINIDO', // Para indicar que ainda não foi escolhido
+                'VALOR'                   => $response['data']['value'],
+                'STATUS'                  => $response['data']['status'] ?? null,
+                'ID_USUARIO'              => $request->input('id_usuario'),
+                'DATA'                    => now()->toDateString(),
+                'HORA'                    => now()->toTimeString(),
+                'DATA_VENCIMENTO'         => $response['data']['dueDate'] ?? null,
+                'DATA_PAGAMENTO'          => $response['data']['clientPaymentDate'] ?? null,
+            ]);
+
+            $propostal->update([
+                'CONTRATO_STATUS'         => 'Pendente',
+                'PROPOSTA_CREDITO_STATUS' => utf8_decode('Pagamento em Análise'),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'id'      => $paymentId,
+            ]);
+        }
+
+        // Caso falhe
+        return response()->json([
+            'success' => false,
+            'message' => 'Erro ao criar cobrança',
+        ]);
+    }
+
+    public function checkoutPix(Request $request, string $linkHash)
+    {
+        // dd($this->initCheckout($request, $linkHash));
+        list($customerId, $propostal) = $this->initCheckout($request, $linkHash);
+
+        $payload =  [
+            'billingType' => 'PIX',
+            'customer'    => $propostal->ID_USUARIO_INTEGRACAO,
+            'value'       => $propostal->PROPOSTA_TOTAL_VALOR,
+            'dueDate'     => now()->toDateString(),
+        ];
+
+        $response = $this->asaasService->createPayment($payload);
+
+        if ($response['success'] && isset($response['data']['id'])) {
+            $statusPagamento = $response['data']['status'] ?? null;
+
+            $payment = PropostalPayments::create(
+                [
+                    'ID_IMOBILIARIA'          => $propostal->ID_IMOBILIARIA,
+                    'ID_MOVI'                 => $propostal->ID,
+                    'ID_USUARIO_INTEGRACAO'   => $customerId,
+                    'ID_PAGAMENTO_INTEGRACAO' => $response['data']['id'] ?? null,
+                    'METODO_PAGAMENTO'        => 'PIX',
+                    'VALOR'                   => $response['data']['value'],
+                    'STATUS'                  => $response['data']['status'] ?? null,
+                    'ID_USUARIO'              => $request['id_usuario'],
+                    'DATA'                    => now()->toDateString(),
+                    'HORA'                    => now()->toTimeString(),
+                    'DATA_VENCIMENTO'         => $response['data']['dueDate'] ?? null,
+                    'DATA_PAGAMENTO'          => $response['data']['clientPaymentDate'] ?? null,
+                ]
+            );
+
+            if ($statusPagamento !== 'CONFIRMED') {
+                $allConfirmed = false;
+            }
+
+            $detalhe             =  $this->asaasService->getQRCodeById($response['data']['id']);
+            $detailedResponses = is_array($detalhe) ? $detalhe : json_decode(json_encode($detalhe), true);
+        } else {
+            $allConfirmed = false;
+        }
+
+        if ($allConfirmed) {
+            $propostal->update([
+                'CONTRATO_STATUS'         => 'Ativo',
+                'PROPOSTA_CREDITO_STATUS' => 'Pagamento Efetuado',
+            ]);
+        }
+
+        if (! $allConfirmed) {
+            $propostal->update([
+                'CONTRATO_STATUS'         => 'Pendente',
+                'PROPOSTA_CREDITO_STATUS' => utf8_decode('Pagamento em Análise'),
+            ]);
+        }
+
+        if (! empty($detailedResponses)) {
+            return response()->json([
+                'success'             => true,
+                'detalhes_pagamentos' => $detailedResponses,
+                'id'                  => $response['data']['id'],
+                'proposta'           => $propostal
+            ]);
+        }
+    }
+
+    public function checkoutCreditCard(Request $request, string $linkHash) {}
+
+    public function checkoutBoleto(Request $request, string $linkHash) {}
+
+    public function updatePaymentMethod(Request $request, string $id_payment)
+    {
+        $payment = PropostalPayments::where('ID_PAGAMENTO_INTEGRACAO', $id_payment)->firstOrFail();
+
+        // Valide se o status permite atualização
+        if ($payment->STATUS !== 'PENDING') {
+            return response()->json(['success' => false, 'message' => 'Cobrança não pode ser atualizada.'], 400);
+        }
+
+        // Novo método de pagamento vindo do front (ex: PIX, BOLETO)
+        $novoMetodo = strtoupper($request->input('metodo_pagamento')); // PIX ou BOLETO
+
+        // Atualiza no Asaas
+        $payload = [
+            'billingType' => $novoMetodo,
+            'dueDate'     => now()->toDateString(),
+            'value'       => $payment->VALOR,
+        ];
+
+        $response = $this->asaasService->updatePayment($id_payment, $payload);
+
+        if (!isset($response['id'])) {
+            return response()->json(['success' => false, 'message' => 'Erro ao atualizar cobrança no Asaas.'], 500);
+        }
+
+        // Atualiza no banco local
+        $payment->update([
+            'METODO_PAGAMENTO' => $novoMetodo,
+            'DATA_VENCIMENTO'  => $response['dueDate'] ?? now()->toDateString(),
+        ]);
+
+        // Se boleto, retorna o link; se pix, pode buscar o QRCode etc.
+        if ($novoMetodo === 'BOLETO') {
+            $detalhe = $this->asaasService->getLineBoletoById($id_payment);
+            return response()->json([
+                'success'  => true,
+                'tipo'     => 'BOLETO',
+                'link'     => $response['bankSlipUrl'] ?? null,
+                'detalhes_pagamentos' => $detalhe,
+            ]);
+        } elseif ($novoMetodo === 'PIX') {
+            $detalhe = $this->asaasService->getQRCodeById($id_payment);
+            return response()->json([
+                'success'             => true,
+                'tipo'                => 'PIX',
+                'detalhes_pagamentos' => $detalhe,
+            ]);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    /*
+    public function checkout(Request $request, string $linkHash)
+    {
         $payloads = $this->buildPayloadPayment($propostal, $requestSanitize);
 
         $responses         = [];
@@ -117,7 +310,8 @@ class PaymentAsaasController extends Controller
         if (! empty($detailedResponses)) {
             return response()->json([
                 'success'             => true,
-                'detalhes_pagamentos' => $detailedResponses['id'],
+                'detalhes_pagamentos' => $detailedResponses,
+                'id'                  => $response['data']['id']
             ]);
         }
 
@@ -125,6 +319,35 @@ class PaymentAsaasController extends Controller
             'success'  => true,
             'response' => $responses,
         ]);
+    }
+
+    public function getInfoPayment(Request $request, string $idPayment, string $method)
+    {
+        $requestData = $request->all();
+        $asaasService = new AsaasClientService();
+
+
+        if ($method === 'CREDIT_CARD') {
+            $detalhe             = $asaasService->getPaymentById($idPayment);
+            $detailedResponses = is_array($detalhe) ? $detalhe : json_decode(json_encode($detalhe), true);
+        }
+
+        if ($method === 'PIX') {
+            $detalhe             = $asaasService->getQRCodeById($idPayment);
+            $detailedResponses = is_array($detalhe) ? $detalhe : json_decode(json_encode($detalhe), true);
+        }
+
+        if ($method === 'BOLETO') {
+            $detalhe             = $asaasService->getLineBoletoById($idPayment);
+            $detailedResponses = is_array($detalhe) ? $detalhe : json_decode(json_encode($detalhe), true);
+        }
+
+        if (! empty($detailedResponses)) {
+            return response()->json([
+                'success'             => true,
+                'detalhes_pagamentos' => [$detailedResponses],
+            ]);
+        }
     }
 
     private function buildPayloadPayment($propostal, $request)
@@ -245,4 +468,5 @@ class PaymentAsaasController extends Controller
             'DATA_PAGAMENTO'          => $response['data']['clientPaymentDate'] ?? null,
         ];
     }
+        */
 }
