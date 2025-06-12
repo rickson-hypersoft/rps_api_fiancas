@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Services\Asaas;
 
@@ -94,7 +94,7 @@ class AsaasClientService
         ];
     }
 
-    protected function deletePayment(string $id): bool
+    public function deletePayment(string $id): bool
     {
         $response = Http::withHeaders($this->headers())->delete("$this->url/payments/$id");
 

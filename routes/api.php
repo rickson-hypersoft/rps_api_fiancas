@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 use App\Http\Controllers\Assets\AssetsController;
 use App\Http\Controllers\AttachmentController;
@@ -12,6 +12,7 @@ use App\Http\Controllers\Financial\FinancialMoviController;
 use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Propostal\PropostalController;
+use App\Http\Controllers\PropostalPayments\CheckoutController;
 use App\Http\Controllers\PropostalPayments\PaymentAsaasController;
 use App\Http\Controllers\PropostalPayments\PaymentsController;
 use App\Http\Controllers\RealEstateSectorController;
@@ -93,22 +94,28 @@ Route::middleware(['api.auth'])->group(function () {
     Route::get('/assets/faceId/{link_hash}', [AssetsController::class, 'faceId']);
 
     // Pagamentos
-    Route::prefix('payments')->group(function () {
-        Route::get('/{id_movi}', [PaymentsController::class, 'index']);
-        Route::post('/{id_movi}', [PaymentsController::class, 'store'])->name('propostal_payment.store');
-        Route::get('/info/{id_payment}', [PaymentAsaasController::class, 'getInfoPayment']);
-        Route::post('/{id_payment}/edit', [PaymentAsaasController::class, 'updatePaymentMethod']);
+    // Route::prefix('payments')->group(function () {
+    //     Route::get('/{id_movi}', [PaymentsController::class, 'index']);
+    //     Route::post('/{id_movi}', [PaymentsController::class, 'store'])->name('propostal_payment.store');
+    //     Route::get('/info/{id_payment}', [PaymentAsaasController::class, 'getInfoPayment']);
+    //     Route::post('/{id_payment}/edit', [PaymentAsaasController::class, 'updatePaymentMethod']);
 
-        // Checkout
-        Route::post('/create/{link_hash}', [PaymentAsaasController::class, 'checkoutBase']);
-        Route::post('/checkout/{link_hash}', [PaymentAsaasController::class, 'checkout']);
-        Route::post('/credit-card/{id}/{link_hash}', [PaymentAsaasController::class, 'checkoutCreditCard']);
-        Route::post('/pix/{link_hash}', [PaymentAsaasController::class, 'checkoutPix']);
-        Route::post('/boleto/{link_hash}', [PaymentAsaasController::class, 'checkoutBoleto']);
+    //     // Checkout
+    //     Route::post('/create/{link_hash}', [PaymentAsaasController::class, 'checkoutBase']);
+    //     Route::post('/checkout/{link_hash}', [PaymentAsaasController::class, 'checkout']);
+    //     Route::post('/credit-card/{id}/{link_hash}', [PaymentAsaasController::class, 'checkoutCreditCard']);
+    //     Route::post('/pix/{link_hash}', [PaymentAsaasController::class, 'checkoutPix']);
+    //     Route::post('/boleto/{link_hash}', [PaymentAsaasController::class, 'checkoutBoleto']);
+    // });
+
+    Route::prefix('checkout')->group(function () {
+        Route::post('/canceled/{paymentId}/{linkHash}', [CheckoutController::class, 'cancelarPagamento']);
+        Route::post('/pix/{linkHash}', [CheckoutController::class, 'criarPagamentoPix']);
+        Route::post('/boleto/{linkHash}', [CheckoutController::class, 'criarPagamentoBoleto']);
+        Route::post('/cartao/{linkHash}', [CheckoutController::class, 'criarPagamentoCartao']);
     });
 
     Route::post('/enviar-whatsapp/{messageType}/{linkHash}', [WhatsAppController::class, 'sendMessageByType']);
-
 
     // Home
     Route::get('/home/{idImobiliaria}', [HomeController::class, 'index']);

@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Http\Controllers\Assets;
 
@@ -14,7 +14,7 @@ class AssetsController extends Controller
 {
     public function index(Request $request, string | int $idImobiliaria)
     {
-        if (!$idImobiliaria) {
+        if (! $idImobiliaria) {
             return response()->json(['success' => false, 'message' => 'ID da imobiliária é obrigatório.'], 400);
         }
 
@@ -51,17 +51,16 @@ class AssetsController extends Controller
             ->get();
 
         return response()->json([
-            'success' => true,
-            'data' => PropostalIndexResource::collection($assets),
-            'contratos' => $contratos,
+            'success'    => true,
+            'data'       => PropostalIndexResource::collection($assets),
+            'contratos'  => $contratos,
             'pagination' => [
                 'current_page' => $assets->currentPage(),
-                'total_pages' => $assets->lastPage(),
-                'total' => $assets->total()
-            ]
+                'total_pages'  => $assets->lastPage(),
+                'total'        => $assets->total(),
+            ],
         ]);
     }
-
 
     public function find(string $linkHash)
     {

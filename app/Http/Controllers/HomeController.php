@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace App\Http\Controllers;
 
 use App\Models\Propostal\Propostal;
@@ -22,7 +24,7 @@ class HomeController extends Controller
 
         return response()->json([
             'contratos' => $contratos,
-            'propostas' => $propostas
+            'propostas' => $propostas,
         ]);
     }
 }

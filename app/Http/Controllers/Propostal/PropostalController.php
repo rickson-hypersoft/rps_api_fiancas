@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Http\Controllers\Propostal;
 
@@ -51,6 +51,7 @@ class PropostalController extends Controller
         } elseif (is_string($mixed)) {
             return mb_convert_encoding($mixed, 'UTF-8', 'UTF-8');
         }
+
         return $mixed;
     }
 

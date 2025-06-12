@@ -1,24 +1,23 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Http\Controllers\PropostalPayments;
 
-use Illuminate\Http\Request;
-use App\Models\Propostal\Propostal;
-use Illuminate\Support\Facades\Log;
-use App\Http\Controllers\Controller;
-use App\Services\Asaas\AsaasClientService;
-use App\Models\Propostal\PropostalPayments;
 use App\Actions\Asaas\CreateOrUpdateAsaasCustomerAction;
-
-use function PHPUnit\Framework\matches;
+use App\Http\Controllers\Controller;
+use App\Models\Propostal\Propostal;
+use App\Models\Propostal\PropostalPayments;
+use App\Services\Asaas\AsaasClientService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class PaymentAsaasController extends Controller
 {
     public function __construct(
         private AsaasClientService $asaasService
-    ) {}
+    ) {
+    }
 
     private function initCheckout(Request $request, string $linkHash)
     {
@@ -55,7 +54,6 @@ class PaymentAsaasController extends Controller
             new AsaasClientService()
         ))->execute($propostal);
 
-
         if (! $customerId) {
             return response()->json([
                 'success' => false,
@@ -77,11 +75,11 @@ class PaymentAsaasController extends Controller
         if ($existingPayment) {
             return response()->json([
                 'success' => true,
-                'id' => $existingPayment->ID_PAGAMENTO_INTEGRACAO,
+                'id'      => $existingPayment->ID_PAGAMENTO_INTEGRACAO,
             ]);
         }
 
-        $payload =  [
+        $payload = [
             'billingType' => 'UNDEFINED', // Verifique se API aceita esse valor
             'customer'    => $propostal->ID_USUARIO_INTEGRACAO,
             'value'       => $propostal->PROPOSTA_TOTAL_VALOR + $propostal->PROPOSTA_SETUP_VALOR,
@@ -130,7 +128,7 @@ class PaymentAsaasController extends Controller
     {
         list($customerId, $propostal) = $this->initCheckout($request, $linkHash);
 
-        $payload =  [
+        $payload = [
             'billingType' => 'PIX',
             'customer'    => $propostal->ID_USUARIO_INTEGRACAO,
             'value'       => $propostal->PROPOSTA_TOTAL_VALOR,
@@ -163,7 +161,7 @@ class PaymentAsaasController extends Controller
                 $allConfirmed = false;
             }
 
-            $detalhe             =  $this->asaasService->getQRCodeById($response['data']['id']);
+            $detalhe           = $this->asaasService->getQRCodeById($response['data']['id']);
             $detailedResponses = is_array($detalhe) ? $detalhe : json_decode(json_encode($detalhe), true);
         } else {
             $allConfirmed = false;
@@ -188,7 +186,7 @@ class PaymentAsaasController extends Controller
                 'success'             => true,
                 'detalhes_pagamentos' => $detailedResponses,
                 'id'                  => $response['data']['id'],
-                'proposta'           => $propostal
+                'proposta'            => $propostal,
             ]);
         }
     }
@@ -207,21 +205,23 @@ class PaymentAsaasController extends Controller
         }
 
         $returnResponse = [];
+
         if ($payloads['imovel']) {
             $pagamentoExistente = PropostalPayments::where('ID_PAGAMENTO_INTEGRACAO', $idpayment)->first();
+
             if ($pagamentoExistente) {
                 $asaasResponse = $this->asaasService->updatePayment($idpayment, $payloads['imovel']);
                 Log::info("Atualizando informação no AsaaS", [$asaasResponse]);
                 $paymentId = $idpayment;
 
-                if (!$paymentId) {
+                if (! $paymentId) {
                     return response()->json(['success' => false, 'message' => 'Erro ao criar ou atualizar o pagamento'], 500);
                 }
 
                 $payWithCardResponse = $this->asaasService->payWithCreditCard($paymentId, $payloads['imovel']);
                 Log::info("Marcando como pago com cartão no AsaaS", [$payWithCardResponse]);
-                $responseData = is_array($payWithCardResponse) ? $payWithCardResponse : json_decode(json_encode($payWithCardResponse), true);
-                $paymentData = $this->buildInsertPaymentPropostal($propostal, $responseData, $customerId, $request);
+                $responseData   = is_array($payWithCardResponse) ? $payWithCardResponse : json_decode(json_encode($payWithCardResponse), true);
+                $paymentData    = $this->buildInsertPaymentPropostal($propostal, $responseData, $customerId, $request);
                 $asaasPaymentId = $responseData['data']['id'] ?? null;
                 Log::info("ID do pagamento do AsaaS", [$asaasPaymentId]);
                 $returnResponse[] = $this->asaasService->getPaymentById($paymentId);
@@ -237,8 +237,8 @@ class PaymentAsaasController extends Controller
 
         return response()->json(
             [
-                'success' => true,
-                'pagamentos' => $returnResponse
+                'success'    => true,
+                'pagamentos' => $returnResponse,
             ]
         );
 
@@ -322,7 +322,9 @@ class PaymentAsaasController extends Controller
         */
     }
 
-    public function checkoutBoleto(Request $request, string $linkHash) {}
+    public function checkoutBoleto(Request $request, string $linkHash)
+    {
+    }
 
     public function updatePaymentMethod(Request $request, string $id_payment)
     {
@@ -342,7 +344,7 @@ class PaymentAsaasController extends Controller
 
         $response = $this->asaasService->updatePayment($id_payment, $payload);
 
-        if (!isset($response['id'])) {
+        if (! isset($response['id'])) {
             return response()->json(['success' => false, 'message' => 'Erro ao atualizar cobrança no Asaas.'], 500);
         }
 
@@ -353,14 +355,16 @@ class PaymentAsaasController extends Controller
 
         if ($novoMetodo === 'BOLETO') {
             $detalhe = $this->asaasService->getLineBoletoById($id_payment);
+
             return response()->json([
-                'success'  => true,
-                'tipo'     => 'BOLETO',
-                'link'     => $response['bankSlipUrl'] ?? null,
+                'success'             => true,
+                'tipo'                => 'BOLETO',
+                'link'                => $response['bankSlipUrl'] ?? null,
                 'detalhes_pagamentos' => $detalhe,
             ]);
         } elseif ($novoMetodo === 'PIX') {
             $detalhe = $this->asaasService->getQRCodeById($id_payment);
+
             return response()->json([
                 'success'             => true,
                 'tipo'                => 'PIX',
@@ -426,6 +430,7 @@ class PaymentAsaasController extends Controller
         $valorUnitario = $response['data']['value'];
 
         $parcelas = 1;
+
         if (
             preg_match('/(\d+)\s+de\s+(\d+)/', $response['data']['description'], $matches)
         ) {
@@ -524,22 +529,21 @@ class PaymentAsaasController extends Controller
     }
     */
 
-
     public function getInfoPayment(string $idPayment)
     {
         $asaasService = new AsaasClientService();
 
-        $detalhe             = $asaasService->getPaymentById($idPayment);
+        $detalhe           = $asaasService->getPaymentById($idPayment);
         $detailedResponses = is_array($detalhe) ? $detalhe : json_decode(json_encode($detalhe), true);
 
         $propostalsPayments = PropostalPayments::where('ID_PAGAMENTO_INTEGRACAO', '=', $idPayment)->first();
-        $propostal = Propostal::where('ID', '=', $propostalsPayments->ID_MOVI)->get();
+        $propostal          = Propostal::where('ID', '=', $propostalsPayments->ID_MOVI)->get();
 
         if (! empty($detailedResponses)) {
             return response()->json([
                 'success'             => true,
                 'detalhes_pagamentos' => [$detailedResponses],
-                'propostas' => $propostal
+                'propostas'           => $propostal,
             ]);
         }
     }
