@@ -1,23 +1,23 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Http\Controllers\PropostalPayments;
 
-use App\Actions\Asaas\CreateOrUpdateAsaasCustomerAction;
-use App\Http\Controllers\Controller;
-use App\Http\Resources\Propostal\PropostalIndexResource;
-use App\Models\Propostal\Propostal;
-use App\Models\Propostal\PropostalPayments;
-use App\Services\Asaas\AsaasClientService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use App\Models\Propostal\Propostal;
+use App\Http\Controllers\Controller;
+use App\Services\Asaas\AsaasClientService;
+use App\Models\Propostal\PropostalPayments;
+use App\Actions\Asaas\CreateOrUpdateAsaasCustomerAction;
+use App\Http\Resources\Propostal\PropostalIndexResource;
 
 class CheckoutController extends Controller
 {
     public function __construct(
         private AsaasClientService $asaasService
-    ) {
-    }
+    ) {}
 
     private function initCheckout(Request $request, string $linkHash)
     {
@@ -67,6 +67,32 @@ class CheckoutController extends Controller
     public function criarPagamentoPix(Request $request, $linkHash)
     {
         list($customerId, $propostal) = $this->initCheckout($request, $linkHash);
+
+        $pagamentoExistente = PropostalPayments::where('ID_USUARIO_INTEGRACAO', $customerId)
+            ->where('LINK_HASH', $linkHash)
+            ->where('METODO_PAGAMENTO', 'PIX')
+            ->where('STATUS', 'PENDING')
+            ->latest('DATA_VENCIMENTO')
+            ->first();
+
+        if ($pagamentoExistente) {
+            // Já existe pagamento pendente — não cria novo, apenas retorna dados
+            $detalhe = $this->asaasService->getQRCodeById($pagamentoExistente->ID_PAGAMENTO_INTEGRACAO);
+            $detailedResponses = is_array($detalhe) ? $detalhe : json_decode(json_encode($detalhe), true);
+
+            $dataFormatada = $pagamentoExistente->DATA_VENCIMENTO
+                ? \Carbon\Carbon::parse($pagamentoExistente->DATA_VENCIMENTO)->format('d/m/Y')
+                : null;
+
+            return response()->json([
+                'success'           => true,
+                'detalhe_pagamento' => $detailedResponses,
+                'id_pagamento'      => $pagamentoExistente->ID_PAGAMENTO_INTEGRACAO,
+                'proposta'          => new PropostalIndexResource($propostal),
+                'data_vencimento'   => $dataFormatada,
+                'reutilizado'       => true, // opcional para controle
+            ]);
+        }
 
         $payload = [
             'billingType' => 'PIX',
@@ -122,12 +148,20 @@ class CheckoutController extends Controller
             ]);
         }
 
+        $dataVencimentoAnterior = PropostalPayments::where('LINK_HASH', $linkHash)
+            ->latest('DATA_VENCIMENTO')
+            ->value('DATA_VENCIMENTO');
+        $dataFormatada = $dataVencimentoAnterior
+            ? Carbon::parse($dataVencimentoAnterior)->format('d/m/Y')
+            : null;
+
         if (! empty($detailedResponses)) {
             return response()->json([
                 'success'           => true,
                 'detalhe_pagamento' => $detailedResponses,
                 'id_pagamento'      => $response['data']['id'],
                 'proposta'          => new PropostalIndexResource($propostal),
+                'data_vencimento'   => $dataFormatada,
             ]);
         }
     }
@@ -135,6 +169,32 @@ class CheckoutController extends Controller
     public function criarPagamentoBoleto(Request $request, $linkHash)
     {
         list($customerId, $propostal) = $this->initCheckout($request, $linkHash);
+
+        $pagamentoExistente = PropostalPayments::where('ID_USUARIO_INTEGRACAO', $customerId)
+            ->where('LINK_HASH', $linkHash)
+            ->where('METODO_PAGAMENTO', 'BOLETO')
+            ->where('STATUS', 'PENDING')
+            ->latest('DATA_VENCIMENTO')
+            ->first();
+
+        if ($pagamentoExistente) {
+            // Já existe pagamento pendente — não cria novo, apenas retorna dados
+            $detalhe = $this->asaasService->getLineBoletoById($pagamentoExistente->ID_PAGAMENTO_INTEGRACAO);
+            $detailedResponses = is_array($detalhe) ? $detalhe : json_decode(json_encode($detalhe), true);
+
+            $dataFormatada = $pagamentoExistente->DATA_VENCIMENTO
+                ? \Carbon\Carbon::parse($pagamentoExistente->DATA_VENCIMENTO)->format('d/m/Y')
+                : null;
+            $linkBoleto = $this->asaasService->getPaymentById($pagamentoExistente->ID_PAGAMENTO_INTEGRACAO);
+            return response()->json([
+                'success'           => true,
+                'detalhe_pagamento' => $detailedResponses,
+                'id_pagamento'      => $pagamentoExistente->ID_PAGAMENTO_INTEGRACAO,
+                'proposta'          => new PropostalIndexResource($propostal),
+                'data_vencimento'   => $dataFormatada,
+                'link_boleto'       => $linkBoleto['bankSlipUrl'] ?? null,
+            ]);
+        }
 
         $payload = [
             'billingType' => 'BOLETO',
@@ -166,6 +226,10 @@ class CheckoutController extends Controller
                 ]
             );
 
+            $dataFormatada = $payment->DATA_VENCIMENTO
+                ? \Carbon\Carbon::parse($payment->DATA_VENCIMENTO)->format('d/m/Y')
+                : null;
+
             if ($statusPagamento !== 'CONFIRMED') {
                 $allConfirmed = false;
             }
@@ -191,11 +255,15 @@ class CheckoutController extends Controller
         }
 
         if (! empty($detailedResponses)) {
+            $linkBoleto = $this->asaasService->getPaymentById($response['data']['id']);
+            var_dump($linkBoleto);
             return response()->json([
                 'success'           => true,
                 'detalhe_pagamento' => $detailedResponses,
                 'id_pagamento'      => $response['data']['id'],
+                'link_boleto'       => $linkBoleto['bankSlipUrl'] ?? null,
                 'proposta'          => new PropostalIndexResource($propostal),
+                'data_vencimento'   => $dataFormatada,
             ]);
         }
     }
