@@ -19,6 +19,31 @@ class CheckoutController extends Controller
         private AsaasClientService $asaasService
     ) {}
 
+    public function recuperarPagamento(string $idPayment)
+    {
+        $idsArray = explode(',', $idPayment);
+        $pagamentos = [];
+        $propostas  = [];
+
+        foreach ($idsArray as $id) {
+            $response = $this->asaasService->getPaymentById(trim($id));
+
+            if ($response) {
+                $pagamentos[] = $response;
+            }
+
+            $propostalsPayments = PropostalPayments::where('ID_PAGAMENTO_INTEGRACAO', '=', $id)->first();
+            $propostas          = Propostal::where('ID', '=', $propostalsPayments->ID_MOVI)->get();
+        }
+
+        return response()->json([
+            'success'             => true,
+            'detalhes_pagamentos' => $pagamentos,
+            'propostas'           => $propostas,
+        ]);
+    }
+
+
     private function initCheckout(Request $request, string $linkHash)
     {
         $propostal = Propostal::where('LINK_HASH', $linkHash)->firstOrFail();
@@ -268,79 +293,140 @@ class CheckoutController extends Controller
         }
     }
 
-    public function criarPagamentoCartao(Request $request, $customerId, $linkHash)
+    public function criarPagamentoCartao(Request $request, $linkHash)
     {
         list($customerId, $propostal) = $this->initCheckout($request, $linkHash);
-        $payloads                     = $this->buildPayloadPayment($propostal, $request) ?? [];
 
-        if (empty($payloads)) {
+        $pagamentoExistente = PropostalPayments::where('ID_USUARIO_INTEGRACAO', $customerId)
+            ->where('LINK_HASH', $linkHash)
+            ->where('METODO_PAGAMENTO', 'CARTAO')
+            ->where('STATUS', 'PENDING')
+            ->latest('DATA_VENCIMENTO')
+            ->first();
+
+        if ($pagamentoExistente) {
+
+            $payloads                     = $this->buildPayloadPayment($propostal, $request) ?? [];
+
+            if (empty($payloads)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Dados do payload inválidos',
+                ], 400);
+            }
+
+            $detalhesPagamentos = [];
+            $idPagamento = [];
+
+            if ($payloads['imovel']) {
+                $asaasResponse = $this->asaasService->createPayment($payloads['imovel']);
+                $paymentId     = $asaasResponse['data']['id'] ?? null;
+
+                if (! $paymentId) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Erro ao criar cobrança no Asaas',
+                    ], 500);
+                }
+
+                // $payWithCardResponse = $this->asaasService->payWithCreditCard($paymentId, $payloads['imovel']);
+
+                $responseData = is_array($asaasResponse)
+                    ? $asaasResponse
+                    : json_decode(json_encode($asaasResponse), true);
+
+                if (! isset($responseData['success']) || ! $responseData['success']) {
+                    return response()->json([
+                        'success'        => false,
+                        'message'        => 'Erro ao processar pagamento com cartão',
+                        'asaas_response' => $responseData,
+                    ], 500);
+                }
+
+                $asaasPaymentId = $responseData['data']['id'] ?? null;
+                $idPagamento[] = $asaasPaymentId;
+
+                if (! $asaasPaymentId) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'ID do pagamento retornado é inválido',
+                    ], 500);
+                }
+
+                // Busca detalhes do pagamento
+                $detalhes             = $this->asaasService->getPaymentById($asaasPaymentId);
+                $detalhesArray        = is_array($detalhes) ? $detalhes : json_decode(json_encode($detalhes), true);
+                $detalhesPagamentos[] = $detalhesArray;
+
+                // Insere pagamento na base
+                $paymentData                            = $this->buildInsertPaymentPropostal($propostal, $responseData, $customerId, $request);
+                $paymentData['ID_PAGAMENTO_INTEGRACAO'] = $asaasPaymentId;
+                $paymentData['LINK_HASH'] = $linkHash;
+
+                PropostalPayments::create($paymentData);
+            }
+
+            if ($payloads['setup']) {
+                $asaasResponse = $this->asaasService->createPayment($payloads['setup']);
+                $paymentId     = $asaasResponse['data']['id'] ?? null;
+
+                if (! $paymentId) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Erro ao criar cobrança no Asaas',
+                    ], 500);
+                }
+
+                // $payWithCardResponse = $this->asaasService->payWithCreditCard($paymentId, $payloads['imovel']);
+
+                $responseData = is_array($asaasResponse)
+                    ? $asaasResponse
+                    : json_decode(json_encode($asaasResponse), true);
+
+                if (! isset($responseData['success']) || ! $responseData['success']) {
+                    return response()->json([
+                        'success'        => false,
+                        'message'        => 'Erro ao processar pagamento com cartão',
+                        'asaas_response' => $responseData,
+                    ], 500);
+                }
+
+                $asaasPaymentId = $responseData['data']['id'] ?? null;
+                $idPagamento[] = $asaasPaymentId;
+
+                if (! $asaasPaymentId) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'ID do pagamento retornado é inválido',
+                    ], 500);
+                }
+
+                // Busca detalhes do pagamento
+                $detalhes             = $this->asaasService->getPaymentById($asaasPaymentId);
+                $detalhesArray        = is_array($detalhes) ? $detalhes : json_decode(json_encode($detalhes), true);
+                $detalhesPagamentos[] = $detalhesArray;
+
+                // Insere pagamento na base
+                $paymentData                            = $this->buildInsertPaymentPropostal($propostal, $responseData, $customerId, $request);
+                $paymentData['ID_PAGAMENTO_INTEGRACAO'] = $asaasPaymentId;
+                $paymentData['LINK_HASH'] = $linkHash;
+
+                PropostalPayments::create($paymentData);
+            }
+
+            // Atualiza status da proposta
+            $propostal->update([
+                'CONTRATO_STATUS'         => 'Ativo',
+                'PROPOSTA_CREDITO_STATUS' => 'Pagamento Efetuado',
+            ]);
+
             return response()->json([
-                'success' => false,
-                'message' => 'Dados do payload inválidos',
-            ], 400);
+                'success'             => true,
+                'detalhes_pagamentos' => $detalhesPagamentos,
+                'ids_pagamentos'      => $idPagamento,
+                'propostas'           => new PropostalIndexResource($propostal)
+            ]);
         }
-
-        $detalhesPagamentos = [];
-
-        foreach ($payloads as $payload) {
-            // Cria cobrança no Asaas
-            $asaasResponse = $this->asaasService->createPayment($payload);
-            $paymentId     = $asaasResponse['data']['id'] ?? null;
-
-            if (! $paymentId) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Erro ao criar cobrança no Asaas',
-                ], 500);
-            }
-
-            // Realiza pagamento com cartão
-            $payWithCardResponse = $this->asaasService->payWithCreditCard($paymentId, $payload);
-
-            $responseData = is_array($payWithCardResponse)
-                ? $payWithCardResponse
-                : json_decode(json_encode($payWithCardResponse), true);
-
-            if (! isset($responseData['success']) || ! $responseData['success']) {
-                return response()->json([
-                    'success'        => false,
-                    'message'        => 'Erro ao processar pagamento com cartão',
-                    'asaas_response' => $responseData,
-                ], 500);
-            }
-
-            // Pega dados atualizados do pagamento
-            $asaasPaymentId = $responseData['data']['id'] ?? null;
-
-            if (! $asaasPaymentId) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'ID do pagamento retornado é inválido',
-                ], 500);
-            }
-
-            // Busca detalhes do pagamento
-            $detalhes             = $this->asaasService->getPaymentById($asaasPaymentId);
-            $detalhesArray        = is_array($detalhes) ? $detalhes : json_decode(json_encode($detalhes), true);
-            $detalhesPagamentos[] = $detalhesArray;
-
-            // Insere pagamento na base
-            $paymentData                            = $this->buildInsertPaymentPropostal($propostal, $responseData, $customerId, $request);
-            $paymentData['ID_PAGAMENTO_INTEGRACAO'] = $asaasPaymentId;
-
-            PropostalPayments::create($paymentData);
-        }
-
-        // Atualiza status da proposta
-        $propostal->update([
-            'CONTRATO_STATUS'         => 'Ativo',
-            'PROPOSTA_CREDITO_STATUS' => 'Pagamento Efetuado',
-        ]);
-
-        return response()->json([
-            'success'             => true,
-            'detalhes_pagamentos' => $detalhesPagamentos,
-        ]);
     }
 
     public function cancelarPagamento($paymentId, $linkHash)

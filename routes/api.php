@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 use App\Http\Controllers\Assets\AssetsController;
 use App\Http\Controllers\AttachmentController;
@@ -113,6 +113,8 @@ Route::middleware(['api.auth'])->group(function () {
         Route::post('/pix/{linkHash}', [CheckoutController::class, 'criarPagamentoPix']);
         Route::post('/boleto/{linkHash}', [CheckoutController::class, 'criarPagamentoBoleto']);
         Route::post('/cartao/{linkHash}', [CheckoutController::class, 'criarPagamentoCartao']);
+
+        Route::get('/info/{id_payment}', [CheckoutController::class, 'recuperarPagamento']);
     });
 
     Route::post('/enviar-whatsapp/{messageType}/{linkHash}', [WhatsAppController::class, 'sendMessageByType']);
