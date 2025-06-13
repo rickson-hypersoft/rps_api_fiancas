@@ -32,7 +32,7 @@ class AttachmentController extends Controller
             'id_movi'               => 'required|numeric',
             'movi'                  => 'nullable|string|max:50',
             'movi_sub'              => 'nullable|string|max:50',
-            'data'                  => 'required|timestamp',
+            'data'                  => 'required|date',
             'nome_arquivo_original' => 'required|string|max:100',
             'nome_arquivo'          => 'nullable|string|max:100',
             'descricao'             => 'nullable|string|max:100',
@@ -108,5 +108,18 @@ class AttachmentController extends Controller
             ->exists(); // aqui deve ser exists(), não get()
 
         return response()->json(['exists' => $exists]);
+    }
+
+    public function search(Request $request): JsonResponse
+    {
+        $anexos = Attachment::where('ID_IMOBILIARIA', $request->id_imobiliaria)
+            ->where('ID_MOVI', $request->id_movi)
+            ->where('MOVI', $request->movi ?? 'contratos') // valor padrão "contratos"
+            ->when($request->movi_sub, function ($query) use ($request) {
+                $query->where('MOVI_SUB', $request->movi_sub);
+            })
+            ->get(['NOME_ARQUIVO', 'NOME_ARQUIVO_ORIGINAL', 'MOVI_SUB', 'DATA']);
+
+        return response()->json($anexos);
     }
 }

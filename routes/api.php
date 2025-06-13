@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 use App\Http\Controllers\Assets\AssetsController;
 use App\Http\Controllers\AttachmentController;
@@ -73,6 +73,7 @@ Route::middleware(['api.auth'])->group(function () {
     Route::get('/attachment/{attachment}', [AttachmentController::class, 'find']);
     Route::post('/attachment', [AttachmentController::class, 'store']);
     Route::put('/attachment/{attachment}', [AttachmentController::class, 'update']);
+    Route::get('/search/attachment', [AttachmentController::class, 'search']);
 
     // Propostas
     Route::get('/propostals/{idRealEstateSector}', [PropostalController::class, 'index']);
@@ -86,7 +87,12 @@ Route::middleware(['api.auth'])->group(function () {
     Route::get('/histories/{id_movi}', [HistoryController::class, 'index']);
 
     // Contratos
-    Route::get('/assetsHome/{idImobiliaria}', [AssetsController::class, 'index']);
+    Route::prefix('assets')->group(function () {
+        Route::get('/{idIMobiliaria}', [AssetsController::class, 'index']);
+        Route::get('/{idIMobiliaria}/{idContrato}', [AssetsController::class, 'findAsset']);
+    });
+
+    // Route::get('/assetsHome/{idImobiliaria}', [AssetsController::class, 'index']);
 
     Route::get('/assets/{id}/find', [AssetsController::class, 'findAsset']);
 

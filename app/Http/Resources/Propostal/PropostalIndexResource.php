@@ -95,6 +95,9 @@ class PropostalIndexResource extends JsonResource
             'valor_total_pagamento'   => $valorTotalPagamento !== null
                 ? 'R$ ' . number_format(floatval($valorTotalPagamento), 2, ',', '')
                 : null,
+            'anexo_contrato' => $this->ANX_CONTRATO,
+            'anexo_vistoria' => $this->ANX_VISTORIA,
+            'anexo_apolice'  => $this->ANX_APOLICE,
         ];
     }
 }

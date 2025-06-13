@@ -1,27 +1,28 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Http\Controllers\PropostalPayments;
 
+use App\Actions\Asaas\CreateOrUpdateAsaasCustomerAction;
+use App\Http\Controllers\Controller;
+use App\Http\Resources\Propostal\PropostalIndexResource;
+use App\Models\Propostal\Propostal;
+use App\Models\Propostal\PropostalPayments;
+use App\Services\Asaas\AsaasClientService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use App\Models\Propostal\Propostal;
-use App\Http\Controllers\Controller;
-use App\Services\Asaas\AsaasClientService;
-use App\Models\Propostal\PropostalPayments;
-use App\Actions\Asaas\CreateOrUpdateAsaasCustomerAction;
-use App\Http\Resources\Propostal\PropostalIndexResource;
 
 class CheckoutController extends Controller
 {
     public function __construct(
         private AsaasClientService $asaasService
-    ) {}
+    ) {
+    }
 
     public function recuperarPagamento(string $idPayment)
     {
-        $idsArray = explode(',', $idPayment);
+        $idsArray   = explode(',', $idPayment);
         $pagamentos = [];
         $propostas  = [];
 
@@ -42,7 +43,6 @@ class CheckoutController extends Controller
             'propostas'           => $propostas,
         ]);
     }
-
 
     private function initCheckout(Request $request, string $linkHash)
     {
@@ -102,11 +102,11 @@ class CheckoutController extends Controller
 
         if ($pagamentoExistente) {
             // Já existe pagamento pendente — não cria novo, apenas retorna dados
-            $detalhe = $this->asaasService->getQRCodeById($pagamentoExistente->ID_PAGAMENTO_INTEGRACAO);
+            $detalhe           = $this->asaasService->getQRCodeById($pagamentoExistente->ID_PAGAMENTO_INTEGRACAO);
             $detailedResponses = is_array($detalhe) ? $detalhe : json_decode(json_encode($detalhe), true);
 
             $dataFormatada = $pagamentoExistente->DATA_VENCIMENTO
-                ? \Carbon\Carbon::parse($pagamentoExistente->DATA_VENCIMENTO)->format('d/m/Y')
+                ? Carbon::parse($pagamentoExistente->DATA_VENCIMENTO)->format('d/m/Y')
                 : null;
 
             return response()->json([
@@ -204,13 +204,14 @@ class CheckoutController extends Controller
 
         if ($pagamentoExistente) {
             // Já existe pagamento pendente — não cria novo, apenas retorna dados
-            $detalhe = $this->asaasService->getLineBoletoById($pagamentoExistente->ID_PAGAMENTO_INTEGRACAO);
+            $detalhe           = $this->asaasService->getLineBoletoById($pagamentoExistente->ID_PAGAMENTO_INTEGRACAO);
             $detailedResponses = is_array($detalhe) ? $detalhe : json_decode(json_encode($detalhe), true);
 
             $dataFormatada = $pagamentoExistente->DATA_VENCIMENTO
-                ? \Carbon\Carbon::parse($pagamentoExistente->DATA_VENCIMENTO)->format('d/m/Y')
+                ? Carbon::parse($pagamentoExistente->DATA_VENCIMENTO)->format('d/m/Y')
                 : null;
             $linkBoleto = $this->asaasService->getPaymentById($pagamentoExistente->ID_PAGAMENTO_INTEGRACAO);
+
             return response()->json([
                 'success'           => true,
                 'detalhe_pagamento' => $detailedResponses,
@@ -252,7 +253,7 @@ class CheckoutController extends Controller
             );
 
             $dataFormatada = $payment->DATA_VENCIMENTO
-                ? \Carbon\Carbon::parse($payment->DATA_VENCIMENTO)->format('d/m/Y')
+                ? Carbon::parse($payment->DATA_VENCIMENTO)->format('d/m/Y')
                 : null;
 
             if ($statusPagamento !== 'CONFIRMED') {
@@ -282,6 +283,7 @@ class CheckoutController extends Controller
         if (! empty($detailedResponses)) {
             $linkBoleto = $this->asaasService->getPaymentById($response['data']['id']);
             var_dump($linkBoleto);
+
             return response()->json([
                 'success'           => true,
                 'detalhe_pagamento' => $detailedResponses,
@@ -305,8 +307,7 @@ class CheckoutController extends Controller
             ->first();
 
         if ($pagamentoExistente) {
-
-            $payloads                     = $this->buildPayloadPayment($propostal, $request) ?? [];
+            $payloads = $this->buildPayloadPayment($propostal, $request) ?? [];
 
             if (empty($payloads)) {
                 return response()->json([
@@ -316,7 +317,7 @@ class CheckoutController extends Controller
             }
 
             $detalhesPagamentos = [];
-            $idPagamento = [];
+            $idPagamento        = [];
 
             if ($payloads['imovel']) {
                 $asaasResponse = $this->asaasService->createPayment($payloads['imovel']);
@@ -344,7 +345,7 @@ class CheckoutController extends Controller
                 }
 
                 $asaasPaymentId = $responseData['data']['id'] ?? null;
-                $idPagamento[] = $asaasPaymentId;
+                $idPagamento[]  = $asaasPaymentId;
 
                 if (! $asaasPaymentId) {
                     return response()->json([
@@ -361,7 +362,7 @@ class CheckoutController extends Controller
                 // Insere pagamento na base
                 $paymentData                            = $this->buildInsertPaymentPropostal($propostal, $responseData, $customerId, $request);
                 $paymentData['ID_PAGAMENTO_INTEGRACAO'] = $asaasPaymentId;
-                $paymentData['LINK_HASH'] = $linkHash;
+                $paymentData['LINK_HASH']               = $linkHash;
 
                 PropostalPayments::create($paymentData);
             }
@@ -392,7 +393,7 @@ class CheckoutController extends Controller
                 }
 
                 $asaasPaymentId = $responseData['data']['id'] ?? null;
-                $idPagamento[] = $asaasPaymentId;
+                $idPagamento[]  = $asaasPaymentId;
 
                 if (! $asaasPaymentId) {
                     return response()->json([
@@ -409,7 +410,7 @@ class CheckoutController extends Controller
                 // Insere pagamento na base
                 $paymentData                            = $this->buildInsertPaymentPropostal($propostal, $responseData, $customerId, $request);
                 $paymentData['ID_PAGAMENTO_INTEGRACAO'] = $asaasPaymentId;
-                $paymentData['LINK_HASH'] = $linkHash;
+                $paymentData['LINK_HASH']               = $linkHash;
 
                 PropostalPayments::create($paymentData);
             }
@@ -424,7 +425,7 @@ class CheckoutController extends Controller
                 'success'             => true,
                 'detalhes_pagamentos' => $detalhesPagamentos,
                 'ids_pagamentos'      => $idPagamento,
-                'propostas'           => new PropostalIndexResource($propostal)
+                'propostas'           => new PropostalIndexResource($propostal),
             ]);
         }
     }

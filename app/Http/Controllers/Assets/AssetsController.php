@@ -38,8 +38,24 @@ class AssetsController extends Controller
             });
         }
 
-        if ($request->filled('created_at')) {
-            $query->where('DATA', $request->input('created_at'));
+        // if ($request->filled('created_at')) {
+        //     $query->where('DATA', $request->input('created_at'));
+        // }
+
+        if ($request->filled('pendences')) {
+            if ($request->input('pendences') == 'contrato') {
+                $query->where(function ($q) {
+                    $q->where('ANX_CONTRATO', 0)
+                        ->orWhereNull('ANX_CONTRATO');
+                });
+            }
+
+            if ($request->input('pendences') == 'vistoria') {
+                $query->where(function ($q) {
+                    $q->where('ANX_VISTORIA', 0)
+                        ->orWhereNull('ANX_VISTORIA');
+                });
+            }
         }
 
         // Ordenação e paginação
@@ -71,9 +87,9 @@ class AssetsController extends Controller
         return response()->json(['data' => $propostal]);
     }
 
-    public function findAsset(string $id)
+    public function findAsset(string $idImobiliaria, string $idContrato)
     {
-        $query = Propostal::where('ID', '=', $id)->firstOrFail();
+        $query = Propostal::where('ID', '=', $idContrato)->firstOrFail();
 
         $propostal = new PropostalIndexResource($query);
 

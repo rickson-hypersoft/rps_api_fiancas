@@ -109,6 +109,9 @@ class PropostalController extends Controller
             'hora'                    => 'nullable',
             'data_ultima_atualizacao' => 'nullable|date',
             'hora_ultima_atualizacao' => 'nullable',
+            'anx_contrato'            => 'nullable|numeric|between:0,1',
+            'anx_vistoria'            => 'nullable|numeric|between:0,1',
+            'anx_apolice'             => 'nullable|numeric|between:0,1',
         ]);
 
         if ($validator->fails()) {
