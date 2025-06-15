@@ -63,7 +63,7 @@ Route::middleware(['api.auth'])->group(function () {
     Route::put('/financial/financial_category/{financial_category}', [FinancialCategoryController::class, 'update']);
     Route::delete('/financial/financial_category/{financial_category}', [FinancialCategoryController::class, 'destroy']);
 
-    Route::get('/financial/financial_movi', [FinancialMoviController::class, 'index']);
+    Route::get('/financial/financial_movi/{id}', [FinancialMoviController::class, 'index']);
     Route::get('/financial/financial_movi/{financial_movi}', [FinancialMoviController::class, 'find']);
     Route::post('/financial/financial_movi', [FinancialMoviController::class, 'store']);
     Route::put('/financial/financial_movi/{financial_movi}', [FinancialMoviController::class, 'update']);
