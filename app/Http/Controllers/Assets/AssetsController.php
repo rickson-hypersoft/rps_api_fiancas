@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Http\Controllers\Assets;
 
@@ -33,7 +33,9 @@ class AssetsController extends Controller
 
             $query->where(function ($q) use ($search) {
                 // Filtrar por ID apenas se for numérico
-                if (is_numeric($search)) {
+                if (strlen($search) == 11 || strlen($search) == 14) {
+                    $q->orWhere('PESSOA_DOC', 'like', "%$search%");
+                } else {
                     $q->where('ID', $search);
                 }
 
@@ -73,9 +75,18 @@ class AssetsController extends Controller
         // Ordenação e paginação
         $assets = $query->orderBy('ID', 'desc')->paginate();
 
-        $contratos = Propostal::selectRaw('CONTRATO_STATUS, COUNT(*) as total')
+        $contratos = Propostal::selectRaw("
+    CASE
+        WHEN CONTRATO_STATUS = 'Ativo' AND ANX_CONTRATO = 1 AND ANX_VISTORIA = 1 AND ANX_APOLICE = 1 THEN 'Ativo'
+        WHEN CONTRATO_STATUS = 'Ativo' AND (ANX_CONTRATO = 0 OR ANX_VISTORIA = 0 OR ANX_APOLICE = 0) THEN 'Pendente'
+        WHEN PROPOSTA_STATUS = 'Reprovada' THEN 'Em renovação'
+        WHEN PROPOSTA_STATUS IN ('Pendente', 'Rascunho', 'Cancelado') THEN 'Cancelado'
+        ELSE 'Outro'
+    END AS STATUS_PERSONALIZADO,
+    COUNT(*) AS total
+")
             ->where('ID_IMOBILIARIA', $idImobiliaria)
-            ->groupBy('CONTRATO_STATUS')
+            ->groupBy('STATUS_PERSONALIZADO')
             ->get();
 
         return response()->json([

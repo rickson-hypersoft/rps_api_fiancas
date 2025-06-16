@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Http\Resources\Propostal;
 
@@ -98,6 +98,8 @@ class PropostalIndexResource extends JsonResource
             'anexo_contrato' => $this->ANX_CONTRATO,
             'anexo_vistoria' => $this->ANX_VISTORIA,
             'anexo_apolice'  => $this->ANX_APOLICE,
+            'motivo'         => $this->toUtf8($this->MOTIVO),
+            'motivo_explicacao'         => $this->toUtf8($this->MOTIVO_EXPLICACAO),
         ];
     }
 }

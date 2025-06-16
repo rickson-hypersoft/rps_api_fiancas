@@ -1,10 +1,11 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
 use App\Models\Propostal\Propostal;
+use App\Models\RealEstateSector;
 use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -109,17 +110,20 @@ class WhatsAppController extends Controller
 
             case 'proposta':
                 $nomeCompleto    = $propostal->PESSOA_NOME ?? 'Cliente';
-                $linkContrato    = "http://localhost:8001/pagamentos/login/{$propostal->LINK_HASH}" ?? '#';
+                $linkContrato    = "http://localhost:8001/ativacao/{$propostal->LINK_HASH}" ?? '#';
                 $imobiliaria     = $propostal->ID_IMOBILIARIA ?? 'A imobiliária';
-                $enderecoLocacao = $propostal->IMOVEL_ENDERECO ?? 'endereço não informado';
+                $imobiliariaInfo = RealEstateSector::where('ID', '=', $imobiliaria)->firstOrFail();
+                $nomeImobiliaria = $imobiliariaInfo['RAZAO'];
+
+                $enderecoLocacao = "{$propostal->IMOVEL_ENDERECO}, {$propostal->IMOVEL_BAIRRO}, {$propostal->IMOVEL_NUMERO}, {$propostal->IMOVEL_CIDADE} - {$propostal->IMOVEL_ESTADO}" ?? 'endereço não informado';
                 $telefone        = $propostal->TELEFONE ?? 'não informado';
                 $email           = $propostal->EMAIL ?? 'não informado';
 
-                $message1 = "Olá $nomeCompleto, Parabéns!! Falta pouco para ativar seu contrato da Invicta, para finalizar a contratação dos serviços da Invicta e alugar sem burocracia, acesse: $linkContrato";
+                $message1 = "Olá $nomeCompleto, Parabéns!! Falta pouco para ativar seu contrato da Invicta.\n\nPara finalizar a contratação dos serviços e alugar sem burocracia, acesse o link abaixo:\n$linkContrato";
 
                 $message2 = "Olá $nomeCompleto\n\n" .
                     "Somos a Invicta empresa de garantia de fiança para locação.\n\n" .
-                    "$imobiliaria encaminhou seus dados para análise e sua solicitação foi aprovada!\n\n" .
+                    "$nomeImobiliaria encaminhou seus dados para análise e sua solicitação foi aprovada!\n\n" .
                     "Para prosseguir, confirme os dados abaixo:\n\n" .
                     "Endereço para locação: $enderecoLocacao\n" .
                     "Nome completo: $nomeCompleto\n" .

@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Http\Controllers\Propostal;
 
@@ -71,7 +71,7 @@ class PropostalController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        $requestSanitize = $this->sanitizeData($request->all(), ['pessoa_doc', 'imovel_cep']) ?? [];
+        $requestSanitize = $this->sanitizeData($request->all(), ['pessoa_doc', 'imovel_cep', 'pessoa_telefone']) ?? [];
 
         $validator = Validator::make($requestSanitize, [
             'id_imobiliaria'          => 'required|numeric',
@@ -111,6 +111,8 @@ class PropostalController extends Controller
             'anx_contrato'            => 'nullable|numeric|between:0,1',
             'anx_vistoria'            => 'nullable|numeric|between:0,1',
             'anx_apolice'             => 'nullable|numeric|between:0,1',
+            'motivo'                  => 'nullable|string|max:255',
+            'motivo_explicacao'       => 'nullable|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -154,6 +156,10 @@ class PropostalController extends Controller
             'proposta_status'         => 'nullable|string|max:50',
             'proposta_credito_status' => 'nullable|string|max:50',
             'contrato_status'         => 'nullable|string|max:50',
+            'motivo'                  => 'nullable|string|max:255',
+            'motivo_explicacao'                  => 'nullable|string|max:255',
+            'data_ultima_atualizacao' => 'nullable|date',
+            'hora_ultima_atualizacao' => 'nullable',
         ]);
 
         if ($validator->fails()) {

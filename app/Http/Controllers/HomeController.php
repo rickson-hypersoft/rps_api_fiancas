@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
@@ -18,7 +18,7 @@ class HomeController extends Controller
             ->selectRaw("
             CASE
                 WHEN PROPOSTA_STATUS = 'Aprovado' THEN 'Aprovado'
-                WHEN PROPOSTA_STATUS = 'Cancelada' THEN 'Cancelado'
+                WHEN PROPOSTA_STATUS = 'Cancelado' THEN 'Cancelado'
                 WHEN PROPOSTA_STATUS = 'Reprovada' THEN 'Reprovado'
                 WHEN PROPOSTA_STATUS IN ('Pendentes', 'Rascunho') THEN 'Pendente'
                 ELSE 'Outro'
@@ -45,7 +45,7 @@ class HomeController extends Controller
             ->groupBy('CONTRATO_STATUS')
             ->get();
 
-        $propostasCard = Propostal::where('ID_IMOBILIARIA', '=', $idImobiliaria)->get();
+        $propostasCard = Propostal::where('ID_IMOBILIARIA', '=', $idImobiliaria)->orderBy('ID', 'ASC')->get();
 
         return response()->json([
             'contratos'     => $contratosRaw,
