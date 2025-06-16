@@ -8,7 +8,11 @@ trait ResourceTrait
 {
     private function toUtf8(?string $value): ?string
     {
-        return is_string($value) ? mb_convert_encoding($value, 'UTF-8', 'ISO-8859-1') : $value;
+        if ($value === null) {
+            return null;
+        }
+
+        return mb_convert_encoding($value, 'UTF-8', 'ISO-8859-1');
     }
 
     private function formatCpfCnpj(?string $documento): ?string

@@ -306,7 +306,7 @@ class CheckoutController extends Controller
             ->latest('DATA_VENCIMENTO')
             ->first();
 
-        if ($pagamentoExistente) {
+        if (! $pagamentoExistente) {
             $payloads = $this->buildPayloadPayment($propostal, $request) ?? [];
 
             if (empty($payloads)) {

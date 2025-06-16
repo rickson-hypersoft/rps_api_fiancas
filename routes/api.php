@@ -64,9 +64,10 @@ Route::middleware(['api.auth'])->group(function () {
     Route::delete('/financial/financial_category/{financial_category}', [FinancialCategoryController::class, 'destroy']);
 
     Route::get('/financial/financial_movi/{id}', [FinancialMoviController::class, 'index']);
-    Route::get('/financial/financial_movi/{financial_movi}', [FinancialMoviController::class, 'find']);
+    Route::get('/financial/{financial_movi}/financial_movi', [FinancialMoviController::class, 'find']);
     Route::post('/financial/financial_movi', [FinancialMoviController::class, 'store']);
     Route::put('/financial/financial_movi/{financial_movi}', [FinancialMoviController::class, 'update']);
+    Route::delete('/financial/financial_movi/{financial_movi}', [FinancialMoviController::class, 'destroy']);
 
     Route::get('/attachment', [AttachmentController::class, 'index']);
     Route::get('/attachment/exists', [AttachmentController::class, 'exists']);
@@ -94,10 +95,10 @@ Route::middleware(['api.auth'])->group(function () {
 
     // Route::get('/assetsHome/{idImobiliaria}', [AssetsController::class, 'index']);
 
-    Route::get('/assets/{id}/find', [AssetsController::class, 'findAsset']);
+    Route::get('/activation/{id}/find', [AssetsController::class, 'findAsset']);
 
-    Route::get('/assets/{link_hash}', [AssetsController::class, 'find']);
-    Route::get('/assets/faceId/{link_hash}', [AssetsController::class, 'faceId']);
+    Route::get('/activation/{link_hash}', [AssetsController::class, 'find']);
+    Route::get('/activation/faceId/{link_hash}', [AssetsController::class, 'faceId']);
 
     // Pagamentos
     // Route::prefix('payments')->group(function () {

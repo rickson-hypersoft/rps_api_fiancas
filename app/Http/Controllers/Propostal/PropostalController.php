@@ -6,7 +6,6 @@ namespace App\Http\Controllers\Propostal;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Propostal\PropostalIndexResource;
-use App\Http\Resources\Propostal\PropostalResource;
 use App\Models\Propostal\Propostal;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -141,7 +140,7 @@ class PropostalController extends Controller
         return response()->json([
             "success" => true,
             "message" => isset($propostal->ID) ? "Proposta atualizada com sucesso!" : "Proposta criada com sucesso!",
-            "data"    => new PropostalResource($propostal),
+            "data"    => new PropostalIndexResource($propostal),
         ], 201);
     }
 

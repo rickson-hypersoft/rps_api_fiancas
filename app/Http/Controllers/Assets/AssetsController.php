@@ -30,11 +30,23 @@ class AssetsController extends Controller
         // Filtro por nome (case-insensitive)
         if ($request->filled('search')) {
             $search = $request->input('search');
+
             $query->where(function ($q) use ($search) {
-                $q->where('ID', 'like', "%$search%")
-                    ->orWhereRaw('LOWER(PESSOA_NOME) LIKE ?', ['%' . strtolower($search) . '%'])
-                    ->orWhere('PESSOA_DOC', 'like', "%$search%")
-                    ->orWhere('IMOVEL_TAG', 'like', "%$search%");
+                // Filtrar por ID apenas se for numérico
+                if (is_numeric($search)) {
+                    $q->where('ID', $search);
+                }
+
+                // Filtrar por nome
+                $q->orWhereRaw('LOWER(PESSOA_NOME) LIKE ?', ['%' . strtolower($search) . '%']);
+
+                // Filtrar por documento apenas se o tamanho for menor ou igual a 14 caracteres (CPF/CNPJ)
+                if (strlen($search) <= 14) {
+                    $q->orWhere('PESSOA_DOC', 'like', "%$search%");
+                }
+
+                // Filtrar por tag do imóvel
+                $q->orWhere('IMOVEL_TAG', 'like', "%$search%");
             });
         }
 
