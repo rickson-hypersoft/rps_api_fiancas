@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
@@ -31,9 +31,16 @@ class AuthController extends Controller
             return response()->json(['success' => false, 'message' => 'Login inválido!'], 422);
         }
 
+        $loginField = $this->getAuthenticateData($loginData);
+        if ($loginField === 'EMAIL') {
+            $loginValue = $loginData; // Mantém como está (não converte, nem maiúscula)
+        } else {
+            $loginValue = mb_convert_encoding(mb_strtoupper($loginData, 'UTF-8'), 'ISO-8859-1', 'UTF-8');
+        }
+
         $credentials = [
-            $this->getAuthenticateData($loginData) => utf8_decode($loginData),
-            'password'                             => $loginPassword,
+            $loginField => $loginValue,
+            'password'  => $loginPassword,
         ];
 
         if ($token = JWTAuth::attempt($credentials)) {

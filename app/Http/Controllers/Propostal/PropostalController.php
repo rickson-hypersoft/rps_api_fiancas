@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Http\Controllers\Propostal;
 
@@ -17,14 +17,30 @@ class PropostalController extends Controller
     {
         $query = Propostal::where('ID_IMOBILIARIA', '=', $idRealEstateSector);
 
+
         if ($request->filled('search')) {
             $search = $request->input('search');
-            $query->where(function ($q) use ($search) {
-                $q->where('ID', 'like', "%$search%")
-                    ->orWhereRaw('LOWER(PESSOA_NOME) LIKE ?', ['%' . strtolower($search) . '%'])
-                    ->orWhereRaw('LOWER(PESSOA_FANTASIA) LIKE ?', ['%' . strtolower($search) . '%'])
-                    ->orWhere('PESSOA_DOC', 'like', "%$search%")
-                    ->orWhere('IMOVEL_TAG', 'like', "%$search%");
+            $searchUpper = mb_strtoupper($search, 'UTF-8');
+            $searchIso = mb_convert_encoding($searchUpper, 'ISO-8859-1', 'UTF-8');
+            $isNumeric = is_numeric($search);
+            $length = strlen($search);
+
+            $query->where(function ($q) use ($search, $searchIso, $isNumeric, $length) {
+                if ($isNumeric && $length >= 11 && $length <= 14) {
+                    $q->orWhere('PESSOA_DOC', 'like', "%$search%");
+                } else {
+                    // Pesquisa por ID somente se for numérico
+                    if ($isNumeric) {
+                        $q->where('ID', 'like', "%$search%");
+                    }
+                }
+
+                // Pesquisa por PESSOA_NOME e PESSOA_FANTASIA com case-insensitive mantendo acentos
+                $q->orWhereRaw('UPPER(PESSOA_NOME) LIKE ?', ['%' . $searchIso . '%'])
+                    ->orWhereRaw('UPPER(PESSOA_FANTASIA) LIKE ?', ['%' . $searchIso . '%']);
+
+                // Pesquisa por IMOVEL_TAG (não pediu restrição, mantive original)
+                $q->orWhere('IMOVEL_TAG', 'like', "%$search%");
             });
         }
 

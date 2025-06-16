@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Http\Controllers\Financial;
 
@@ -40,8 +40,21 @@ class FinancialMoviController extends Controller
         }
 
         if ($request->filled('descricao')) {
-            $descricao = mb_strtoupper($request->descricao, 'UTF-8');
-            $query->whereRaw('UPPER(DESCRICAO) LIKE ?', ['%' . $descricao . '%']);
+            $search = $request->input('descricao');
+            $searchIso = iconv('UTF-8', 'ISO-8859-1//TRANSLIT//IGNORE', $search);
+
+            // Buscar os IDs das contas que batem com a descrição
+            $contaIds = DB::table('FINANCEIRO_CONTAS')
+                ->whereRaw('UPPER(DESCRICAO) LIKE UPPER(?)', ["%$searchIso%"])
+                ->pluck('ID');  // pega só os IDs
+
+            // Se encontrar algum ID, filtra pelo ID_CONTA na tabela principal
+            if ($contaIds->isNotEmpty()) {
+                $query->whereIn('ID_CONTA', $contaIds);
+            } else {
+                // Se não encontrou nenhum, não retorna nada, pode forçar where 0=1
+                $query->whereRaw('0=1');
+            }
         }
 
         // Movimentações do período filtrado
