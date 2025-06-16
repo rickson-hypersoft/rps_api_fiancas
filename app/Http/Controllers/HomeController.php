@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Http\Controllers;
 
@@ -11,10 +11,10 @@ use Illuminate\Support\Facades\DB;
 
 class HomeController extends Controller
 {
-    public function index(Request $request, string | int $idImobiliaria)
+    public function index(Request $request, string | int | null $idImobiliaria = null)
     {
         // ---------- PROPOSTAS ----------
-        $propostasRaw = DB::table('PROPOSTAS')
+        $propostasQuery = DB::table('PROPOSTAS')
             ->selectRaw("
             CASE
                 WHEN PROPOSTA_STATUS = 'Aprovado' THEN 'Aprovado'
@@ -24,13 +24,16 @@ class HomeController extends Controller
                 ELSE 'Outro'
             END AS PROPOSTA_STATUS,
             COUNT(*) AS total
-        ")
-            ->where('ID_IMOBILIARIA', $idImobiliaria)
-            ->groupBy('PROPOSTA_STATUS')
-            ->get();
+        ");
+
+        if ($idImobiliaria) {
+            $propostasQuery->where('ID_IMOBILIARIA', $idImobiliaria);
+        }
+
+        $propostasRaw = $propostasQuery->groupBy('PROPOSTA_STATUS')->get();
 
         // ---------- CONTRATOS ----------
-        $contratosRaw = DB::table('PROPOSTAS')
+        $contratosQuery = DB::table('PROPOSTAS')
             ->selectRaw("
             CASE
                 WHEN CONTRATO_STATUS = 'Ativo' AND ANX_CONTRATO = 1 AND ANX_VISTORIA = 1 AND ANX_APOLICE = 1 THEN 'Ativo'
@@ -40,12 +43,21 @@ class HomeController extends Controller
                 ELSE 'Outro'
             END AS CONTRATO_STATUS,
             COUNT(*) AS total
-        ")
-            ->where('ID_IMOBILIARIA', $idImobiliaria)
-            ->groupBy('CONTRATO_STATUS')
-            ->get();
+        ");
 
-        $propostasCard = Propostal::where('ID_IMOBILIARIA', '=', $idImobiliaria)->orderBy('ID', 'ASC')->get();
+        if ($idImobiliaria) {
+            $contratosQuery->where('ID_IMOBILIARIA', $idImobiliaria);
+        }
+
+        $contratosRaw = $contratosQuery->groupBy('CONTRATO_STATUS')->get();
+
+        // ---------- PROPOSTAS CARD ----------
+        $propostasCardQuery = Propostal::query();
+
+        if ($idImobiliaria) {
+            $propostasCardQuery->where('ID_IMOBILIARIA', $idImobiliaria);
+        }
+        $propostasCard = $propostasCardQuery->orderBy('ID', 'ASC')->get();
 
         return response()->json([
             'contratos'     => $contratosRaw,

@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Http\Controllers\Assets;
 
@@ -36,11 +36,14 @@ class AssetsController extends Controller
                 if (strlen($search) == 11 || strlen($search) == 14) {
                     $q->orWhere('PESSOA_DOC', 'like', "%$search%");
                 } else {
-                    $q->where('ID', $search);
+                    if (is_numeric($search)) {
+                        $q->where('ID', $search);
+                    }
                 }
 
                 // Filtrar por nome
-                $q->orWhereRaw('LOWER(PESSOA_NOME) LIKE ?', ['%' . strtolower($search) . '%']);
+                $searchIso = iconv('UTF-8', 'ISO-8859-1//TRANSLIT//IGNORE', $search);
+                $q->whereRaw('UPPER(PESSOA_NOME) LIKE UPPER(?)', ["%$searchIso%"]);
 
                 // Filtrar por documento apenas se o tamanho for menor ou igual a 14 caracteres (CPF/CNPJ)
                 if (strlen($search) <= 14) {

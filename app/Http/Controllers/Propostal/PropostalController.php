@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Http\Controllers\Propostal;
 
@@ -157,7 +157,7 @@ class PropostalController extends Controller
             'proposta_credito_status' => 'nullable|string|max:50',
             'contrato_status'         => 'nullable|string|max:50',
             'motivo'                  => 'nullable|string|max:255',
-            'motivo_explicacao'                  => 'nullable|string|max:255',
+            'motivo_explicacao'       => 'nullable|string|max:255',
             'data_ultima_atualizacao' => 'nullable|date',
             'hora_ultima_atualizacao' => 'nullable',
         ]);

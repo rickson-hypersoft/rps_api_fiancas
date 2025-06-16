@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Http\Resources\Propostal;
 
@@ -95,11 +95,11 @@ class PropostalIndexResource extends JsonResource
             'valor_total_pagamento'   => $valorTotalPagamento !== null
                 ? 'R$ ' . number_format(floatval($valorTotalPagamento), 2, ',', '')
                 : null,
-            'anexo_contrato' => $this->ANX_CONTRATO,
-            'anexo_vistoria' => $this->ANX_VISTORIA,
-            'anexo_apolice'  => $this->ANX_APOLICE,
-            'motivo'         => $this->toUtf8($this->MOTIVO),
-            'motivo_explicacao'         => $this->toUtf8($this->MOTIVO_EXPLICACAO),
+            'anexo_contrato'    => $this->ANX_CONTRATO,
+            'anexo_vistoria'    => $this->ANX_VISTORIA,
+            'anexo_apolice'     => $this->ANX_APOLICE,
+            'motivo'            => $this->toUtf8($this->MOTIVO),
+            'motivo_explicacao' => $this->toUtf8($this->MOTIVO_EXPLICACAO),
         ];
     }
 }

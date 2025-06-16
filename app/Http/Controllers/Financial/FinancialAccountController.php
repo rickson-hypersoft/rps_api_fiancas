@@ -19,10 +19,9 @@ class FinancialAccountController extends Controller
         $query   = FinancialAccount::where('ID_IMOBILIARIA', $id);
 
         if ($request->filled('search')) {
-            $search = $request->input('search');
-            $query->where(function ($q) use ($search) {
-                $q->where('DESCRICAO', 'like', "%$search%");
-            });
+            $search    = $request->input('search');
+            $searchIso = iconv('UTF-8', 'ISO-8859-1//TRANSLIT//IGNORE', $search);
+            $query->whereRaw('UPPER(DESCRICAO) LIKE UPPER(?)', ["%$searchIso%"]);
         }
 
         $financialAccounts = $query->orderBy('DESCRICAO', 'asc')
