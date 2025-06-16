@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Http\Controllers\Assets;
 
@@ -30,28 +30,28 @@ class AssetsController extends Controller
         // Filtro por nome (case-insensitive)
         if ($request->filled('search')) {
             $search = $request->input('search');
+            $isNumeric = is_numeric($search);
+            $length = strlen($search);
 
-            $query->where(function ($q) use ($search) {
-                // Filtrar por ID apenas se for numérico
-                if (strlen($search) == 11 || strlen($search) == 14) {
-                    $q->orWhere('PESSOA_DOC', 'like', "%$search%");
+            $query->where(function ($q) use (
+                $search,
+                $isNumeric,
+                $length
+            ) {
+                if ($isNumeric && $length >= 11 && $length <= 14) {
+                    $q->orWhere('PESSOA_DOC', 'like', "%$search%"); // busca só números no DB também precisa estar nesse formato
                 } else {
-                    if (is_numeric($search)) {
-                        $q->where('ID', $search);
+                    if ($isNumeric) {
+                        $q->orWhere('ID', 'like', "%$search%");
                     }
+
+                    // Filtrar por nome
+                    $searchIso = iconv('UTF-8', 'ISO-8859-1//TRANSLIT//IGNORE', $search);
+                    $q->orWhereRaw('UPPER(PESSOA_NOME) LIKE UPPER(?)', ["%$searchIso%"]);
+
+                    // Filtrar por tag do imóvel
+                    $q->orWhere('IMOVEL_TAG', 'like', "%$search%");
                 }
-
-                // Filtrar por nome
-                $searchIso = iconv('UTF-8', 'ISO-8859-1//TRANSLIT//IGNORE', $search);
-                $q->whereRaw('UPPER(PESSOA_NOME) LIKE UPPER(?)', ["%$searchIso%"]);
-
-                // Filtrar por documento apenas se o tamanho for menor ou igual a 14 caracteres (CPF/CNPJ)
-                if (strlen($search) <= 14) {
-                    $q->orWhere('PESSOA_DOC', 'like', "%$search%");
-                }
-
-                // Filtrar por tag do imóvel
-                $q->orWhere('IMOVEL_TAG', 'like', "%$search%");
             });
         }
 
