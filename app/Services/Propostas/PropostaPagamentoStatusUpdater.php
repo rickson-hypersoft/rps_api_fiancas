@@ -42,16 +42,17 @@ class PropostaPagamentoStatusUpdater
 
                 if (isset($response['status']) && $response['status'] === 'CONFIRMED') {
                     // Atualiza pagamento para pago
-                    $pagamento->status = 'CONFIRMED';
+                    $pagamento->STATUS = $response['status'];
+                    $pagamento->METODO_PAGAMENTO = $response['billingType'];
+                    $pagamento->DATA_PAGAMENTO = $response['clientPaymentDate'];
                     $pagamento->save();
 
                     // Atualiza proposta relacionada
                     $proposta = Propostal::find($pagamento->ID_MOVI);
 
                     if ($proposta) {
-                        $proposta->contrato_status = 'Ativo';
-                        $proposta->proposta_status = 'Pagamento efetuado';
-                        $proposta->forma_pagamento = $response['billingType'] ?? $proposta->forma_pagamento;
+                        $proposta->CONTRATO_STATUS = 'Ativo';
+                        $proposta->PROPOSTA_STATUS = 'Pagamento efetuado';
                         $proposta->save();
                     } else {
                         Log::error("Proposta ID {$pagamento->ID_MOVI} não encontrada.");

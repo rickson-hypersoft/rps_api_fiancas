@@ -40,7 +40,7 @@ class CheckoutController extends Controller
         return response()->json([
             'success'             => true,
             'detalhes_pagamentos' => $pagamentos,
-            'propostas'           => $propostas,
+            'propostas'           => PropostalIndexResource::collection($propostas),
         ]);
     }
 
@@ -301,7 +301,7 @@ class CheckoutController extends Controller
 
         $pagamentoExistente = PropostalPayments::where('ID_USUARIO_INTEGRACAO', $customerId)
             ->where('LINK_HASH', $linkHash)
-            ->where('METODO_PAGAMENTO', 'CARTAO')
+            ->where('METODO_PAGAMENTO', 'CREDIT_CARD')
             ->where('STATUS', 'PENDING')
             ->latest('DATA_VENCIMENTO')
             ->first();
