@@ -21,7 +21,11 @@ class RealEstateSectorController extends Controller
         $query = RealEstateSector::with('setups');
 
         if ($request->filled('search')) {
-            $search = strtolower($request->input('search'));
+            $search      = $request->input('search');
+            $searchUpper = mb_strtoupper($search, 'UTF-8');
+            $searchIso   = mb_convert_encoding($searchUpper, 'ISO-8859-1', 'UTF-8');
+            $isNumeric   = is_numeric($search);
+            $length      = strlen($search);
 
             // Se parecer com um CNPJ
             if (preg_match('/^\d{14}$/', $search)) {
@@ -29,10 +33,15 @@ class RealEstateSectorController extends Controller
                 $search = substr($search, 0, 14);
             }
 
-            $query->where(function ($q) use ($search) {
-                $q->whereRaw('LOWER(RAZAO) LIKE ?', ['%' . strtolower($search) . '%'])
-                    ->orWhereRaw('LOWER(FANTASIA) LIKE ?', ['%' . strtolower($search) . '%'])
-                    ->orWhereRaw('LOWER(CNPJ) LIKE ?', ['%' . strtolower($search) . '%']);
+            $query->where(function ($q) use ($search, $searchIso, $isNumeric, $length) {
+                if ($isNumeric && $length >= 11 && $length <= 14) {
+                    // Busca por CPF/CNPJ
+                    $q->orWhereRaw('CAST(CNPJ AS VARCHAR(20)) LIKE ?', ['%' . $search . '%']);
+                } else {
+                    // Nome e Fantasia (case-insensitive)
+                    $q->orWhereRaw('UPPER(RAZAO) LIKE ?', ['%' . $searchIso . '%'])
+                    ->orWhereRaw('UPPER(FANTASIA) LIKE ?', ['%' . $searchIso . '%']);
+                }
             });
         }
 
