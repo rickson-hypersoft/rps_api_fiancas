@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Http\Controllers\Financial;
 
@@ -40,7 +40,7 @@ class FinancialMoviController extends Controller
         }
 
         if ($request->filled('descricao')) {
-            $search = $request->input('descricao');
+            $search    = $request->input('descricao');
             $searchIso = iconv('UTF-8', 'ISO-8859-1//TRANSLIT//IGNORE', $search);
 
             // Buscar os IDs das contas que batem com a descrição

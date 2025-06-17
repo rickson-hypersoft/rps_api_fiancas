@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Http\Controllers\Assets;
 
@@ -29,9 +29,9 @@ class AssetsController extends Controller
 
         // Filtro por nome (case-insensitive)
         if ($request->filled('search')) {
-            $search = $request->input('search');
+            $search    = $request->input('search');
             $isNumeric = is_numeric($search);
-            $length = strlen($search);
+            $length    = strlen($search);
 
             $query->where(function ($q) use (
                 $search,

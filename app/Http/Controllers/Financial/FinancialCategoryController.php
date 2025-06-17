@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Http\Controllers\Financial;
 
@@ -19,7 +19,7 @@ class FinancialCategoryController extends Controller
         $query   = FinancialCategory::where('ID_IMOBILIARIA', $id);
 
         if ($request->filled('search')) {
-            $search = $request->input('search');
+            $search    = $request->input('search');
             $searchIso = iconv('UTF-8', 'ISO-8859-1//TRANSLIT//IGNORE', $search);
             $query->whereRaw('UPPER(DESCRICAO) LIKE UPPER(?)', ["%$searchIso%"]);
         }

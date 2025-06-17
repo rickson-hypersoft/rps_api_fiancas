@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Http\Controllers;
 
@@ -32,6 +32,7 @@ class AuthController extends Controller
         }
 
         $loginField = $this->getAuthenticateData($loginData);
+
         if ($loginField === 'EMAIL') {
             $loginValue = $loginData; // Mantém como está (não converte, nem maiúscula)
         } else {

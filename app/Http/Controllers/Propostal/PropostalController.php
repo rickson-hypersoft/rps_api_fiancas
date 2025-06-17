@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Http\Controllers\Propostal;
 
@@ -17,13 +17,12 @@ class PropostalController extends Controller
     {
         $query = Propostal::where('ID_IMOBILIARIA', '=', $idRealEstateSector);
 
-
         if ($request->filled('search')) {
-            $search = $request->input('search');
+            $search      = $request->input('search');
             $searchUpper = mb_strtoupper($search, 'UTF-8');
-            $searchIso = mb_convert_encoding($searchUpper, 'ISO-8859-1', 'UTF-8');
-            $isNumeric = is_numeric($search);
-            $length = strlen($search);
+            $searchIso   = mb_convert_encoding($searchUpper, 'ISO-8859-1', 'UTF-8');
+            $isNumeric   = is_numeric($search);
+            $length      = strlen($search);
 
             $query->where(function ($q) use ($search, $searchIso, $isNumeric, $length) {
                 if ($isNumeric && $length >= 11 && $length <= 14) {

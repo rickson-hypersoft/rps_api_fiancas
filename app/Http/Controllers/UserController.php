@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 namespace App\Http\Controllers;
 
@@ -28,7 +28,7 @@ class UserController extends Controller
                 } else {
                     // Busca por nome e usuário, com conversão para maiúsculo e encoding ISO-8859-1
                     $searchUpper = mb_strtoupper($searchRaw, 'UTF-8');
-                    $searchIso = mb_convert_encoding($searchUpper, 'ISO-8859-1', 'UTF-8');
+                    $searchIso   = mb_convert_encoding($searchUpper, 'ISO-8859-1', 'UTF-8');
 
                     $q->whereRaw('UPPER(NOME) LIKE ?', ['%' . $searchIso . '%'])
                         ->orWhereRaw('UPPER(USUARIO) LIKE ?', ['%' . $searchIso . '%']);
@@ -99,6 +99,7 @@ class UserController extends Controller
         }
 
         $users = $validator->validated();
+
         if (isset($users['usuario'])) {
             $users['usuario'] = mb_strtoupper($users['usuario']);
         }
