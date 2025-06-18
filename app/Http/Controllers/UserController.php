@@ -15,7 +15,7 @@ class UserController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $perPage = $request->get('per_page', 7);
+        $perPage = $request->get('per_page', 10);
         $query   = User::orderBy('NOME', 'ASC');
 
         if ($request->filled('search')) {

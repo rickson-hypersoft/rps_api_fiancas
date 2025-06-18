@@ -15,7 +15,7 @@ class FinancialCategoryController extends Controller
 {
     public function index(Request $request, string | int $id): JsonResponse
     {
-        $perPage = $request->get('per_page', 5);
+        $perPage = $request->get('per_page', 10);
         $query   = FinancialCategory::where('ID_IMOBILIARIA', $id);
 
         if ($request->filled('search')) {

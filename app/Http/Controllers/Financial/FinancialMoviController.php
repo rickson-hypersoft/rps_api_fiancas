@@ -58,7 +58,7 @@ class FinancialMoviController extends Controller
         }
 
         // Movimentações do período filtrado
-        $movimentacoes = $query->orderBy('ID', 'desc')->paginate(7);
+        $movimentacoes = $query->orderBy('ID', 'desc')->paginate(10);
 
         // SALDO ANTERIOR
         $saldoAnteriorQuery = DB::table('FINANCEIRO_MOVI')

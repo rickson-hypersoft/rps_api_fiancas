@@ -76,7 +76,7 @@ class AssetsController extends Controller
         }
 
         // Ordenação e paginação
-        $assets = $query->orderBy('ID', 'desc')->paginate(7);
+        $assets = $query->orderBy('ID', 'desc')->paginate(10);
 
         $contratos = Propostal::selectRaw("
     CASE
