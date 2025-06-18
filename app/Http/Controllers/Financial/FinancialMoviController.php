@@ -82,16 +82,16 @@ class FinancialMoviController extends Controller
         $saldoPeriodo = $entradas - $saidas;
 
         return response()->json([
-            'data'    => FinancialMoviResource::collection($movimentacoes),
-             'meta'    => [
-               'current_page' => $movimentacoes->currentPage(),
-        'from'         => $movimentacoes->firstItem(),
-        'last_page'    => $movimentacoes->lastPage(),
-        'links'        => $movimentacoes->linkCollection(), // ✅ Links padrão do Laravel
-        'path'         => $request->url(),
-        'per_page'     => $movimentacoes->perPage(),
-        'to'           => $movimentacoes->lastItem(),
-        'total'        => $movimentacoes->total(),
+            'data' => FinancialMoviResource::collection($movimentacoes),
+            'meta' => [
+                'current_page' => $movimentacoes->currentPage(),
+                'from'         => $movimentacoes->firstItem(),
+                'last_page'    => $movimentacoes->lastPage(),
+                'links'        => $movimentacoes->linkCollection(), // ✅ Links padrão do Laravel
+                'path'         => $request->url(),
+                'per_page'     => $movimentacoes->perPage(),
+                'to'           => $movimentacoes->lastItem(),
+                'total'        => $movimentacoes->total(),
             ],
             'valores' => [
                 'saldoAnterior' => $saldoAnterior,

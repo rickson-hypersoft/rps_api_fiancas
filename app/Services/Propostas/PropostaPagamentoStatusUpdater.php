@@ -44,9 +44,9 @@ class PropostaPagamentoStatusUpdater
 
                 if (isset($response['status']) && in_array($response['status'], $statusAccept)) {
                     // Atualiza pagamento para pago
-                    $pagamento->STATUS = $response['status'];
+                    $pagamento->STATUS           = $response['status'];
                     $pagamento->METODO_PAGAMENTO = $response['billingType'];
-                    $pagamento->DATA_PAGAMENTO = $response['clientPaymentDate'];
+                    $pagamento->DATA_PAGAMENTO   = $response['clientPaymentDate'];
                     $pagamento->save();
 
                     // Atualiza proposta relacionada

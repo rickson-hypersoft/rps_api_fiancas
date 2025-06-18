@@ -40,7 +40,7 @@ class RealEstateSectorController extends Controller
                 } else {
                     // Nome e Fantasia (case-insensitive)
                     $q->orWhereRaw('UPPER(RAZAO) LIKE ?', ['%' . $searchIso . '%'])
-                    ->orWhereRaw('UPPER(FANTASIA) LIKE ?', ['%' . $searchIso . '%']);
+                        ->orWhereRaw('UPPER(FANTASIA) LIKE ?', ['%' . $searchIso . '%']);
                 }
             });
         }

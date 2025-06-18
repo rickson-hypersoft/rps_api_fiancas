@@ -93,20 +93,20 @@ class AssetsController extends Controller
             ->get();
 
         return response()->json([
-            'success'    => true,
-            'data'       => PropostalIndexResource::collection($assets),
-            'contratos'  => $contratos,
-            'meta'    => [
-               'current_page' => $assets->currentPage(),
-        'from'         => $assets->firstItem(),
-        'last_page'    => $assets->lastPage(),
-        'links'        => $assets->linkCollection(), // ✅ Links padrão do Laravel
-        'path'         => $request->url(),
-        'per_page'     => $assets->perPage(),
-        'to'           => $assets->lastItem(),
-        'total'        => $assets->total(),
+            'success'   => true,
+            'data'      => PropostalIndexResource::collection($assets),
+            'contratos' => $contratos,
+            'meta'      => [
+                'current_page' => $assets->currentPage(),
+                'from'         => $assets->firstItem(),
+                'last_page'    => $assets->lastPage(),
+                'links'        => $assets->linkCollection(), // ✅ Links padrão do Laravel
+                'path'         => $request->url(),
+                'per_page'     => $assets->perPage(),
+                'to'           => $assets->lastItem(),
+                'total'        => $assets->total(),
             ],
-    ]);
+        ]);
     }
 
     public function find(string $linkHash)
