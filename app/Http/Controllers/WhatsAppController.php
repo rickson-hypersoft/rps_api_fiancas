@@ -116,8 +116,8 @@ class WhatsAppController extends Controller
                 $nomeImobiliaria = $imobiliariaInfo['RAZAO'];
 
                 $enderecoLocacao = "{$propostal->IMOVEL_ENDERECO}, {$propostal->IMOVEL_BAIRRO}, {$propostal->IMOVEL_NUMERO}, {$propostal->IMOVEL_CIDADE} - {$propostal->IMOVEL_ESTADO}" ?? 'endereço não informado';
-                $telefone        = $propostal->TELEFONE ?? 'não informado';
-                $email           = $propostal->EMAIL ?? 'não informado';
+                $telefone        = $propostal->PESSOA_TELEFONE ?? 'não informado';
+                $email           = $propostal->PESSOA_EMAIL ?? 'não informado';
 
                 $message1 = "Olá $nomeCompleto, Parabéns!! Falta pouco para ativar seu contrato da Invicta.\n\nPara finalizar a contratação dos serviços e alugar sem burocracia, acesse o link abaixo:\n$linkContrato";
 

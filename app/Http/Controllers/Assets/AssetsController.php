@@ -76,11 +76,11 @@ class AssetsController extends Controller
         }
 
         // Ordenação e paginação
-        $assets = $query->orderBy('ID', 'desc')->paginate();
+        $assets = $query->orderBy('ID', 'desc')->paginate(7);
 
         $contratos = Propostal::selectRaw("
     CASE
-        WHEN CONTRATO_STATUS = 'Ativo' AND ANX_CONTRATO = 1 AND ANX_VISTORIA = 1 AND ANX_APOLICE = 1 THEN 'Ativo'
+        WHEN CONTRATO_STATUS = 'Ativo' AND ANX_CONTRATO = 1 AND ANX_VISTORIA = 1 THEN 'Ativo'
         WHEN CONTRATO_STATUS = 'Ativo' AND (ANX_CONTRATO = 0 OR ANX_VISTORIA = 0 OR ANX_APOLICE = 0) THEN 'Pendente'
         WHEN PROPOSTA_STATUS = 'Reprovada' THEN 'Em renovação'
         WHEN PROPOSTA_STATUS IN ('Pendente', 'Rascunho', 'Cancelado') THEN 'Cancelado'
@@ -96,12 +96,17 @@ class AssetsController extends Controller
             'success'    => true,
             'data'       => PropostalIndexResource::collection($assets),
             'contratos'  => $contratos,
-            'pagination' => [
-                'current_page' => $assets->currentPage(),
-                'total_pages'  => $assets->lastPage(),
-                'total'        => $assets->total(),
+            'meta'    => [
+               'current_page' => $assets->currentPage(),
+        'from'         => $assets->firstItem(),
+        'last_page'    => $assets->lastPage(),
+        'links'        => $assets->linkCollection(), // ✅ Links padrão do Laravel
+        'path'         => $request->url(),
+        'per_page'     => $assets->perPage(),
+        'to'           => $assets->lastItem(),
+        'total'        => $assets->total(),
             ],
-        ]);
+    ]);
     }
 
     public function find(string $linkHash)

@@ -162,6 +162,7 @@ class CheckoutController extends Controller
         if ($allConfirmed) {
             $propostal->update([
                 'CONTRATO_STATUS'         => 'Ativo',
+                'PROPOSTA_STATUS'         => 'Aprovado',
                 'PROPOSTA_CREDITO_STATUS' => 'Pagamento Efetuado',
             ]);
         }
@@ -169,6 +170,7 @@ class CheckoutController extends Controller
         if (! $allConfirmed) {
             $propostal->update([
                 'CONTRATO_STATUS'         => 'Pendente',
+                'PROPOSTA_STATUS'         => 'Aprovado',
                 'PROPOSTA_CREDITO_STATUS' => utf8_decode('Pagamento em Análise'),
             ]);
         }
@@ -269,6 +271,7 @@ class CheckoutController extends Controller
         if ($allConfirmed) {
             $propostal->update([
                 'CONTRATO_STATUS'         => 'Ativo',
+                'PROPOSTA_STATUS'         => 'Aprovado',
                 'PROPOSTA_CREDITO_STATUS' => 'Pagamento Efetuado',
             ]);
         }
@@ -276,13 +279,13 @@ class CheckoutController extends Controller
         if (! $allConfirmed) {
             $propostal->update([
                 'CONTRATO_STATUS'         => 'Pendente',
+                'PROPOSTA_STATUS'         => 'Aprovado',
                 'PROPOSTA_CREDITO_STATUS' => utf8_decode('Pagamento em Análise'),
             ]);
         }
 
         if (! empty($detailedResponses)) {
             $linkBoleto = $this->asaasService->getPaymentById($response['data']['id']);
-            var_dump($linkBoleto);
 
             return response()->json([
                 'success'           => true,
@@ -306,7 +309,7 @@ class CheckoutController extends Controller
             ->latest('DATA_VENCIMENTO')
             ->first();
 
-        if (! $pagamentoExistente) {
+        if (!$pagamentoExistente) {
             $payloads = $this->buildPayloadPayment($propostal, $request) ?? [];
 
             if (empty($payloads)) {
@@ -418,6 +421,7 @@ class CheckoutController extends Controller
             // Atualiza status da proposta
             $propostal->update([
                 'CONTRATO_STATUS'         => 'Ativo',
+                'PROPOSTA_STATUS'         => 'Aprovado',
                 'PROPOSTA_CREDITO_STATUS' => 'Pagamento Efetuado',
             ]);
 

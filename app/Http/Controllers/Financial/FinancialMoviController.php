@@ -58,7 +58,7 @@ class FinancialMoviController extends Controller
         }
 
         // Movimentações do período filtrado
-        $movimentacoes = $query->get();
+        $movimentacoes = $query->orderBy('ID', 'desc')->paginate(7);
 
         // SALDO ANTERIOR
         $saldoAnteriorQuery = DB::table('FINANCEIRO_MOVI')
@@ -83,6 +83,16 @@ class FinancialMoviController extends Controller
 
         return response()->json([
             'data'    => FinancialMoviResource::collection($movimentacoes),
+             'meta'    => [
+               'current_page' => $movimentacoes->currentPage(),
+        'from'         => $movimentacoes->firstItem(),
+        'last_page'    => $movimentacoes->lastPage(),
+        'links'        => $movimentacoes->linkCollection(), // ✅ Links padrão do Laravel
+        'path'         => $request->url(),
+        'per_page'     => $movimentacoes->perPage(),
+        'to'           => $movimentacoes->lastItem(),
+        'total'        => $movimentacoes->total(),
+            ],
             'valores' => [
                 'saldoAnterior' => $saldoAnterior,
                 'entradas'      => $entradas,
