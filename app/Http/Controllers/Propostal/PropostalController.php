@@ -202,4 +202,47 @@ class PropostalController extends Controller
             "message" => "Hash feito com sucesso!",
         ], 201);
     }
+
+    public function updateStatus(Request $request, string | int $id)
+{
+    $propostal = Propostal::query()->where('ID', '=', $id)->firstOrFail();
+
+    $fieldsToUpdate = [];
+
+    //  if (is_string($value)) {
+    //             if (! mb_check_encoding($value, 'UTF-8')) {
+    //                 $value = mb_convert_encoding($value, 'UTF-8', 'ISO-8859-1');
+    //             }
+
+    //             $value = mb_convert_encoding($value, 'ISO-8859-1', 'UTF-8');
+    //         }
+
+    if ($request->has('proposta_status')) {
+        $fieldsToUpdate['PROPOSTA_STATUS'] = mb_convert_encoding($request->input('proposta_status'), 'ISO-8859-1' , 'UTF-8');
+    }
+
+    if ($request->has('proposta_credito_status')) {
+        $fieldsToUpdate['PROPOSTA_CREDITO_STATUS'] = mb_convert_encoding($request->input('proposta_credito_status'), 'ISO-8859-1' , 'UTF-8');
+    }
+
+    if ($request->has('contrato_status')) {
+        $fieldsToUpdate['CONTRATO_STATUS'] = mb_convert_encoding($request->input('contrato_status'), 'ISO-8859-1' , 'UTF-8');
+    }
+
+    if ($request->has('contrato_sub_status')) {
+        $fieldsToUpdate['CONTRATO_SUB_STATUS'] = mb_convert_encoding($request->input('contrato_sub_status'), 'ISO-8859-1' , 'UTF-8');
+    }
+
+    // Se tiver campos para atualizar
+    if (!empty($fieldsToUpdate)) {
+        $propostal->update($fieldsToUpdate);
+    }
+
+    $fields = [];
+    foreach($fieldsToUpdate as $field) {
+        $fields[] = mb_convert_encoding($field, 'UTF-8', 'ISO-8859-1');
+    }
+
+    return response()->json(['success' => true, 'updated_fields' => $fields]);
+}
 }

@@ -80,6 +80,7 @@ Route::middleware(['api.auth'])->group(function () {
     Route::post('/propostal/create', [PropostalController::class, 'store']);
     Route::post('/propostal/canceled/{id}', [PropostalController::class, 'canceled']);
     Route::post('/propostal/hash/{id}', [PropostalController::class, 'hashLink']);
+    Route::post('/propostal/editStatus/{id}', [PropostalController::class, 'updateStatus']);
 
     // Histórico
     Route::post('/history/create', [HistoryController::class, 'store']);
