@@ -40,7 +40,9 @@ class PropostaPagamentoStatusUpdater
                 // Consulta API Asaas
                 $response = $this->asaasClient->getPaymentById($idPagamentoIntegracao);
 
-                if (isset($response['status']) && $response['status'] === 'CONFIRMED') {
+                $statusAccept = ['CONFIRMED', 'RECEIVED'];
+
+                if (isset($response['status']) && in_array($response['status'], $statusAccept)) {
                     // Atualiza pagamento para pago
                     $pagamento->STATUS = $response['status'];
                     $pagamento->METODO_PAGAMENTO = $response['billingType'];
