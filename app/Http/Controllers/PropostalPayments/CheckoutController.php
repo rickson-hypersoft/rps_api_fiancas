@@ -329,7 +329,7 @@ class CheckoutController extends Controller
                 if (! $paymentId) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Erro ao criar cobrança no Asaas',
+                        'message' => $asaasResponse['data']['errors'],
                     ], 500);
                 }
 
@@ -343,7 +343,7 @@ class CheckoutController extends Controller
                     return response()->json([
                         'success'        => false,
                         'message'        => 'Erro ao processar pagamento com cartão',
-                        'asaas_response' => $responseData,
+                        'asaas_response' => $responseData['data']['errors'],
                     ], 500);
                 }
 
@@ -352,8 +352,9 @@ class CheckoutController extends Controller
 
                 if (! $asaasPaymentId) {
                     return response()->json([
-                        'success' => false,
-                        'message' => 'ID do pagamento retornado é inválido',
+                        'success'        => false,
+                        'message'        => 'ID do pagamento retornado é inválido',
+                        'asaas_response' => $responseData['data']['errors'],
                     ], 500);
                 }
 
@@ -376,8 +377,9 @@ class CheckoutController extends Controller
 
                 if (! $paymentId) {
                     return response()->json([
-                        'success' => false,
-                        'message' => 'Erro ao criar cobrança no Asaas',
+                        'success'        => false,
+                        'message'        => 'Erro ao criar cobrança no Asaas',
+                        'asaas_response' => $responseData['data']['errors'],
                     ], 500);
                 }
 
@@ -430,6 +432,12 @@ class CheckoutController extends Controller
                 'detalhes_pagamentos' => $detalhesPagamentos,
                 'ids_pagamentos'      => $idPagamento,
                 'propostas'           => new PropostalIndexResource($propostal),
+            ]);
+        } else {
+            return response()->json([
+                'success'           => true,
+                'detalhe_pagamento' => $pagamentoExistente,
+                'proposta'          => new PropostalIndexResource($propostal),
             ]);
         }
     }

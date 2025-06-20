@@ -9,6 +9,7 @@ use App\Http\Resources\Propostal\PropostalIndexResource;
 use App\Models\Propostal\Propostal;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AssetsController extends Controller
 {
@@ -55,21 +56,16 @@ class AssetsController extends Controller
             });
         }
 
-        // if ($request->filled('created_at')) {
-        //     $query->where('DATA', $request->input('created_at'));
-        // }
+        if ($request->filled('created_at')) {
+            $query->where('DATA', '=', $request->input('created_at'));
+        }
 
         if ($request->filled('pendences')) {
-            if ($request->input('pendences') == 'contrato') {
+            if ($request->input('pendences') == 'Pendentes') {
                 $query->where(function ($q) {
                     $q->where('ANX_CONTRATO', 0)
-                        ->orWhereNull('ANX_CONTRATO');
-                });
-            }
-
-            if ($request->input('pendences') == 'vistoria') {
-                $query->where(function ($q) {
-                    $q->where('ANX_VISTORIA', 0)
+                        ->orWhereNull('ANX_CONTRATO')
+                        ->orWhere('ANX_VISTORIA', 0)
                         ->orWhereNull('ANX_VISTORIA');
                 });
             }
@@ -81,7 +77,7 @@ class AssetsController extends Controller
         $contratos = Propostal::selectRaw("
     CASE
         WHEN CONTRATO_STATUS = 'Ativo' AND ANX_CONTRATO = 1 AND ANX_VISTORIA = 1 THEN 'Ativo'
-        WHEN CONTRATO_STATUS = 'Ativo' AND (ANX_CONTRATO = 0 OR ANX_VISTORIA = 0 OR ANX_APOLICE = 0) THEN 'Pendente'
+        WHEN CONTRATO_STATUS = 'Ativo' AND (ANX_CONTRATO = 0 OR ANX_VISTORIA = 0) THEN 'Pendente'
         WHEN PROPOSTA_STATUS = 'Reprovada' THEN 'Em renovação'
         WHEN PROPOSTA_STATUS IN ('Pendente', 'Rascunho', 'Cancelado') THEN 'Cancelado'
         ELSE 'Outro'

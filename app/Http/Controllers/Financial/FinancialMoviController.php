@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Financial;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Financial\FinancialMoviResource;
 use App\Models\FinancialMovi;
+use App\Services\Financial\FinancialMoviService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,15 +15,14 @@ use Illuminate\Support\Facades\Validator;
 
 class FinancialMoviController extends Controller
 {
-    public function index(Request $request, string | int $id): JsonResponse
+    public function index(Request $request, string | int $id, FinancialMoviService $service): JsonResponse
     {
         $dataHoje = date('Y-m-d');
 
-        // Query de movimentações filtradas
-        $query = DB::table('FINANCEIRO_MOVI')
-            ->where('ID_IMOBILIARIA', $id);
+        // Montagem da query de movimentações (igual estava)
+        $query = DB::table('FINANCEIRO_MOVI')->where('ID_IMOBILIARIA', $id);
 
-        // Filtros opcionais
+        // Aplicar filtros igual antes...
         if ($request->filled('id_categoria')) {
             $query->where('ID_CATEGORIA', $request->id_categoria);
         }
@@ -43,43 +43,27 @@ class FinancialMoviController extends Controller
             $search    = $request->input('descricao');
             $searchIso = iconv('UTF-8', 'ISO-8859-1//TRANSLIT//IGNORE', $search);
 
-            // Buscar os IDs das contas que batem com a descrição
             $contaIds = DB::table('FINANCEIRO_CONTAS')
                 ->whereRaw('UPPER(DESCRICAO) LIKE UPPER(?)', ["%$searchIso%"])
-                ->pluck('ID');  // pega só os IDs
+                ->pluck('ID');
 
-            // Se encontrar algum ID, filtra pelo ID_CONTA na tabela principal
             if ($contaIds->isNotEmpty()) {
                 $query->whereIn('ID_CONTA', $contaIds);
             } else {
-                // Se não encontrou nenhum, não retorna nada, pode forçar where 0=1
                 $query->whereRaw('0=1');
             }
         }
 
-        // Movimentações do período filtrado
         $movimentacoes = $query->orderBy('ID', 'desc')->paginate(10);
 
-        // SALDO ANTERIOR
-        $saldoAnteriorQuery = DB::table('FINANCEIRO_MOVI')
-            ->where('ID_IMOBILIARIA', $id);
-
-        if ($request->filled('data_inicial')) {
-            $saldoAnteriorQuery->where('DATA', '<', $request->data_inicial);
-        } else {
-            $saldoAnteriorQuery->where('DATA', '<', $dataHoje);
-        }
-
-        $saldoAnterior = $saldoAnteriorQuery->get()->sum(function ($mov) {
-            return $mov->TIPO === 'C' ? $mov->VALOR : -$mov->VALOR;
-        });
-
-        // Entradas e Saídas do período atual (apenas o período filtrado)
-        $entradas = $movimentacoes->where('TIPO', 'C')->sum('VALOR');
-        $saidas   = $movimentacoes->where('TIPO', 'D')->sum('VALOR');
-
-        // Saldo do período (não incluir o saldo anterior!)
-        $saldoPeriodo = $entradas - $saidas;
+        // ✅ Nova forma de buscar os totais de uma vez
+        $totais = $service->calculateTotal(
+            $id,
+            $request->input('data_inicial', $dataHoje),
+            $request->input('data_final', $dataHoje),
+            $request->input('id_conta'),
+            $request->input('id_categoria'),
+        );
 
         return response()->json([
             'data' => FinancialMoviResource::collection($movimentacoes),
@@ -87,17 +71,17 @@ class FinancialMoviController extends Controller
                 'current_page' => $movimentacoes->currentPage(),
                 'from'         => $movimentacoes->firstItem(),
                 'last_page'    => $movimentacoes->lastPage(),
-                'links'        => $movimentacoes->linkCollection(), // ✅ Links padrão do Laravel
+                'links'        => $movimentacoes->linkCollection(),
                 'path'         => $request->url(),
                 'per_page'     => $movimentacoes->perPage(),
                 'to'           => $movimentacoes->lastItem(),
                 'total'        => $movimentacoes->total(),
             ],
             'valores' => [
-                'saldoAnterior' => $saldoAnterior,
-                'entradas'      => $entradas,
-                'saidas'        => $saidas,
-                'saldoAtual'    => $saldoPeriodo,  // <-- saldo só do período
+                'saldoAnterior' => $totais['saldoAnterior'] ?? 0,
+                'entradas'      => $totais['creditos'] ?? 0,
+                'saidas'        => $totais['debitos'] ?? 0,
+                'saldoAtual'    => ($totais['saldoAnterior'] ?? 0) + ($totais['creditos'] ?? 0) - ($totais['debitos'] ?? 0),
             ],
         ]);
     }
@@ -118,7 +102,7 @@ class FinancialMoviController extends Controller
             'data'           => 'nullable|date',
             'historico'      => 'nullable|string|max:100',
             'tipo'           => 'nullable|string|max:1',
-            'valor'          => 'nullable',
+            'valor'          => 'nullable|numeric',
         ]);
 
         if ($validator->fails()) {
@@ -151,7 +135,7 @@ class FinancialMoviController extends Controller
             'data'           => 'nullable|date',
             'historico'      => 'nullable|string|max:100',
             'tipo'           => 'nullable|string|max:1',
-            'valor'          => 'nullable',
+            'valor'          => 'nullable|numeric',
         ]);
 
         if ($validator->fails()) {
@@ -161,8 +145,9 @@ class FinancialMoviController extends Controller
             ], 422);
         }
 
-        $financialMoviData = $validator->validated();
-        $financialMoviData = $this->convertIsoAndTransformUpperCase($financialMoviData);
+        $financialMoviData          = $validator->validated();
+        $financialMoviData['valor'] = floatval($financialMoviData['valor'] ?? 0);
+        $financialMoviData          = $this->convertIsoAndTransformUpperCase($financialMoviData);
 
         $financialMovi->update($financialMoviData);
 

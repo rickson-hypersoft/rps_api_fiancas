@@ -95,11 +95,14 @@ class PropostalIndexResource extends JsonResource
             'valor_total_pagamento'   => $valorTotalPagamento !== null
                 ? 'R$ ' . number_format(floatval($valorTotalPagamento), 2, ',', '')
                 : null,
-            'anexo_contrato'    => $this->ANX_CONTRATO,
-            'anexo_vistoria'    => $this->ANX_VISTORIA,
-            'anexo_apolice'     => $this->ANX_APOLICE,
-            'motivo'            => $this->toUtf8($this->MOTIVO),
-            'motivo_explicacao' => $this->toUtf8($this->MOTIVO_EXPLICACAO),
+            'anexo_contrato'      => $this->ANX_CONTRATO,
+            'anexo_vistoria'      => $this->ANX_VISTORIA,
+            'anexo_apolice'       => $this->ANX_APOLICE,
+            'motivo'              => $this->toUtf8($this->MOTIVO),
+            'motivo_explicacao'   => $this->toUtf8($this->MOTIVO_EXPLICACAO),
+            'data_ativacao_termo' => $this->DATA_ATIVACAO_TERMO,
+            'termo_ativo'         => $this->TERMO_ATIVO,
+            'contrato_sub_status' => $this->toUtf8($this->CONTRATO_SUB_STATUS),
         ];
     }
 }
