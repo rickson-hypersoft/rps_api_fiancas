@@ -119,10 +119,12 @@ class CheckoutController extends Controller
             ]);
         }
 
+        $value = $propostal->PROPOSTA_TOTAL_VALOR + $propostal->PROPOSTA_SETUP_VALOR;
+
         $payload = [
             'billingType' => 'PIX',
             'customer'    => $propostal->ID_USUARIO_INTEGRACAO,
-            'value'       => $propostal->PROPOSTA_TOTAL_VALOR,
+            'value'       => $value,
             'dueDate'     => now()->toDateString(),
         ];
 
@@ -224,11 +226,14 @@ class CheckoutController extends Controller
             ]);
         }
 
+        $value = $propostal->PROPOSTA_TOTAL_VALOR + $propostal->PROPOSTA_SETUP_VALOR;
+
         $payload = [
             'billingType' => 'BOLETO',
             'customer'    => $propostal->ID_USUARIO_INTEGRACAO,
-            'value'       => $propostal->PROPOSTA_TOTAL_VALOR,
+            'value'       => $value,
             'dueDate'     => now()->addDays(3)->toDateString(),
+            'description' => "Referente Fiança Locatícia nº {$propostal->ID}",
         ];
 
         $response = $this->asaasService->createPayment($payload);
@@ -301,6 +306,7 @@ class CheckoutController extends Controller
     public function criarPagamentoCartao(Request $request, $linkHash)
     {
         list($customerId, $propostal) = $this->initCheckout($request, $linkHash);
+        dd("caoiu aqui");
 
         $pagamentoExistente = PropostalPayments::where('ID_USUARIO_INTEGRACAO', $customerId)
             ->where('LINK_HASH', $linkHash)
