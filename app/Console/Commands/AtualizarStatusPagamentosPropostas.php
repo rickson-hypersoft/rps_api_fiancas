@@ -13,15 +13,12 @@ class AtualizarStatusPagamentosPropostas extends Command
 
     protected $description = 'Consulta API Asaas e atualiza status de pagamentos e propostas.';
 
-    protected PropostaPagamentoStatusUpdater $atualizador;
-
-    public function __construct(PropostaPagamentoStatusUpdater $atualizador)
+    public function __construct(protected PropostaPagamentoStatusUpdater $atualizador)
     {
         parent::__construct();
-        $this->atualizador = $atualizador;
     }
 
-    public function handle()
+    public function handle(): int
     {
         $this->info('Iniciando atualização de status de pagamentos...');
 

@@ -13,7 +13,7 @@ return new class () extends Migration
      */
     public function up(): void
     {
-        Schema::connection('firebird')->table('PROPOSTAS', function (Blueprint $table) {
+        Schema::connection('firebird')->table('PROPOSTAS', function (Blueprint $table): void {
             $table->string('ID_USUARIO_INTEGRACAO', 255)->nullable();
         });
     }
@@ -23,7 +23,7 @@ return new class () extends Migration
      */
     public function down(): void
     {
-        Schema::connection('firebird')->table('PROPOSTAS', function (Blueprint $table) {
+        Schema::connection('firebird')->table('PROPOSTAS', function (Blueprint $table): void {
             $table->dropColumn('ID_USUARIO_INTEGRACAO');
         });
     }

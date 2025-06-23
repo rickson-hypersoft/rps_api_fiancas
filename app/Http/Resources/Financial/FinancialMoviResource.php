@@ -28,7 +28,7 @@ class FinancialMoviResource extends JsonResource
             'id_imobiliaria' => $this->ID_IMOBILIARIA,
             'id_conta'       => $this->ID_CONTA,
             'id_categoria'   => $this->ID_CATEGORIA,
-            'historico'      => $this->HISTORICO ? utf8_encode($this->HISTORICO) : null,
+            'historico'      => $this->HISTORICO ? mb_convert_encoding($this->HISTORICO, 'UTF-8', 'ISO-8859-1') : null,
             'valor'          => $this->VALOR,
             'data'           => $this->DATA,
             'tipo'           => match ($this->TIPO) {

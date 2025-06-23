@@ -16,7 +16,7 @@ use Illuminate\Http\Request;
 class CheckoutController extends Controller
 {
     public function __construct(
-        private AsaasClientService $asaasService
+        private readonly AsaasClientService $asaasService
     ) {
     }
 
@@ -29,7 +29,7 @@ class CheckoutController extends Controller
         foreach ($idsArray as $id) {
             $response = $this->asaasService->getPaymentById(trim($id));
 
-            if ($response) {
+            if ($response !== []) {
                 $pagamentos[] = $response;
             }
 
@@ -79,7 +79,7 @@ class CheckoutController extends Controller
             new AsaasClientService()
         ))->execute($propostal);
 
-        if (! $customerId) {
+        if ($customerId === null || $customerId === '' || $customerId === '0') {
             return response()->json([
                 'success' => false,
                 'message' => 'Erro ao criar/atualizar cliente no Asaas.',
@@ -89,9 +89,9 @@ class CheckoutController extends Controller
         return [$customerId, $propostal];
     }
 
-    public function criarPagamentoPix(Request $request, $linkHash)
+    public function criarPagamentoPix(Request $request, string $linkHash)
     {
-        list($customerId, $propostal) = $this->initCheckout($request, $linkHash);
+        [$customerId, $propostal] = $this->initCheckout($request, $linkHash);
 
         $pagamentoExistente = PropostalPayments::where('ID_USUARIO_INTEGRACAO', $customerId)
             ->where('LINK_HASH', $linkHash)
@@ -169,13 +169,11 @@ class CheckoutController extends Controller
             ]);
         }
 
-        if (! $allConfirmed) {
-            $propostal->update([
-                'CONTRATO_STATUS'         => 'Pendente',
-                'PROPOSTA_STATUS'         => 'Aprovado',
-                'PROPOSTA_CREDITO_STATUS' => utf8_decode('Pagamento em Análise'),
-            ]);
-        }
+        $propostal->update([
+            'CONTRATO_STATUS'         => 'Pendente',
+            'PROPOSTA_STATUS'         => 'Aprovado',
+            'PROPOSTA_CREDITO_STATUS' => mb_convert_encoding('Pagamento em Análise', 'ISO-8859-1'),
+        ]);
 
         $dataVencimentoAnterior = PropostalPayments::where('LINK_HASH', $linkHash)
             ->latest('DATA_VENCIMENTO')
@@ -193,11 +191,13 @@ class CheckoutController extends Controller
                 'data_vencimento'   => $dataFormatada,
             ]);
         }
+
+        return null;
     }
 
-    public function criarPagamentoBoleto(Request $request, $linkHash)
+    public function criarPagamentoBoleto(Request $request, string $linkHash)
     {
-        list($customerId, $propostal) = $this->initCheckout($request, $linkHash);
+        [$customerId, $propostal] = $this->initCheckout($request, $linkHash);
 
         $pagamentoExistente = PropostalPayments::where('ID_USUARIO_INTEGRACAO', $customerId)
             ->where('LINK_HASH', $linkHash)
@@ -281,13 +281,11 @@ class CheckoutController extends Controller
             ]);
         }
 
-        if (! $allConfirmed) {
-            $propostal->update([
-                'CONTRATO_STATUS'         => 'Pendente',
-                'PROPOSTA_STATUS'         => 'Aprovado',
-                'PROPOSTA_CREDITO_STATUS' => utf8_decode('Pagamento em Análise'),
-            ]);
-        }
+        $propostal->update([
+            'CONTRATO_STATUS'         => 'Pendente',
+            'PROPOSTA_STATUS'         => 'Aprovado',
+            'PROPOSTA_CREDITO_STATUS' => mb_convert_encoding('Pagamento em Análise', 'ISO-8859-1'),
+        ]);
 
         if (! empty($detailedResponses)) {
             $linkBoleto = $this->asaasService->getPaymentById($response['data']['id']);
@@ -301,11 +299,13 @@ class CheckoutController extends Controller
                 'data_vencimento'   => $dataFormatada,
             ]);
         }
+
+        return null;
     }
 
-    public function criarPagamentoCartao(Request $request, $linkHash)
+    public function criarPagamentoCartao(Request $request, string $linkHash)
     {
-        list($customerId, $propostal) = $this->initCheckout($request, $linkHash);
+        [$customerId, $propostal] = $this->initCheckout($request, $linkHash);
         dd("caoiu aqui");
 
         $pagamentoExistente = PropostalPayments::where('ID_USUARIO_INTEGRACAO', $customerId)
@@ -318,7 +318,7 @@ class CheckoutController extends Controller
         if (! $pagamentoExistente) {
             $payloads = $this->buildPayloadPayment($propostal, $request) ?? [];
 
-            if (empty($payloads)) {
+            if ($payloads === []) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Dados do payload inválidos',
@@ -439,20 +439,20 @@ class CheckoutController extends Controller
                 'ids_pagamentos'      => $idPagamento,
                 'propostas'           => new PropostalIndexResource($propostal),
             ]);
-        } else {
-            return response()->json([
-                'success'           => true,
-                'detalhe_pagamento' => $pagamentoExistente,
-                'proposta'          => new PropostalIndexResource($propostal),
-            ]);
         }
+
+        return response()->json([
+            'success'           => true,
+            'detalhe_pagamento' => $pagamentoExistente,
+            'proposta'          => new PropostalIndexResource($propostal),
+        ]);
     }
 
-    public function cancelarPagamento($paymentId, $linkHash)
+    public function cancelarPagamento(string $paymentId, $linkHash)
     {
         $paymentStatus = $this->asaasService->getPaymentById($paymentId);
 
-        if (empty($paymentStatus) || ! isset($paymentStatus['status'])) {
+        if ($paymentStatus === [] || ! isset($paymentStatus['status'])) {
             return response()->json([
                 'success'  => false,
                 'mensagem' => 'Pagamento não encontrado na API do Asaas.',
@@ -482,12 +482,12 @@ class CheckoutController extends Controller
                     'pagamento_id' => $paymentId,
                     'link_hash'    => $linkHash,
                 ]);
-            } else {
-                return response()->json([
-                    'success'  => false,
-                    'mensagem' => 'Erro ao cancelar o pagamento na API do Asaas.',
-                ], 500);
             }
+
+            return response()->json([
+                'success'  => false,
+                'mensagem' => 'Erro ao cancelar o pagamento na API do Asaas.',
+            ], 500);
         }
 
         // Caso o status não permita cancelamento
@@ -499,7 +499,7 @@ class CheckoutController extends Controller
         ], 400);
     }
 
-    private function buildPayloadPayment($propostal, $request)
+    private function buildPayloadPayment($propostal, Request $request): array
     {
         $valorSetup  = (float) $propostal->PROPOSTA_SETUP_VALOR;
         $valorImovel = (float) $propostal->PROPOSTA_TOTAL_VALOR;
@@ -507,7 +507,7 @@ class CheckoutController extends Controller
         $parcelasImovel = (int) $propostal->PROPOSTA_TOTAL_PARC;
         $parcelasSetup  = (int) $propostal->PROPOSTA_SETUP_PARC;
 
-        $buildCartaoPayload = function ($valor, $parcelas, $descricao) use ($request, $propostal) {
+        $buildCartaoPayload = function ($valor, $parcelas, $descricao) use ($request, $propostal): array {
             $valorParcela = round($valor / $parcelas, 2);
 
             return [
@@ -520,16 +520,16 @@ class CheckoutController extends Controller
                 'installmentValue' => $valorParcela,
                 'creditCard'       => [
                     'holderName'  => $request['nome_cartao'],
-                    'number'      => preg_replace('/\D/', '', $request['numero_cartao']),
-                    'expiryMonth' => substr($request['data_vencimento'], 0, 2),
-                    'expiryYear'  => '20' . substr($request['data_vencimento'], -2),
+                    'number'      => preg_replace('/\D/', '', (string) $request['numero_cartao']),
+                    'expiryMonth' => substr((string) $request['data_vencimento'], 0, 2),
+                    'expiryYear'  => '20' . substr((string) $request['data_vencimento'], -2),
                     'ccv'         => $request['cvv'],
                 ],
                 'creditCardHolderInfo' => [
                     'name'          => $propostal->PESSOA_NOME,
                     'email'         => $propostal->PESSOA_EMAIL,
-                    'cpfCnpj'       => preg_replace('/\D/', '', $propostal->PESSOA_DOC),
-                    'postalCode'    => preg_replace('/\D/', '', $propostal->PESSOA_CEP),
+                    'cpfCnpj'       => preg_replace('/\D/', '', (string) $propostal->PESSOA_DOC),
+                    'postalCode'    => preg_replace('/\D/', '', (string) $propostal->PESSOA_CEP),
                     'addressNumber' => $propostal->PESSOA_NUMERO,
                     'phone'         => $propostal->PESSOA_TELEFONE,
                     'mobilePhone'   => $propostal->PESSOA_TELEFONE,
@@ -549,14 +549,14 @@ class CheckoutController extends Controller
         ];
     }
 
-    private function buildInsertPaymentPropostal($propostal, $response, $customerId, $request)
+    private function buildInsertPaymentPropostal($propostal, array $response, $customerId, Request $request): array
     {
         $valorUnitario = $response['data']['value'];
 
         $parcelas = 1;
 
         if (
-            preg_match('/(\d+)\s+de\s+(\d+)/', $response['data']['description'], $matches)
+            preg_match('/(\d+)\s+de\s+(\d+)/', (string) $response['data']['description'], $matches)
         ) {
             $parcelas = (int) $matches[2];
         }

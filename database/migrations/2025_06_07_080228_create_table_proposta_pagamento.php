@@ -13,7 +13,7 @@ return new class () extends Migration
      */
     public function up(): void
     {
-        Schema::connection('firebird')->create('PROPOSTAS_PAGAMENTOS', function (Blueprint $table) {
+        Schema::connection('firebird')->create('PROPOSTAS_PAGAMENTOS', function (Blueprint $table): void {
             $table->integer('ID');
             $table->integer('ID_IMOBILIARIA');
             $table->integer('ID_MOVI');

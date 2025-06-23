@@ -25,7 +25,7 @@ class Propostal extends Authenticatable
     {
         parent::boot();
 
-        static::creating(function ($model) {
+        static::creating(function ($model): void {
             if (empty($model->ID)) {
                 $novoId    = DB::select("SELECT GEN_ID(GEN_PROPOSTAS_ID, 1) AS ID FROM RDB\$DATABASE");
                 $model->ID = $novoId[0]->ID;

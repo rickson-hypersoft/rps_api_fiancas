@@ -14,7 +14,7 @@ abstract class Controller
     {
         $data = array_change_key_case($data, CASE_UPPER);
 
-        array_walk($data, function (&$value) {
+        array_walk($data, function (&$value): void {
             if (is_string($value)) {
                 if (! mb_check_encoding($value, 'UTF-8')) {
                     $value = mb_convert_encoding($value, 'UTF-8', 'ISO-8859-1');
@@ -29,7 +29,7 @@ abstract class Controller
 
     protected function sanitizeInput(?string $input): ?string
     {
-        if (! $input) {
+        if ($input === null || $input === '' || $input === '0') {
             return null;
         }
 
@@ -48,7 +48,7 @@ abstract class Controller
     protected function sanitizeData(?array $data, ?array $fields): ?array
     {
         $sanitize = function (?string $value): ?string {
-            if (! $value) {
+            if ($value === null || $value === '' || $value === '0') {
                 return null;
             }
 

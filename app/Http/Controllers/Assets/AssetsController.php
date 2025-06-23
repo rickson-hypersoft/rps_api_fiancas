@@ -15,7 +15,7 @@ class AssetsController extends Controller
 {
     public function index(Request $request, string | int $idImobiliaria)
     {
-        if (! $idImobiliaria) {
+        if ($idImobiliaria === 0 || ($idImobiliaria === '' || $idImobiliaria === '0')) {
             return response()->json(['success' => false, 'message' => 'ID da imobiliária é obrigatório.'], 400);
         }
 
@@ -32,13 +32,13 @@ class AssetsController extends Controller
         if ($request->filled('search')) {
             $search    = $request->input('search');
             $isNumeric = is_numeric($search);
-            $length    = strlen($search);
+            $length    = strlen((string) $search);
 
             $query->where(function ($q) use (
                 $search,
                 $isNumeric,
                 $length
-            ) {
+            ): void {
                 if ($isNumeric && $length >= 11 && $length <= 14) {
                     $q->orWhere('PESSOA_DOC', 'like', "%$search%"); // busca só números no DB também precisa estar nesse formato
                 } else {
@@ -47,7 +47,7 @@ class AssetsController extends Controller
                     }
 
                     // Filtrar por nome
-                    $searchIso = iconv('UTF-8', 'ISO-8859-1//TRANSLIT//IGNORE', $search);
+                    $searchIso = iconv('UTF-8', 'ISO-8859-1//TRANSLIT//IGNORE', (string) $search);
                     $q->orWhereRaw('UPPER(PESSOA_NOME) LIKE UPPER(?)', ["%$searchIso%"]);
 
                     // Filtrar por tag do imóvel
@@ -60,15 +60,13 @@ class AssetsController extends Controller
             $query->where('DATA', '=', $request->input('created_at'));
         }
 
-        if ($request->filled('pendences')) {
-            if ($request->input('pendences') == 'Pendentes') {
-                $query->where(function ($q) {
-                    $q->where('ANX_CONTRATO', 0)
-                        ->orWhereNull('ANX_CONTRATO')
-                        ->orWhere('ANX_VISTORIA', 0)
-                        ->orWhereNull('ANX_VISTORIA');
-                });
-            }
+        if ($request->filled('pendences') && $request->input('pendences') == 'Pendentes') {
+            $query->where(function ($q): void {
+                $q->where('ANX_CONTRATO', 0)
+                    ->orWhereNull('ANX_CONTRATO')
+                    ->orWhere('ANX_VISTORIA', 0)
+                    ->orWhereNull('ANX_VISTORIA');
+            });
         }
 
         // Ordenação e paginação

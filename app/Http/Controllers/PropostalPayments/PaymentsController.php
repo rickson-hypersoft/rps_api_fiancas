@@ -49,7 +49,7 @@ class PaymentsController extends Controller
 
         $payment = $paymentData;
 
-        $payment = PropostalPayments::create($payment);
+        PropostalPayments::create($payment);
 
         return response()->json([
             "success" => true,

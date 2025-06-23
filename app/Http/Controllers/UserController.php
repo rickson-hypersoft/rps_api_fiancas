@@ -21,13 +21,13 @@ class UserController extends Controller
         if ($request->filled('search')) {
             $searchRaw = $request->input('search');
 
-            $query->where(function ($q) use ($searchRaw) {
+            $query->where(function ($q) use ($searchRaw): void {
                 if (is_numeric($searchRaw)) {
                     // Busca pelo CPF, já que é numérico (não precisa converter maiúscula/encoding)
                     $q->whereRaw('CAST(CPF AS VARCHAR(20)) LIKE ?', ['%' . $searchRaw . '%']);
                 } else {
                     // Busca por nome e usuário, com conversão para maiúsculo e encoding ISO-8859-1
-                    $searchUpper = mb_strtoupper($searchRaw, 'UTF-8');
+                    $searchUpper = mb_strtoupper((string) $searchRaw, 'UTF-8');
                     $searchIso   = mb_convert_encoding($searchUpper, 'ISO-8859-1', 'UTF-8');
 
                     $q->whereRaw('UPPER(NOME) LIKE ?', ['%' . $searchIso . '%'])
@@ -51,10 +51,10 @@ class UserController extends Controller
 
         if ($request->filled('search')) {
             $search = $request->input('search');
-            $query->where(function ($q) use ($search) {
-                $q->whereRaw('LOWER(NOME) LIKE ?', ['%' . strtolower($search) . '%'])
-                    ->orWhereRaw('LOWER(USUARIO) LIKE ?', ['%' . strtolower($search) . '%'])
-                    ->orWhereRaw('LOWER(CPF) LIKE ?', ['%' . strtolower($search) . '%']);
+            $query->where(function ($q) use ($search): void {
+                $q->whereRaw('LOWER(NOME) LIKE ?', ['%' . strtolower((string) $search) . '%'])
+                    ->orWhereRaw('LOWER(USUARIO) LIKE ?', ['%' . strtolower((string) $search) . '%'])
+                    ->orWhereRaw('LOWER(CPF) LIKE ?', ['%' . strtolower((string) $search) . '%']);
             });
         }
 

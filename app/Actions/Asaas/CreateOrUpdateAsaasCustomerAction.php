@@ -31,16 +31,14 @@ class CreateOrUpdateAsaasCustomerAction
             }
 
             return $asaasId;
-        } else {
-
-            $newId = $this->asaasClient->createCustomer($payload);
-
-            if ($newId) {
-                $propostal->update(['ID_USUARIO_INTEGRACAO' => $newId]);
-            }
-
-            return $newId;
         }
+        $newId = $this->asaasClient->createCustomer($payload);
+
+        if ($newId !== null && $newId !== '' && $newId !== '0') {
+            $propostal->update(['ID_USUARIO_INTEGRACAO' => $newId]);
+        }
+
+        return $newId;
     }
 
     protected function buildPayload(Propostal $propostal): array

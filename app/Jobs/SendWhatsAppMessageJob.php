@@ -18,13 +18,7 @@ class SendWhatsAppMessageJob implements ShouldQueue
     use Dispatchable;
     use InteractsWithQueue;
     use Queueable;
-    use SerializesModels;
-
-    protected string $to;
-
-    protected string $message;
-
-    protected ?string $mediaUrl; // Para mensagens com mídia
+    use SerializesModels; // Para mensagens com mídia
 
     /**
      * Create a new job instance.
@@ -33,11 +27,8 @@ class SendWhatsAppMessageJob implements ShouldQueue
      * @param string $message Conteúdo da mensagem.
      * @param string|null $mediaUrl Opcional: URL da mídia (imagem, vídeo, etc.).
      */
-    public function __construct(string $to, string $message, ?string $mediaUrl = null)
+    public function __construct(protected string $to, protected string $message, protected ?string $mediaUrl = null)
     {
-        $this->to       = $to;
-        $this->message  = $message;
-        $this->mediaUrl = $mediaUrl;
     }
 
     /**
@@ -48,7 +39,7 @@ class SendWhatsAppMessageJob implements ShouldQueue
     public function handle(WhatsAppService $whatsAppService): void
     {
         try {
-            if ($this->mediaUrl) {
+            if ($this->mediaUrl !== null && $this->mediaUrl !== '' && $this->mediaUrl !== '0') {
                 $whatsAppService->sendMediaMessage($this->to, $this->mediaUrl, $this->message);
             } else {
                 $whatsAppService->sendMessage($this->to, $this->message);

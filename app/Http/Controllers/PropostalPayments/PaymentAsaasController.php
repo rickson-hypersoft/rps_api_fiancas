@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Log;
 class PaymentAsaasController extends Controller
 {
     public function __construct(
-        private AsaasClientService $asaasService
+        private readonly AsaasClientService $asaasService
     ) {
     }
 
@@ -54,7 +54,7 @@ class PaymentAsaasController extends Controller
             new AsaasClientService()
         ))->execute($propostal);
 
-        if (! $customerId) {
+        if ($customerId === null || $customerId === '' || $customerId === '0') {
             return response()->json([
                 'success' => false,
                 'message' => 'Erro ao criar/atualizar cliente no Asaas.',
@@ -66,7 +66,7 @@ class PaymentAsaasController extends Controller
 
     public function checkoutBase(Request $request, string $linkHash)
     {
-        list($customerId, $propostal) = $this->initCheckout($request, $linkHash);
+        [$customerId, $propostal] = $this->initCheckout($request, $linkHash);
 
         $existingPayment = PropostalPayments::where('ID_MOVI', $propostal->ID)
             ->whereIn('STATUS', ['PENDING']) // status que você quiser considerar como "ativos"
@@ -108,7 +108,7 @@ class PaymentAsaasController extends Controller
 
             $propostal->update([
                 'CONTRATO_STATUS'         => 'Pendente',
-                'PROPOSTA_CREDITO_STATUS' => utf8_decode('Pagamento em Análise'),
+                'PROPOSTA_CREDITO_STATUS' => mb_convert_encoding('Pagamento em Análise', 'ISO-8859-1'),
             ]);
 
             return response()->json([
@@ -126,7 +126,7 @@ class PaymentAsaasController extends Controller
 
     public function checkoutPix(Request $request, string $linkHash)
     {
-        list($customerId, $propostal) = $this->initCheckout($request, $linkHash);
+        [$customerId, $propostal] = $this->initCheckout($request, $linkHash);
 
         $payload = [
             'billingType' => 'PIX',
@@ -174,12 +174,10 @@ class PaymentAsaasController extends Controller
             ]);
         }
 
-        if (! $allConfirmed) {
-            $propostal->update([
-                'CONTRATO_STATUS'         => 'Pendente',
-                'PROPOSTA_CREDITO_STATUS' => utf8_decode('Pagamento em Análise'),
-            ]);
-        }
+        $propostal->update([
+            'CONTRATO_STATUS'         => 'Pendente',
+            'PROPOSTA_CREDITO_STATUS' => mb_convert_encoding('Pagamento em Análise', 'ISO-8859-1'),
+        ]);
 
         if (! empty($detailedResponses)) {
             return response()->json([
@@ -189,18 +187,20 @@ class PaymentAsaasController extends Controller
                 'proposta'            => $propostal,
             ]);
         }
+
+        return null;
     }
 
     public function checkoutCreditCard(Request $request, string $idpayment, string $linkHash)
     {
-        list($customerId, $propostal) = $this->initCheckout($request, $linkHash);
+        [$customerId, $propostal] = $this->initCheckout($request, $linkHash);
 
         $requestSanitize = $request->all();
 
         $payloads = $this->buildPayloadPayment($propostal, $requestSanitize) ?? [];
         dd($payloads['imovel']);
 
-        if (empty($payloads)) {
+        if ($payloads === []) {
             return response()->json(['success' => false, 'message' => 'Dados do payload inválidos'], 400);
         }
 
@@ -214,7 +214,7 @@ class PaymentAsaasController extends Controller
                 Log::info("Atualizando informação no AsaaS", [$asaasResponse]);
                 $paymentId = $idpayment;
 
-                if (! $paymentId) {
+                if ($paymentId === '' || $paymentId === '0') {
                     return response()->json(['success' => false, 'message' => 'Erro ao criar ou atualizar o pagamento'], 500);
                 }
 
@@ -334,7 +334,7 @@ class PaymentAsaasController extends Controller
             return response()->json(['success' => false, 'message' => 'Cobrança não pode ser atualizada.'], 400);
         }
 
-        $novoMetodo = strtoupper($request->input('metodo_pagamento'));
+        $novoMetodo = strtoupper((string) $request->input('metodo_pagamento'));
 
         $payload = [
             'billingType' => $novoMetodo,
@@ -362,7 +362,9 @@ class PaymentAsaasController extends Controller
                 'link'                => $response['bankSlipUrl'] ?? null,
                 'detalhes_pagamentos' => $detalhe,
             ]);
-        } elseif ($novoMetodo === 'PIX') {
+        }
+
+        if ($novoMetodo === 'PIX') {
             $detalhe = $this->asaasService->getQRCodeById($id_payment);
 
             return response()->json([
@@ -375,7 +377,7 @@ class PaymentAsaasController extends Controller
         return response()->json(['success' => true]);
     }
 
-    private function buildPayloadPayment($propostal, $request)
+    private function buildPayloadPayment($propostal, $request): array
     {
         $valorSetup  = (float) $propostal->PROPOSTA_SETUP_VALOR;
         $valorImovel = (float) $propostal->PROPOSTA_TOTAL_VALOR;
@@ -383,7 +385,7 @@ class PaymentAsaasController extends Controller
         $parcelasImovel = (int) $propostal->PROPOSTA_TOTAL_PARC;
         $parcelasSetup  = (int) $propostal->PROPOSTA_SETUP_PARC;
 
-        $buildCartaoPayload = function ($valor, $parcelas, $descricao) use ($request, $propostal) {
+        $buildCartaoPayload = function ($valor, $parcelas, $descricao) use ($request, $propostal): array {
             $valorParcela = round($valor / $parcelas, 2);
 
             return [
@@ -396,16 +398,16 @@ class PaymentAsaasController extends Controller
                 'installmentValue' => $valorParcela,
                 'creditCard'       => [
                     'holderName'  => $request['nome_cartao'],
-                    'number'      => preg_replace('/\D/', '', $request['numero_cartao']),
-                    'expiryMonth' => substr($request['data_vencimento'], 0, 2),
-                    'expiryYear'  => '20' . substr($request['data_vencimento'], -2),
+                    'number'      => preg_replace('/\D/', '', (string) $request['numero_cartao']),
+                    'expiryMonth' => substr((string) $request['data_vencimento'], 0, 2),
+                    'expiryYear'  => '20' . substr((string) $request['data_vencimento'], -2),
                     'ccv'         => $request['cvv'],
                 ],
                 'creditCardHolderInfo' => [
                     'name'          => $propostal->PESSOA_NOME,
                     'email'         => $propostal->PESSOA_EMAIL,
-                    'cpfCnpj'       => preg_replace('/\D/', '', $propostal->PESSOA_DOC),
-                    'postalCode'    => preg_replace('/\D/', '', $propostal->PESSOA_CEP),
+                    'cpfCnpj'       => preg_replace('/\D/', '', (string) $propostal->PESSOA_DOC),
+                    'postalCode'    => preg_replace('/\D/', '', (string) $propostal->PESSOA_CEP),
                     'addressNumber' => $propostal->PESSOA_NUMERO,
                     'phone'         => $propostal->PESSOA_TELEFONE,
                     'mobilePhone'   => $propostal->PESSOA_TELEFONE,
@@ -425,14 +427,14 @@ class PaymentAsaasController extends Controller
         ];
     }
 
-    private function buildInsertPaymentPropostal($propostal, $response, $customerId, $request)
+    private function buildInsertPaymentPropostal($propostal, array $response, $customerId, Request $request): array
     {
         $valorUnitario = $response['data']['value'];
 
         $parcelas = 1;
 
         if (
-            preg_match('/(\d+)\s+de\s+(\d+)/', $response['data']['description'], $matches)
+            preg_match('/(\d+)\s+de\s+(\d+)/', (string) $response['data']['description'], $matches)
         ) {
             $parcelas = (int) $matches[2];
         }
@@ -546,5 +548,7 @@ class PaymentAsaasController extends Controller
                 'propostas'           => $propostal,
             ]);
         }
+
+        return null;
     }
 }

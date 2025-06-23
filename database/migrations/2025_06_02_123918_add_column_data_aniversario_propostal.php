@@ -13,7 +13,7 @@ return new class () extends Migration
      */
     public function up(): void
     {
-        Schema::connection('firebird')->table('PROPOSTAS', function (Blueprint $table) {
+        Schema::connection('firebird')->table('PROPOSTAS', function (Blueprint $table): void {
             $table->date('DATA_NASCIMENTO')->nullable();
         });
     }
@@ -23,7 +23,7 @@ return new class () extends Migration
      */
     public function down(): void
     {
-        Schema::connection('firebird')->table('ANEXOS', function (Blueprint $table) {
+        Schema::connection('firebird')->table('ANEXOS', function (Blueprint $table): void {
             $table->dropColumn('DATA_NASCIMENTO');
         });
     }

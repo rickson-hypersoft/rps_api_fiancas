@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\AttachamentResource;
 use App\Models\Attachment;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -13,9 +14,19 @@ class AttachmentController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $attachment = Attachment::all();
+        $requestData = $request->all();
 
-        return response()->json(['data' => $attachment]);
+        if ($requestData['id_movi'] && $requestData['id_imobiliaria']) {
+            $attachment = Attachment::where('ID_MOVI', '=', $request->all()['id_movi'])
+                ->where('ID_IMOBILIARIA', '=', $request->all()['id_imobiliaria'])
+                ->get();
+        } else {
+            $attachment = Attachment::all();
+        }
+
+        return response()->json(
+            AttachamentResource::collection($attachment)->response()->getData(true)['data']
+        );
     }
 
     public function find(string | int $id): JsonResponse
@@ -53,7 +64,7 @@ class AttachmentController extends Controller
         /** @var array<string, mixed> $attributes */
         $attributes = $attachmentData;
 
-        $attachment = Attachment::create($attributes);
+        Attachment::create($attributes);
 
         return response()->json([
             "success" => true,
@@ -115,9 +126,7 @@ class AttachmentController extends Controller
         $anexos = Attachment::where('ID_IMOBILIARIA', $request->id_imobiliaria)
             ->where('ID_MOVI', $request->id_movi)
             ->where('MOVI', $request->movi ?? 'contratos') // valor padrão "contratos"
-            ->when($request->movi_sub, function ($query) use ($request) {
-                $query->where('MOVI_SUB', $request->movi_sub);
-            })
+            ->where('MOVI_SUB', $request->movi_sub)
             ->get(['NOME_ARQUIVO', 'NOME_ARQUIVO_ORIGINAL', 'MOVI_SUB', 'DATA']);
 
         return response()->json($anexos);

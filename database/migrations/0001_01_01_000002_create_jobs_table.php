@@ -13,7 +13,7 @@ return new class () extends Migration
      */
     public function up(): void
     {
-        Schema::connection('firebird')->create('JOBS', function (Blueprint $table) {
+        Schema::connection('firebird')->create('JOBS', function (Blueprint $table): void {
             $table->integer('ID')->primary();
             $table->string('QUEUE')->index();
             $table->longText('PAYLOAD');
@@ -23,7 +23,7 @@ return new class () extends Migration
             $table->unsignedInteger('CREATED_AT');
         });
 
-        Schema::connection('firebird')->create('JOB_BATCHES', function (Blueprint $table) {
+        Schema::connection('firebird')->create('JOB_BATCHES', function (Blueprint $table): void {
             $table->integer('ID')->primary();
             $table->string('NAME');
             $table->integer('TOTAL_JOBS');
@@ -36,7 +36,7 @@ return new class () extends Migration
             $table->integer('FINISHED_AT')->nullable();
         });
 
-        Schema::connection('firebird')->create('FAILED_JOBS', function (Blueprint $table) {
+        Schema::connection('firebird')->create('FAILED_JOBS', function (Blueprint $table): void {
             $table->string('UUID')->primary();
             $table->text('CONNECTION');
             $table->text('QUEUE');

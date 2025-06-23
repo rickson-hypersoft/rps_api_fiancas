@@ -13,7 +13,7 @@ return new class () extends Migration
      */
     public function up(): void
     {
-        Schema::connection('firebird')->create('PERSONAL_ACCESS_TOKENS', function (Blueprint $table) {
+        Schema::connection('firebird')->create('PERSONAL_ACCESS_TOKENS', function (Blueprint $table): void {
             $table->integer('ID')->primary();
             $table->string('TOKENABLE_TYPE');
             $table->integer('TOKENABLE_ID');

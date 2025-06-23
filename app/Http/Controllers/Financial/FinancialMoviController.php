@@ -41,7 +41,7 @@ class FinancialMoviController extends Controller
 
         if ($request->filled('descricao')) {
             $search    = $request->input('descricao');
-            $searchIso = iconv('UTF-8', 'ISO-8859-1//TRANSLIT//IGNORE', $search);
+            $searchIso = iconv('UTF-8', 'ISO-8859-1//TRANSLIT//IGNORE', (string) $search);
 
             $contaIds = DB::table('FINANCEIRO_CONTAS')
                 ->whereRaw('UPPER(DESCRICAO) LIKE UPPER(?)', ["%$searchIso%"])

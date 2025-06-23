@@ -13,7 +13,7 @@ return new class () extends Migration
      */
     public function up(): void
     {
-        Schema::connection('firebird')->create('USUARIOS', function (Blueprint $table) {
+        Schema::connection('firebird')->create('USUARIOS', function (Blueprint $table): void {
             $table->integer('ID')->primary(); // Evita uso de auto-incremento
             $table->string('USUARIO', 30)->nullable();
             $table->string('SENHA', 255)->nullable();
@@ -28,13 +28,13 @@ return new class () extends Migration
             $table->string('PERMISSOES', 2000)->nullable();
         });
 
-        Schema::connection('firebird')->create('PASSWORD_RESET_TOKENS', function (Blueprint $table) {
+        Schema::connection('firebird')->create('PASSWORD_RESET_TOKENS', function (Blueprint $table): void {
             $table->string('EMAIL')->primary();
             $table->string('TOKEN');
             $table->timestamp('CREATED_AT')->nullable();
         });
 
-        Schema::connection('firebird')->create('SESSIONS', function (Blueprint $table) {
+        Schema::connection('firebird')->create('SESSIONS', function (Blueprint $table): void {
             $table->string('ID')->primary();
             $table->foreignId('USER_ID')->nullable()->index();
             $table->string('IP_ADDRESS', 45)->nullable();

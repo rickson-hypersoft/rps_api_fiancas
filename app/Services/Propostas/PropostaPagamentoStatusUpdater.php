@@ -12,11 +12,8 @@ use Illuminate\Support\Facades\Log;
 
 class PropostaPagamentoStatusUpdater
 {
-    protected AsaasClientService $asaasClient;
-
-    public function __construct(AsaasClientService $asaasClient)
+    public function __construct(protected AsaasClientService $asaasClient)
     {
-        $this->asaasClient = $asaasClient;
     }
 
     /**

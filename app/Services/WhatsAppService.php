@@ -10,7 +10,7 @@ use Twilio\Rest\Client;
 
 class WhatsAppService
 {
-    protected $twilioClient;
+    protected Client $twilioClient;
 
     protected $fromWhatsAppNumber;
 
@@ -85,7 +85,7 @@ class WhatsAppService
                 "mediaUrl" => [$mediaUrl], // MediaUrl deve ser um array de URLs
             ];
 
-            if ($body) {
+            if ($body !== null && $body !== '' && $body !== '0') {
                 $options["body"] = $body;
             }
 

@@ -79,8 +79,6 @@ class FinancialMoviService
 
         $result = DB::select($sql, $bindings);
 
-        return collect($result)->mapWithKeys(function ($item) {
-            return [trim($item->DESCRICAO) => (float) $item->TOTAL];
-        })->all();
+        return collect($result)->mapWithKeys(fn ($item) => [trim((string) $item->DESCRICAO) => (float) $item->TOTAL])->all();
     }
 }

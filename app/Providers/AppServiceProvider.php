@@ -14,9 +14,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->singleton(WhatsAppService::class, function ($app) {
-            return new WhatsAppService();
-        });
+        $this->app->singleton(WhatsAppService::class, fn ($app): WhatsAppService => new WhatsAppService());
     }
 
     /**

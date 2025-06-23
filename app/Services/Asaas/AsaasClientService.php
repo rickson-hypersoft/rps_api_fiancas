@@ -10,12 +10,11 @@ class AsaasClientService
 {
     protected string $token;
 
-    protected string $url;
+    protected string $url = 'https://api-sandbox.asaas.com/v3';
 
     public function __construct()
     {
         $this->token = config('asaas.token');
-        $this->url   = 'https://api-sandbox.asaas.com/v3';
     }
 
     public function getCustomer(string $id): array
@@ -33,7 +32,7 @@ class AsaasClientService
         return Http::withHeaders($this->headers())->put("$this->url/payments/$id", $data)->json();
     }
 
-    public function payWithCreditCard(string $id, array $data)
+    public function payWithCreditCard(string $id, array $data): array
     {
         $response = Http::withHeaders($this->headers())->post("$this->url/payments/{$id}/payWithCreditCard", $data);
 

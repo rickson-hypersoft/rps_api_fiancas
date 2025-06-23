@@ -22,18 +22,18 @@ class RealEstateSectorController extends Controller
 
         if ($request->filled('search')) {
             $search      = $request->input('search');
-            $searchUpper = mb_strtoupper($search, 'UTF-8');
+            $searchUpper = mb_strtoupper((string) $search, 'UTF-8');
             $searchIso   = mb_convert_encoding($searchUpper, 'ISO-8859-1', 'UTF-8');
             $isNumeric   = is_numeric($search);
-            $length      = strlen($search);
+            $length      = strlen((string) $search);
 
             // Se parecer com um CNPJ
-            if (preg_match('/^\d{14}$/', $search)) {
+            if (preg_match('/^\d{14}$/', (string) $search)) {
                 // não precisa de strtolower aqui, pois é só número
-                $search = substr($search, 0, 14);
+                $search = substr((string) $search, 0, 14);
             }
 
-            $query->where(function ($q) use ($search, $searchIso, $isNumeric, $length) {
+            $query->where(function ($q) use ($search, $searchIso, $isNumeric, $length): void {
                 if ($isNumeric && $length >= 11 && $length <= 14) {
                     // Busca por CPF/CNPJ
                     $q->orWhereRaw('CAST(CNPJ AS VARCHAR(20)) LIKE ?', ['%' . $search . '%']);
@@ -71,19 +71,17 @@ class RealEstateSectorController extends Controller
     {
         $realEstateSectors = RealEstateSectorSetup::where('ID_IMOBILIARIA', $id)->get();
 
-        $data = $realEstateSectors->map(function ($item) {
-            return [
-                'id'             => $item->ID,
-                'id_imobiliaria' => $item->ID_IMOBILIARIA,
-                'taxa'           => $item->TAXA !== null
-                    ? 'R$ ' . number_format(floatval($item->TAXA), 2, ',', '') . ''
-                    : null,
-                'taxa_formatada' => $item->TAXA > 0
-                    ? 'R$ ' . number_format(floatval($item->TAXA), 2, ',', '') . ' em até 3x de R$ ' . number_format(floatval($item->TAXA) / 3, 2, ',', '')
-                    : null,
-                'ativo' => $item->ATIVO,
-            ];
-        });
+        $data = $realEstateSectors->map(fn ($item): array => [
+            'id'             => $item->ID,
+            'id_imobiliaria' => $item->ID_IMOBILIARIA,
+            'taxa'           => $item->TAXA !== null
+                ? 'R$ ' . number_format(floatval($item->TAXA), 2, ',', '') . ''
+                : null,
+            'taxa_formatada' => $item->TAXA > 0
+                ? 'R$ ' . number_format(floatval($item->TAXA), 2, ',', '') . ' em até 3x de R$ ' . number_format(floatval($item->TAXA) / 3, 2, ',', '')
+                : null,
+            'ativo' => $item->ATIVO,
+        ]);
 
         return response()->json(['data' => $data]);
     }
@@ -197,9 +195,7 @@ class RealEstateSectorController extends Controller
                 'nullable',
                 'numeric',
                 'between:0,9999999.99',
-                Rule::unique('IMOBILIARIAS_SETUP', 'TAXA')->where(function ($query) use ($request) {
-                    return $query->where('ID_IMOBILIARIA', $request->input('id_imobiliaria'));
-                })
+                Rule::unique('IMOBILIARIAS_SETUP', 'TAXA')->where(fn ($query) => $query->where('ID_IMOBILIARIA', $request->input('id_imobiliaria')))
                     ->ignore($request->input('id'), 'ID'),
             ],
             'ativo' => 'nullable|numeric|between:0,1',
@@ -218,7 +214,7 @@ class RealEstateSectorController extends Controller
 
         $realEstateSectorSetup['ID_IMOBILIARIA'] = $idRealEstateSector;
 
-        $realEstateSectorSetup = RealEstateSectorSetup::create($realEstateSectorSetup);
+        RealEstateSectorSetup::create($realEstateSectorSetup);
 
         return response()->json([
             "success" => true,
@@ -235,9 +231,7 @@ class RealEstateSectorController extends Controller
                 'nullable',
                 'numeric',
                 'between:0,9999999.99',
-                Rule::unique('IMOBILIARIAS_SETUP', 'TAXA')->where(function ($query) use ($request) {
-                    return $query->where('ID_IMOBILIARIA', $request->input('id_imobiliaria'));
-                })
+                Rule::unique('IMOBILIARIAS_SETUP', 'TAXA')->where(fn ($query) => $query->where('ID_IMOBILIARIA', $request->input('id_imobiliaria')))
                     ->ignore($request->input('id'), 'ID'),
             ],
             'ativo' => 'nullable|numeric|between:0,1',

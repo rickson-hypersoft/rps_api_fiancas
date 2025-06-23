@@ -26,7 +26,7 @@ class HomeController extends Controller
             COUNT(*) AS total
         ");
 
-        if ($idImobiliaria) {
+        if ($idImobiliaria !== '' && $idImobiliaria !== '0' && $idImobiliaria !== 0) {
             $propostasQuery->where('ID_IMOBILIARIA', $idImobiliaria);
         }
 
@@ -45,7 +45,7 @@ class HomeController extends Controller
             COUNT(*) AS total
         ");
 
-        if ($idImobiliaria) {
+        if ($idImobiliaria !== '' && $idImobiliaria !== '0' && $idImobiliaria !== 0) {
             $contratosQuery->where('ID_IMOBILIARIA', $idImobiliaria);
         }
 
@@ -54,7 +54,7 @@ class HomeController extends Controller
         // ---------- PROPOSTAS CARD ----------
         $propostasCardQuery = Propostal::query();
 
-        if ($idImobiliaria) {
+        if ($idImobiliaria !== '' && $idImobiliaria !== '0' && $idImobiliaria !== 0) {
             $propostasCardQuery->where('ID_IMOBILIARIA', $idImobiliaria);
         }
         $propostasCard = $propostasCardQuery->orderBy('ID', 'ASC')->get();

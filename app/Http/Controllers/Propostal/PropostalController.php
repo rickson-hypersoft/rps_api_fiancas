@@ -19,19 +19,17 @@ class PropostalController extends Controller
 
         if ($request->filled('search')) {
             $search      = $request->input('search');
-            $searchUpper = mb_strtoupper($search, 'UTF-8');
+            $searchUpper = mb_strtoupper((string) $search, 'UTF-8');
             $searchIso   = mb_convert_encoding($searchUpper, 'ISO-8859-1', 'UTF-8');
             $isNumeric   = is_numeric($search);
-            $length      = strlen($search);
+            $length      = strlen((string) $search);
 
-            $query->where(function ($q) use ($search, $searchIso, $isNumeric, $length) {
+            $query->where(function ($q) use ($search, $searchIso, $isNumeric, $length): void {
                 if ($isNumeric && $length >= 11 && $length <= 14) {
                     $q->orWhere('PESSOA_DOC', 'like', "%$search%");
-                } else {
+                } elseif ($isNumeric) {
                     // Pesquisa por ID somente se for numérico
-                    if ($isNumeric) {
-                        $q->where('ID', 'like', "%$search%");
-                    }
+                    $q->where('ID', 'like', "%$search%");
                 }
 
                 // Pesquisa por PESSOA_NOME e PESSOA_FANTASIA com case-insensitive mantendo acentos
@@ -126,15 +124,13 @@ class PropostalController extends Controller
 
         $propostalData = $validator->validated();
 
-        if (isset($requestSanitize['id'])) {
-            if ($requestSanitize['id'] != "null") {
-                $propostalData['id'] = $requestSanitize['id'];
-            }
+        if (isset($requestSanitize['id']) && $requestSanitize['id'] !== "null") {
+            $propostalData['id'] = $requestSanitize['id'];
         }
 
         $propostalData = $this->convertIsoAndTransformUpperCase($propostalData);
 
-        if (! empty($propostalData['ID'])) {
+        if (isset($propostalData['ID']) && ($propostalData['ID'] !== '' && $propostalData['ID'] !== '0')) {
             $propostal = Propostal::query()->where("ID", "=", $propostalData['ID'])->firstOrFail();
             $propostal->update($propostalData);
         } else {
@@ -175,10 +171,8 @@ class PropostalController extends Controller
         $propostalData['data'] = date('Y-m-d');
         $propostalData['hora'] = date('H:i:s');
 
-        if (isset($requestSanitize['id'])) {
-            if ($requestSanitize['id'] != "null") {
-                $propostalData['id'] = $requestSanitize['id'];
-            }
+        if (isset($requestSanitize['id']) && $requestSanitize['id'] !== "null") {
+            $propostalData['id'] = $requestSanitize['id'];
         }
 
         $propostalData = $this->convertIsoAndTransformUpperCase($propostalData);
@@ -234,7 +228,7 @@ class PropostalController extends Controller
         }
 
         // Se tiver campos para atualizar
-        if (! empty($fieldsToUpdate)) {
+        if ($fieldsToUpdate !== []) {
             $propostal->update($fieldsToUpdate);
         }
 

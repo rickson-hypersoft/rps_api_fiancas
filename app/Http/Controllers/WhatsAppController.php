@@ -13,21 +13,17 @@ use Illuminate\Support\Facades\Validator;
 
 class WhatsAppController extends Controller
 {
-    protected $whatsAppService;
-
-    public function __construct(WhatsAppService $whatsAppService)
+    public function __construct(protected WhatsAppService $whatsAppService)
     {
-        $this->whatsAppService = $whatsAppService;
     }
 
     /**
      * Envia uma ou mais mensagens de WhatsApp com base em um tipo predefinido.
      *
-     * @param Request $request
      * @param string $messageType O tipo de mensagem a ser enviada (ex: 'welcome', 'proposta').
      * @return \Illuminate\Http\JsonResponse
      */
-    public function sendMessageByType(Request $request, string $messageType, $linkHash)
+    public function sendMessageByType(Request $request, string $messageType, string $linkHash)
     {
         $rules = [
             'to'        => ['required', 'string', 'regex:/^\+?\d{10,15}$/'],
@@ -52,9 +48,9 @@ class WhatsAppController extends Controller
         $mediaUrl = $request->input('media_url');
         $data     = $request->input('data', []);
 
-        $messages = $this->getMessageContent($messageType, $data, $linkHash);
+        $messages = $this->getMessageContent($messageType, $linkHash, $data);
 
-        if (empty($messages)) {
+        if ($messages === [] || ($messages === '' || $messages === '0') || $messages === null) {
             return response()->json([
                 'message' => "Tipo de mensagem '$messageType' inválido ou sem conteúdo configurado.",
             ], 400);
@@ -93,12 +89,12 @@ class WhatsAppController extends Controller
             // Se estiver usando Jobs, a resposta seria 202 Accepted.
             // return response()->json(['message' => 'Mensagem(ns) agendada(s) para envio.'], 202);
             return response()->json(['message' => 'Mensagem(ns) enviada(s) com sucesso!'], 200);
-        } else {
-            return response()->json(['message' => 'Falha ao enviar uma ou mais mensagens. Verifique os logs do servidor.'], 500);
         }
+
+        return response()->json(['message' => 'Falha ao enviar uma ou mais mensagens. Verifique os logs do servidor.'], 500);
     }
 
-    protected function getMessageContent(string $messageType, array $data = [], string $linkHash): string | array | null
+    protected function getMessageContent(string $messageType, string $linkHash, array $data = []): string | array | null
     {
         $propostal = Propostal::where('LINK_HASH', '=', $linkHash)->firstOrFail();
 

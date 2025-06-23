@@ -20,11 +20,11 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('login', [AuthController::class, 'login']);
 
-Route::get('/teste', function () {
+Route::get('/teste', function (): void {
     echo "Teste";
 });
 
-Route::middleware(['api.auth'])->group(function () {
+Route::middleware(['api.auth'])->group(function (): void {
     Route::post('/logout', [AuthController::class, 'logout']);
 
     Route::get('/users', [UserController::class, 'index']);
@@ -87,7 +87,7 @@ Route::middleware(['api.auth'])->group(function () {
     Route::get('/histories/{id_movi}', [HistoryController::class, 'index']);
 
     // Contratos
-    Route::prefix('assets')->group(function () {
+    Route::prefix('assets')->group(function (): void {
         Route::get('/{idIMobiliaria}', [AssetsController::class, 'index']);
         Route::get('/{idIMobiliaria}/{idContrato}', [AssetsController::class, 'findAsset']);
     });
@@ -99,7 +99,7 @@ Route::middleware(['api.auth'])->group(function () {
     Route::get('/activation/{link_hash}', [AssetsController::class, 'find']);
     Route::get('/activation/faceId/{link_hash}', [AssetsController::class, 'faceId']);
 
-    Route::prefix('checkout')->group(function () {
+    Route::prefix('checkout')->group(function (): void {
         Route::post('/canceled/{paymentId}/{linkHash}', [CheckoutController::class, 'cancelarPagamento']);
         Route::post('/pix/{linkHash}', [CheckoutController::class, 'criarPagamentoPix']);
         Route::post('/boleto/{linkHash}', [CheckoutController::class, 'criarPagamentoBoleto']);

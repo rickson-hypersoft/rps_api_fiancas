@@ -17,20 +17,20 @@ trait ResourceTrait
 
     private function formatCpfCnpj(?string $documento): ?string
     {
-        if (! $documento) {
+        if ($documento === null || $documento === '' || $documento === '0') {
             return $documento;
         }
 
         $documento = preg_replace('/\D/', '', $documento); // remove tudo que não é número
 
-        if (strlen($documento) === 11) {
+        if (strlen((string) $documento) === 11) {
             // CPF
-            return preg_replace('/(\d{3})(\d{3})(\d{3})(\d{2})/', '$1.$2.$3-$4', $documento);
+            return preg_replace('/(\d{3})(\d{3})(\d{3})(\d{2})/', '$1.$2.$3-$4', (string) $documento);
         }
 
-        if (strlen($documento) === 14) {
+        if (strlen((string) $documento) === 14) {
             // CNPJ
-            return preg_replace('/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/', '$1.$2.$3/$4-$5', $documento);
+            return preg_replace('/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/', '$1.$2.$3/$4-$5', (string) $documento);
         }
 
         return $documento; // retorna como está se não for CPF nem CNPJ válido
@@ -38,7 +38,7 @@ trait ResourceTrait
 
     private function formatCpf(?string $cpf): ?string
     {
-        if (! $cpf || strlen($cpf) !== 11) {
+        if ($cpf === null || $cpf === '' || $cpf === '0' || strlen($cpf) !== 11) {
             return $cpf;
         }
 
@@ -47,7 +47,7 @@ trait ResourceTrait
 
     protected function formatCnpj(?string $cnpj): ?string
     {
-        if (! $cnpj || strlen($cnpj) !== 14) {
+        if ($cnpj === null || $cnpj === '' || $cnpj === '0' || strlen($cnpj) !== 14) {
             return $cnpj;
         }
 
@@ -56,22 +56,22 @@ trait ResourceTrait
 
     protected function formatPhone(?string $phone): ?string
     {
-        if (! $phone) {
+        if ($phone === null || $phone === '' || $phone === '0') {
             return $phone;
         }
 
         $phone = preg_replace('/\D/', '', $phone);
 
-        if (strlen($phone) === 11) {
-            return preg_replace('/(\d{2})(\d{5})(\d{4})/', '($1) $2-$3', $phone);
+        if (strlen((string) $phone) === 11) {
+            return preg_replace('/(\d{2})(\d{5})(\d{4})/', '($1) $2-$3', (string) $phone);
         }
 
-        if (strlen($phone) === 10) {
-            return preg_replace('/(\d{4})(\d{4})/', '$1-$2', $phone);
+        if (strlen((string) $phone) === 10) {
+            return preg_replace('/(\d{4})(\d{4})/', '$1-$2', (string) $phone);
         }
 
-        if (strlen($phone) === 8) {
-            return preg_replace('/(\d{4})(\d{4})/', '$1-$2', $phone);
+        if (strlen((string) $phone) === 8) {
+            return preg_replace('/(\d{4})(\d{4})/', '$1-$2', (string) $phone);
         }
 
         return $phone;
@@ -79,7 +79,7 @@ trait ResourceTrait
 
     protected function formatZipCode(?string $zipCode): ?string
     {
-        if (! $zipCode || strlen($zipCode) !== 8) {
+        if ($zipCode === null || $zipCode === '' || $zipCode === '0' || strlen($zipCode) !== 8) {
             return $zipCode;
         }
 

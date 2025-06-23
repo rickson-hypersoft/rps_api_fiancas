@@ -60,7 +60,7 @@ class AuthController extends Controller
             $token = JWTAuth::claims($customClaims)->attempt($credentials);
 
             $company          = Company::find(1);
-            $realEstateSector = isset($user->ID_IMOBILIARIA)
+            $realEstateSector = property_exists($user, 'ID_IMOBILIARIA') && $user->ID_IMOBILIARIA !== null
                 ? RealEstateSector::find($user->ID_IMOBILIARIA)
                 : null;
 
@@ -103,7 +103,7 @@ class AuthController extends Controller
 
     private function getAuthenticateData(string $authenticate): string
     {
-        if (strpos($authenticate, "@") != false) {
+        if (str_contains($authenticate, "@")) {
             return 'EMAIL';
         }
 

@@ -13,13 +13,13 @@ return new class () extends Migration
      */
     public function up(): void
     {
-        Schema::connection('firebird')->create('CACHE', function (Blueprint $table) {
+        Schema::connection('firebird')->create('CACHE', function (Blueprint $table): void {
             $table->string('KEY')->primary();
             $table->mediumText('VALUE');
             $table->integer('EXPIRATION');
         });
 
-        Schema::connection('firebird')->create('CACHE_LOCKS', function (Blueprint $table) {
+        Schema::connection('firebird')->create('CACHE_LOCKS', function (Blueprint $table): void {
             $table->string('KEY')->primary();
             $table->string('OWNER');
             $table->integer('EXPIRATION');
