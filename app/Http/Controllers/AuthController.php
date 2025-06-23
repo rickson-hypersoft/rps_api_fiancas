@@ -11,6 +11,7 @@ use App\Models\Company;
 use App\Models\RealEstateSector;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Rector\Skipper\RealpathMatcher;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
@@ -60,9 +61,9 @@ class AuthController extends Controller
             $token = JWTAuth::claims($customClaims)->attempt($credentials);
 
             $company          = Company::find(1);
-            $realEstateSector = property_exists($user, 'ID_IMOBILIARIA') && $user->ID_IMOBILIARIA !== null
-                ? RealEstateSector::find($user->ID_IMOBILIARIA)
-                : null;
+            $realEstateSector =
+                RealEstateSector::find($user->ID_IMOBILIARIA)
+                ;
 
             $category = mb_convert_encoding($user->CATEGORIA, 'UTF-8', 'ISO-8859-1');
 

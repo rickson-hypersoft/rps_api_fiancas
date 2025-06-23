@@ -14,6 +14,7 @@ class HistoryController extends Controller
     public function index(string | int $idMovi)
     {
         $history = History::where('ID_MOVI', "=", $idMovi)
+        ->orderBy('ID', 'ASC')
             ->get();
         $history = HistoryResource::collection($history);
 

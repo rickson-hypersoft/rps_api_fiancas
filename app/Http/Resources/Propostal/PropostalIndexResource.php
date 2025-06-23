@@ -103,6 +103,8 @@ class PropostalIndexResource extends JsonResource
             'data_ativacao_termo' => $this->DATA_ATIVACAO_TERMO,
             'termo_ativo'         => $this->TERMO_ATIVO,
             'contrato_sub_status' => $this->toUtf8($this->CONTRATO_SUB_STATUS),
+            'face_id'      => $this->FACIAL,
+            'hora_ativacao_termo' => $this->HORA_ATIVACAO_TERMO,
         ];
     }
 }

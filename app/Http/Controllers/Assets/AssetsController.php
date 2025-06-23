@@ -130,4 +130,14 @@ class AssetsController extends Controller
 
         return response()->json("Facial atualizda");
     }
+
+    public function markTermActive(string $linkHash)
+    {
+        $asset = Propostal::where('LINK_HASH', '=', $linkHash)->firstOrFail();
+        $data  = ['DATA_ATIVACAO_TERMO' => now()->format('Y-m-d'), 'HORA_ATIVACAO_TERMO' => now()->format('H:i:s'), 'TERMO_ATIVO' => 1];
+
+        $asset->update($data);
+
+        return response()->json("Termo de aceite atualizado");
+    }
 }

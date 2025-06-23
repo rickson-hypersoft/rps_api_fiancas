@@ -113,6 +113,9 @@ class PropostalController extends Controller
             'anx_apolice'             => 'nullable|numeric|between:0,1',
             'motivo'                  => 'nullable|string|max:255',
             'motivo_explicacao'       => 'nullable|string|max:255',
+            'data_ativacao_termo'     => 'nullable|date',
+            'termo_ativo'             => 'nullable|numeric|between:0,1',
+            'contrato_sub_status'     => 'nullable|string|max:255',
         ]);
 
         if ($validator->fails()) {

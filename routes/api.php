@@ -98,6 +98,7 @@ Route::middleware(['api.auth'])->group(function (): void {
 
     Route::get('/activation/{link_hash}', [AssetsController::class, 'find']);
     Route::get('/activation/faceId/{link_hash}', [AssetsController::class, 'faceId']);
+    Route::get('/activation/term/{link_hash}', [AssetsController::class, 'markTermActive']);
 
     Route::prefix('checkout')->group(function (): void {
         Route::post('/canceled/{paymentId}/{linkHash}', [CheckoutController::class, 'cancelarPagamento']);
