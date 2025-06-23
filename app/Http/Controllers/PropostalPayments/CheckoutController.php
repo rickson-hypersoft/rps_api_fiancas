@@ -4,16 +4,16 @@ declare(strict_types = 1);
 
 namespace App\Http\Controllers\PropostalPayments;
 
-use Carbon\Carbon;
-use App\Models\History;
-use Illuminate\Http\Request;
-use App\Models\Propostal\Propostal;
-use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Validator;
-use App\Services\Asaas\AsaasClientService;
-use App\Models\Propostal\PropostalPayments;
 use App\Actions\Asaas\CreateOrUpdateAsaasCustomerAction;
+use App\Http\Controllers\Controller;
 use App\Http\Resources\Propostal\PropostalIndexResource;
+use App\Models\History;
+use App\Models\Propostal\Propostal;
+use App\Models\Propostal\PropostalPayments;
+use App\Services\Asaas\AsaasClientService;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class CheckoutController extends Controller
 {
@@ -169,17 +169,17 @@ class CheckoutController extends Controller
                 'CONTRATO_STATUS'         => 'Ativo',
                 'PROPOSTA_STATUS'         => 'Aprovado',
                 'PROPOSTA_CREDITO_STATUS' => 'Pagamento Efetuado',
-                'CONTRATO_SUB_STATUS'     => 'Pagamento Efetuado pelo Inquilino'
+                'CONTRATO_SUB_STATUS'     => 'Pagamento Efetuado pelo Inquilino',
             ]);
 
             $this->createHistory([
-            'id_imobiliaria' => $propostal->ID_IMOBILIARIA,
-            'id_movi'        => $propostal->ID,
-            'movi'           => 'Contratos',
-            'data'           => now()->format('Y-m-d'),
-            'hora'           => now()->format('H:i:s'),
-            'historico'      => 'Inquilino efetuou o pagamento via PIX',
-            'id_usuario'     => $request['id_usuario'],
+                'id_imobiliaria' => $propostal->ID_IMOBILIARIA,
+                'id_movi'        => $propostal->ID,
+                'movi'           => 'Contratos',
+                'data'           => now()->format('Y-m-d'),
+                'hora'           => now()->format('H:i:s'),
+                'historico'      => 'Inquilino efetuou o pagamento via PIX',
+                'id_usuario'     => $request['id_usuario'],
             ]);
         }
 
@@ -187,10 +187,10 @@ class CheckoutController extends Controller
             'CONTRATO_STATUS'         => 'Pendente',
             'PROPOSTA_STATUS'         => 'Aprovado',
             'PROPOSTA_CREDITO_STATUS' => mb_convert_encoding('Pagamento em Análise', 'ISO-8859-1'),
-            'CONTRATO_SUB_STATUS'     => 'Aguardando pagamento do Inquilino'
+            'CONTRATO_SUB_STATUS'     => 'Aguardando pagamento do Inquilino',
         ]);
 
-         $this->createHistory([
+        $this->createHistory([
             'id_imobiliaria' => $propostal->ID_IMOBILIARIA,
             'id_movi'        => $propostal->ID,
             'movi'           => 'Contratos',
@@ -198,7 +198,7 @@ class CheckoutController extends Controller
             'hora'           => now()->format('H:i:s'),
             'historico'      => 'Aguardando pagamento do Inquilino via PIX',
             'id_usuario'     => $request['id_usuario'],
-            ]);
+        ]);
 
         $dataVencimentoAnterior = PropostalPayments::where('LINK_HASH', $linkHash)
             ->latest('DATA_VENCIMENTO')
@@ -304,7 +304,7 @@ class CheckoutController extends Controller
                 'CONTRATO_STATUS'         => 'Ativo',
                 'PROPOSTA_STATUS'         => 'Aprovado',
                 'PROPOSTA_CREDITO_STATUS' => 'Pagamento Efetuado',
-                'CONTRATO_SUB_STATUS'     => 'Pagamento Efetuado pelo Inquilino'
+                'CONTRATO_SUB_STATUS'     => 'Pagamento Efetuado pelo Inquilino',
             ]);
 
             $this->createHistory([
@@ -322,7 +322,7 @@ class CheckoutController extends Controller
             'CONTRATO_STATUS'         => 'Pendente',
             'PROPOSTA_STATUS'         => 'Aprovado',
             'PROPOSTA_CREDITO_STATUS' => mb_convert_encoding('Pagamento em Análise', 'ISO-8859-1'),
-            'CONTRATO_SUB_STATUS'     => 'Aguardando pagamento do Inquilino'
+            'CONTRATO_SUB_STATUS'     => 'Aguardando pagamento do Inquilino',
         ]);
 
         $this->createHistory([
@@ -333,7 +333,7 @@ class CheckoutController extends Controller
             'hora'           => now()->format('H:i:s'),
             'historico'      => 'Aguardando pagamento do Inquilino via Boleto',
             'id_usuario'     => $request['id_usuario'],
-            ]);
+        ]);
 
         if (! empty($detailedResponses)) {
             $linkBoleto = $this->asaasService->getPaymentById($response['data']['id']);
@@ -479,17 +479,17 @@ class CheckoutController extends Controller
                 'CONTRATO_STATUS'         => 'Ativo',
                 'PROPOSTA_STATUS'         => 'Aprovado',
                 'PROPOSTA_CREDITO_STATUS' => 'Pagamento Efetuado',
-                'CONTRATO_SUB_STATUS'     => 'Pagamento Efetuado pelo Inquilino'
+                'CONTRATO_SUB_STATUS'     => 'Pagamento Efetuado pelo Inquilino',
             ]);
 
             $this->createHistory([
-            'id_imobiliaria' => $propostal->ID_IMOBILIARIA,
-            'id_movi'        => $propostal->ID,
-            'movi'           => 'Contratos',
-            'data'           => now()->format('Y-m-d'),
-            'hora'           => now()->format('H:i:s'),
-            'historico'      => 'Inquilino efetuou o pagamento via Cartão de Crédito',
-            'id_usuario'     => $request['id_usuario'],
+                'id_imobiliaria' => $propostal->ID_IMOBILIARIA,
+                'id_movi'        => $propostal->ID,
+                'movi'           => 'Contratos',
+                'data'           => now()->format('Y-m-d'),
+                'hora'           => now()->format('H:i:s'),
+                'historico'      => 'Inquilino efetuou o pagamento via Cartão de Crédito',
+                'id_usuario'     => $request['id_usuario'],
             ]);
 
             return response()->json([
@@ -519,8 +519,8 @@ class CheckoutController extends Controller
         }
 
         $propostalPayment = PropostalPayments::where('LINK_HASH', "=", $linkHash)
-        ->where('ID_PAGAMENTO_INTEGRACAO', '=', $paymentId)
-        ->first();
+            ->where('ID_PAGAMENTO_INTEGRACAO', '=', $paymentId)
+            ->first();
 
         if (! $propostalPayment) {
             return response()->json([
@@ -538,22 +538,22 @@ class CheckoutController extends Controller
                 $propostalPayment->update(['ATIVO' => 0]);
 
                 $this->createHistory([
-            'id_imobiliaria' => $propostalPayment->ID_IMOBILIARIA,
-            'id_movi'        => $propostalPayment->ID_MOVI,
-            'movi'           => 'Contratos',
-            'data'           => now()->format('Y-m-d'),
-            'hora'           => now()->format('H:i:s'),
-            'historico'      => 'Inquilino alterou a forma de pagamento',
-            'id_usuario'     => $propostalPayment->ID_USUARIO,
-            ]);
+                    'id_imobiliaria' => $propostalPayment->ID_IMOBILIARIA,
+                    'id_movi'        => $propostalPayment->ID_MOVI,
+                    'movi'           => 'Contratos',
+                    'data'           => now()->format('Y-m-d'),
+                    'hora'           => now()->format('H:i:s'),
+                    'historico'      => 'Inquilino alterou a forma de pagamento',
+                    'id_usuario'     => $propostalPayment->ID_USUARIO,
+                ]);
 
                 return response()->json([
                     'success'      => true,
                     'mensagem'     => 'Pagamento cancelado com sucesso.',
                     'pagamento_id' => $paymentId,
                     'link_hash'    => $linkHash,
-                    'proposta'     => $propostalPayment['ATIVO']
-                 ]);
+                    'proposta'     => $propostalPayment['ATIVO'],
+                ]);
             }
 
             return response()->json([
@@ -651,7 +651,7 @@ class CheckoutController extends Controller
         ];
     }
 
-    private function createHistory($data)
+    private function createHistory(array $data)
     {
         $validator = Validator::make($data, [
             'id_imobiliaria' => 'required|numeric',
@@ -665,6 +665,7 @@ class CheckoutController extends Controller
 
         if ($validator->fails()) {
             dd("caiu aqui");
+
             return response()->json([
                 "success" => false,
                 "message" => $validator->errors(),
@@ -692,5 +693,7 @@ class CheckoutController extends Controller
         }
 
         History::create($historyData);
+
+        return null;
     }
 }

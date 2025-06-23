@@ -50,7 +50,7 @@ class FinancialAccountController extends Controller
             'banco_cnpj'       => 'nullable|string|max:100',
             'banco'            => 'nullable|string|max:3',
             'banco_agencia'    => 'nullable|string|max:100',
-            'banco_conta'      => 'nullable|string|max:100',
+            'banco_conta'      => 'nullable|max:100',
             'banco_finalidade' => 'nullable|string|max:100',
             'banco_pix'        => 'nullable|string|max:100',
             'ativo'            => 'nullable|numeric|between:0,1',
@@ -64,10 +64,16 @@ class FinancialAccountController extends Controller
         }
 
         $financialAccountData = $validator->validated();
-
         $financialAccountData = $this->convertIsoAndTransformUpperCase($financialAccountData);
 
-        $financialAccount = FinancialAccount::create($financialAccountData);
+        try {
+            $financialAccount = FinancialAccount::create($financialAccountData);
+        } catch (\Exception $e) {
+            return response()->json([
+                "success" => false,
+                "message" => "Erro ao criar conta financeira: " . $e->getMessage(),
+            ], 500);
+        }
 
         return response()->json([
             "success" => true,

@@ -74,6 +74,7 @@ class RealEstateSectorController extends Controller
         $data = $realEstateSectors->map(fn ($item): array => [
             'id'             => $item->ID,
             'id_imobiliaria' => $item->ID_IMOBILIARIA,
+            'taxa_original'  => $item->TAXA,
             'taxa'           => $item->TAXA !== null
                 ? 'R$ ' . number_format(floatval($item->TAXA), 2, ',', '') . ''
                 : null,
