@@ -22,6 +22,21 @@ class AsaasClientService
         return Http::withHeaders($this->headers())->get("$this->url/customers/$id")->json();
     }
 
+    public function findCustomerByCpfCnpj(string $cpfCnpj): ?array
+{
+    $response = Http::withHeaders($this->headers())
+        ->get("$this->url/customers", [
+            'cpfCnpj' => $cpfCnpj,
+        ])
+        ->json();
+
+    if (!empty($response['data']) && count($response['data']) > 0) {
+        return $response['data'][0]; // Retorna o primeiro encontrado
+    }
+
+    return null; // Se não encontrou
+}
+
     public function getPaymentById(string $id): array
     {
         return Http::withHeaders($this->headers())->get("$this->url/payments/$id")->json();

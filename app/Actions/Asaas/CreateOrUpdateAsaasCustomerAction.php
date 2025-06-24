@@ -32,6 +32,13 @@ class CreateOrUpdateAsaasCustomerAction
 
             return $asaasId;
         }
+
+        $existingCustomer = $this->asaasClient->findCustomerByCpfCnpj($propostal->PESSOA_DOC);
+         if ($existingCustomer) {
+            $propostal->update(['ID_USUARIO_INTEGRACAO' => $existingCustomer['id']]);
+            return $existingCustomer['id'];
+        }
+
         $newId = $this->asaasClient->createCustomer($payload);
 
         if ($newId !== null && $newId !== '' && $newId !== '0') {
