@@ -34,7 +34,7 @@ class RealEstateSectorController extends Controller
             }
 
             $query->where(function ($q) use ($search, $searchIso, $isNumeric, $length): void {
-                if ($isNumeric && $length >= 11 && $length <= 14) {
+                if ($isNumeric && $length <= 14) {
                     // Busca por CPF/CNPJ
                     $q->orWhereRaw('CAST(CNPJ AS VARCHAR(20)) LIKE ?', ['%' . $search . '%']);
                 } else {
