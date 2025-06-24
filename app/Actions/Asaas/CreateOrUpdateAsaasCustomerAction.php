@@ -34,7 +34,7 @@ class CreateOrUpdateAsaasCustomerAction
         }
 
         $existingCustomer = $this->asaasClient->findCustomerByCpfCnpj($propostal->PESSOA_DOC);
-         if ($existingCustomer) {
+        if ($existingCustomer) {
             $propostal->update(['ID_USUARIO_INTEGRACAO' => $existingCustomer['id']]);
             return $existingCustomer['id'];
         }
@@ -49,18 +49,30 @@ class CreateOrUpdateAsaasCustomerAction
     }
 
     protected function buildPayload(Propostal $propostal): array
-    {
-        return [
-            'name'              => $propostal->PESSOA_NOME,
-            'cpfCnpj'           => $propostal->PESSOA_DOC,
-            'email'             => $propostal->PESSOA_EMAIL,
-            'mobilePhone'       => $propostal->PESSOA_TELEFONE,
-            'address'           => $propostal->PESSOA_ENDERECO,
-            'addressNumber'     => $propostal->PESSOA_NUMERO,
-            'complement'        => $propostal->PESSOA_COMPLEMENTO,
-            'province'          => $propostal->PESSOA_BAIRRO,
-            'postalCode'        => $propostal->PESSOA_CEP,
-            'externalReference' => $propostal->ID,
-        ];
+{
+    $payload = [
+        'name'              => $propostal->PESSOA_NOME,
+        'cpfCnpj'           => $propostal->PESSOA_DOC,
+        'email'             => $propostal->PESSOA_EMAIL,
+        'mobilePhone'       => $propostal->PESSOA_TELEFONE,
+        'address'           => $propostal->PESSOA_ENDERECO,
+        'addressNumber'     => $propostal->PESSOA_NUMERO,
+        'complement'        => $propostal->PESSOA_COMPLEMENTO,
+        'province'          => $propostal->PESSOA_BAIRRO,
+        'postalCode'        => $propostal->PESSOA_CEP,
+        'externalReference' => $propostal->ID,
+    ];
+
+    return $this->convertUtf8ToIso($payload);
+}
+
+private function convertUtf8ToIso(array $data): array
+{
+    foreach ($data as $key => $value) {
+        if (is_string($value)) {
+            $data[$key] = mb_convert_encoding($value, 'ISO-8859-1', 'UTF-8');
+        }
     }
+    return $data;
+}
 }
