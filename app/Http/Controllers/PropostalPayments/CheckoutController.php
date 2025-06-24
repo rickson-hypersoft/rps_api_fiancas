@@ -529,7 +529,7 @@ class CheckoutController extends Controller
             ], 404);
         }
 
-        if ($paymentStatus['status'] === 'PENDING' && $propostalPayment['STATUS'] === 'PENDING') {
+        if ($paymentStatus['status'] === 'PENDING' || $paymentStatus['status'] === 'OVERDUE' && $propostalPayment['STATUS'] === 'PENDING') {
             // Cancela no Asaas
             $cancelado = $this->asaasService->deletePayment($paymentId);
 
@@ -537,13 +537,13 @@ class CheckoutController extends Controller
             if ($cancelado) {
                 $propostalPayment->update(['ATIVO' => 0]);
 
-                $this->createHistory([
+             $this->createHistory([
                     'id_imobiliaria' => $propostalPayment->ID_IMOBILIARIA,
                     'id_movi'        => $propostalPayment->ID_MOVI,
                     'movi'           => 'Contratos',
                     'data'           => now()->format('Y-m-d'),
                     'hora'           => now()->format('H:i:s'),
-                    'historico'      => 'Inquilino alterou a forma de pagamento',
+                    'historico'      => "Inquilino alterou a forma de pagamento {$paymentStatus['billingType']} para outra.",
                     'id_usuario'     => $propostalPayment->ID_USUARIO,
                 ]);
 

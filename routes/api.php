@@ -50,8 +50,8 @@ Route::middleware(['api.auth'])->group(function (): void {
     Route::put('/realestatesectorsetup/{realestatesector}', [RealEstateSectorController::class, 'updateSetup']);
 
     Route::get('/financial/financial_account/{id}', [FinancialAccountController::class, 'index']);
-    Route::get('/financial/{financial_account}/financial_account/', [FinancialAccountController::class, 'find']);
-    Route::post('/financial/financial_account/', [FinancialAccountController::class, 'store']);
+    Route::get('/financial/{financial_account}/financial_account', [FinancialAccountController::class, 'find']);
+    Route::post('/financial/financial_account', [FinancialAccountController::class, 'store']);
     Route::put('/financial/financial_account/{financial_account}', [FinancialAccountController::class, 'update']);
     Route::delete('/financial/financial_account/{financial_account}', [FinancialAccountController::class, 'destroy']);
 
