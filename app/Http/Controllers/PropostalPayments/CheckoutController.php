@@ -62,24 +62,24 @@ class CheckoutController extends Controller
             ! empty($requestSanitize['pessoa_complemento']) ||
             ! empty($requestSanitize['proposta_total_parc']) ||
             ! empty($requestSanitize['proposta_setup_parc'])
-            ) {
-                $dataUpdatePropostal = [
-                    'PESSOA_CEP'          => $requestSanitize['pessoa_cep'] ?? null,
-                    'PESSOA_ENDERECO'     => $requestSanitize['pessoa_endereco'] ?? null,
-                    'PESSOA_NUMERO'       => $requestSanitize['pessoa_numero'] ?? null,
-                    'PESSOA_ESTADO'       => $requestSanitize['pessoa_estado'] ?? null,
-                    'PESSOA_CIDADE'       => $requestSanitize['pessoa_cidade'] ?? null,
-                    'PESSOA_BAIRRO'       => $requestSanitize['pessoa_bairro'] ?? null,
-                    'PESSOA_COMPLEMENTO'  => $requestSanitize['pessoa_complemento'] ?? null,
-                    'PROPOSTA_TOTAL_PARC' => $requestSanitize['proposta_total_parc'] ?? null,
-                    'PROPOSTA_SETUP_PARC' => $requestSanitize['proposta_setup_parc'] ?? null,
-                ];
-                $propostal->update($dataUpdatePropostal);
-            }
+        ) {
+            $dataUpdatePropostal = [
+                'PESSOA_CEP'          => $requestSanitize['pessoa_cep'] ?? null,
+                'PESSOA_ENDERECO'     => $requestSanitize['pessoa_endereco'] ?? null,
+                'PESSOA_NUMERO'       => $requestSanitize['pessoa_numero'] ?? null,
+                'PESSOA_ESTADO'       => $requestSanitize['pessoa_estado'] ?? null,
+                'PESSOA_CIDADE'       => $requestSanitize['pessoa_cidade'] ?? null,
+                'PESSOA_BAIRRO'       => $requestSanitize['pessoa_bairro'] ?? null,
+                'PESSOA_COMPLEMENTO'  => $requestSanitize['pessoa_complemento'] ?? null,
+                'PROPOSTA_TOTAL_PARC' => $requestSanitize['proposta_total_parc'] ?? null,
+                'PROPOSTA_SETUP_PARC' => $requestSanitize['proposta_setup_parc'] ?? null,
+            ];
+            $propostal->update($dataUpdatePropostal);
+        }
 
-            $customerId = (new CreateOrUpdateAsaasCustomerAction(
-                new AsaasClientService()
-                ))->execute($propostal);
+        $customerId = (new CreateOrUpdateAsaasCustomerAction(
+            new AsaasClientService()
+        ))->execute($propostal);
 
         if ($customerId === null || $customerId === '' || $customerId === '0') {
             return response()->json([
@@ -113,8 +113,8 @@ class CheckoutController extends Controller
                 : null;
 
             return response()->json([
-                'success'           => true,
-                'teste'             => 1
+                'success' => true,
+                'teste'   => 1,
                 // 'detalhe_pagamento' => $detailedResponses,
                 // 'id_pagamento'      => $pagamentoExistente->ID_PAGAMENTO_INTEGRACAO,
                 // 'proposta'          => new PropostalIndexResource($propostal),
@@ -204,14 +204,15 @@ class CheckoutController extends Controller
         $dataVencimentoAnterior = PropostalPayments::where('LINK_HASH', $linkHash)
             ->latest('DATA_VENCIMENTO')
             ->value('DATA_VENCIMENTO');
-        $dataFormatada = $dataVencimentoAnterior
-            ? Carbon::parse($dataVencimentoAnterior)->format('d/m/Y')
-            : null;
+
+        if ($dataVencimentoAnterior) {
+            Carbon::parse($dataVencimentoAnterior)->format('d/m/Y');
+        }
 
         if (! empty($detailedResponses)) {
             return response()->json([
-                'success'           => true,
-                'teste'             => 2
+                'success' => true,
+                'teste'   => 2,
                 // 'detalhe_pagamento' => $detailedResponses,
                 // 'id_pagamento'      => $response['data']['id'],
                 // 'proposta'          => new PropostalIndexResource($propostal),
@@ -356,7 +357,6 @@ class CheckoutController extends Controller
     public function criarPagamentoCartao(Request $request, string $linkHash)
     {
         [$customerId, $propostal] = $this->initCheckout($request, $linkHash);
-
 
         $pagamentoExistente = PropostalPayments::where('ID_USUARIO_INTEGRACAO', $customerId)
             ->where('LINK_HASH', $linkHash)
@@ -540,7 +540,7 @@ class CheckoutController extends Controller
             if ($cancelado) {
                 $propostalPayment->update(['ATIVO' => 0]);
 
-             $this->createHistory([
+                $this->createHistory([
                     'id_imobiliaria' => $propostalPayment->ID_IMOBILIARIA,
                     'id_movi'        => $propostalPayment->ID_MOVI,
                     'movi'           => 'Contratos',
@@ -601,7 +601,7 @@ class CheckoutController extends Controller
                     'ccv'         => $request['cvv'],
                 ],
                 'creditCardHolderInfo' => [
-                    'name'          => utf8_encode($propostal->PESSOA_NOME),
+                    'name'          => mb_convert_encoding((string) $propostal->PESSOA_NOME, 'UTF-8', 'ISO-8859-1'),
                     'email'         => $propostal->PESSOA_EMAIL,
                     'cpfCnpj'       => preg_replace('/\D/', '', (string) $propostal->PESSOA_DOC),
                     'postalCode'    => preg_replace('/\D/', '', (string) $propostal->PESSOA_CEP),
