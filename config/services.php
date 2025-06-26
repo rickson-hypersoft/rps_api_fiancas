@@ -15,6 +15,9 @@ return [
     | a conventional file to locate the various service credentials.
     |
     */
+    'assertiva' => [
+        'token' => env('ASSERTIVA_TOKEN'),
+    ],
 
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),

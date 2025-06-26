@@ -2,6 +2,7 @@
 
 declare(strict_types = 1);
 
+use App\Http\Controllers\Assertiva\AssertivaSolucoesController;
 use App\Http\Controllers\Assets\AssetsController;
 use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\AuthController;
@@ -95,7 +96,6 @@ Route::middleware(['api.auth'])->group(function (): void {
     // Route::get('/assetsHome/{idImobiliaria}', [AssetsController::class, 'index']);
 
     Route::get('/activation/{id}/find', [AssetsController::class, 'findAsset']);
-
     Route::get('/activation/{link_hash}', [AssetsController::class, 'find']);
     Route::get('/activation/faceId/{link_hash}', [AssetsController::class, 'faceId']);
     Route::get('/activation/term/{link_hash}', [AssetsController::class, 'markTermActive']);
@@ -113,4 +113,7 @@ Route::middleware(['api.auth'])->group(function (): void {
 
     // Home
     Route::get('/home/{idImobiliaria?}', [HomeController::class, 'index']);
+
+    // Assertiva Soluções
+    Route::get('/consultar-score', [AssertivaSolucoesController::class, 'check']);
 });
