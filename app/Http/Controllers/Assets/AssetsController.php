@@ -21,7 +21,8 @@ class AssetsController extends Controller
 
         $query = Propostal::query()
             ->where('ID_IMOBILIARIA', $idImobiliaria)
-            ->whereNotNull('CONTRATO_STATUS');
+            ->whereNotNull('CONTRATO_STATUS')
+            ->where('CONTRATO_STATUS', '=', 'Pendente');
 
         // Filtro por status
         if ($request->filled('status')) {

@@ -19,7 +19,7 @@ class HomeController extends Controller
             CASE
                 WHEN PROPOSTA_STATUS = 'Aprovado' THEN 'Aprovado'
                 WHEN PROPOSTA_STATUS = 'Cancelado' THEN 'Cancelado'
-                WHEN PROPOSTA_STATUS = 'Reprovada' THEN 'Reprovado'
+                WHEN PROPOSTA_STATUS = 'Reprovado' THEN 'Reprovado'
                 WHEN PROPOSTA_STATUS IN ('Pendentes', 'Rascunho') THEN 'Pendente'
                 ELSE 'Outro'
             END AS PROPOSTA_STATUS,
