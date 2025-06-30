@@ -4,6 +4,9 @@ declare(strict_types = 1);
 
 namespace App\Services\Assertiva;
 
+use App\Http\Resources\Assertiva\AssertivaResource;
+use App\Models\ScoreResponse;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\Http;
 
@@ -35,11 +38,25 @@ class AssertivaSolucoesService
             throw new Exception('Erro ao consulta Score Assertiva: ' . $response->body());
         }
 
-        return $response->json();
+        $return = $response->json();
+
+        // Implementar o insert na tabela: ASSERTIVA_SCORE_RETORNO
+
+        return $return;
         */
 
-        if ($document === '16054956620') {
+        $existingInTable = ScoreResponse::where('PESSOA_DOC', '=', $document)
+            ->where('EXPIRA_EM', '>=', Carbon::today()->toDateString())
+            ->first();
+
+        if ($existingInTable) {
             return response()->json([
+                'data' => new AssertivaResource($existingInTable),
+            ]);
+        }
+
+        if ($document === '16054956620') {
+            $return = [
                 "cabecalho" => [
                     "entrada" => [
                         "documento" => "123.456.789-00",
@@ -107,8 +124,20 @@ class AssertivaSolucoesService
                     ],
                     "cheques" => [],
                     "acoes"   => [],
-                ],
-            ]);
+                ]];
+
+            try {
+                $data = $this->insertResponseReturnInTable($return, $document);
+
+                return response()->json(
+                    $data
+                );
+            } catch (Exception $e) {
+                return response()->json(
+                    ['message' => $e->getMessage()],
+                    400
+                );
+            }
         }
 
         if ($document === '50384631002') {
@@ -261,5 +290,35 @@ class AssertivaSolucoesService
             'score'    => null,
             'mensagem' => 'Documento não encontrado no mock',
         ], 404);
+    }
+
+    private function insertResponseReturnInTable(array $returnResponse, string $document)
+    {
+        $dataHora = explode(' ', (string) $returnResponse['dataHora']);
+        $data     = Carbon::createFromFormat('d/m/Y', $dataHora[0]);
+        $hora     = Carbon::rawCreateFromFormat('H:i:s', $dataHora[1]);
+
+        try {
+            $response = ScoreResponse::create([
+                'PESSOA_DOC'            => $document,
+                'DATA'                  => $data->format('Y-m-d'),
+                'HORA'                  => $hora->format('H:i:s'),
+                'PRODUTO'               => mb_convert_encoding((string) $returnResponse['produto'], 'ISO-8859-1'),
+                'FUNCIONALIDADE'        => mb_convert_encoding((string) $returnResponse['funcionalidade'], 'ISO-8859-1'),
+                'PROTOCOLO'             => $returnResponse['protocolo'],
+                'SCORE_CLASSE'          => $returnResponse['resposta']['score']['classe'],
+                'SCORE_FAIXA_TITULO'    => mb_convert_encoding((string) $returnResponse['resposta']['score']['faixa']['titulo'], 'ISO-8859-1'),
+                'SCORE_FAIXA_DESCRICAO' => mb_convert_encoding((string) $returnResponse['resposta']['score']['faixa']['descricao'], 'ISO-8859-1'),
+                'SCORE_PONTOS'          => $returnResponse['resposta']['score']['pontos'],
+                'RENDA_PRESUMIDA'       => $returnResponse['resposta']['rendaPresumida']['valor'],
+                'EXPIRA_EM'             => $data->addDays(7)->format('Y-m-d'),
+            ]);
+
+            return response()->json([
+                'data' => new AssertivaResource($response),
+            ]);
+        } catch (Exception $e) {
+            return throw new Exception('Erro ao criar registro na tabela: ASSERTIVA_SCORE_RETORNO: ' . $e->getMessage(), $e->getCode(), $e);
+        }
     }
 }
