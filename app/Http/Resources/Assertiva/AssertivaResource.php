@@ -37,6 +37,11 @@ class AssertivaResource extends JsonResource
             'score_pontos'          => $this->SCORE_PONTOS,
             'renda_presumida'       => $this->RENDA_PRESUMIDA,
             'expira_em'             => $this->EXPIRA_EM,
+            'faturamento_estimado'  => $this->FATURAMENTO_ESTIMADO,
+            'tipo_consulta'         => $this->TIPO_CONSULTA,
+            'acoes_ult_ocorrencia'  => $this->ACOES_ULT_OCORRENCIA,
+            'acoes_valor_total'     => $this->ACOES_VALOR_TOTAL,
+            'acoes_qtd'             => $this->acoes_qtd,
         ];
     }
 }

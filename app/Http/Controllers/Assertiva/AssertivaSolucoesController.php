@@ -24,7 +24,7 @@ class AssertivaSolucoesController extends Controller
         try {
             $score = $this->assertivaService->checkScore($request->document);
 
-            return response()->json($score);
+            return response()->json(['data' => $score]);
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 400);
         }
