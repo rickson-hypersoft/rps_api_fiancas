@@ -16,7 +16,8 @@ return [
     |
     */
     'assertiva' => [
-        'token' => env('ASSERTIVA_TOKEN'),
+        'client_id'     => env('ASSERTIVA_CLIENT_ID'),
+        'client_secret' => env('ASSERTIVA_CLIENT_SECRET'),
     ],
 
     'postmark' => [
