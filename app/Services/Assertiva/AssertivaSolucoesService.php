@@ -107,8 +107,8 @@ class AssertivaSolucoesService
                 'FATURAMENTO_ESTIMADO'  => $returnResponse['resposta']['faturamentoEstimado']['valor']
                              ?? 0,
                 'ACOES_ULT_OCORRENCIA' => ! empty($returnResponse['resposta']['acoes']) && isset($returnResponse['resposta']['acoes']['ultimaOcorrencia'])
-    ? $returnResponse['resposta']['acoes']['ultimaOcorrencia']
-    : null,
+                    ? $returnResponse['resposta']['acoes']['ultimaOcorrencia']
+                    : null,
 
                 'ACOES_VALOR_TOTAL' => ! empty($returnResponse['resposta']['acoes']) && isset($returnResponse['resposta']['acoes']['valorTotal'])
                     ? $returnResponse['resposta']['acoes']['valorTotal']
@@ -123,5 +123,83 @@ class AssertivaSolucoesService
         } catch (Exception $e) {
             return throw new Exception('Erro ao criar registro na tabela: ASSERTIVA_SCORE_RETORNO: ' . $e->getMessage(), $e->getCode(), $e);
         }
+    }
+
+    public function createOrderSignature($userData)
+    {
+        $token = $this->fetchAccessToken();
+        $body  = $this->getBodyCreateSignature($userData);
+
+        $url = "https://api.assertivasolucoes.com.br/autentica/v1/jornadas/pedidos";
+
+        $response = Http::withToken($token)
+            ->acceptJson()
+            ->post($url, $body);
+
+        if ($response->failed()) {
+            throw new Exception('Erro ao consulta Score Assertiva: ' . $response->body());
+        }
+
+        return $response->json();
+    }
+
+    public function getLink($protocol)
+    {
+        $token = $this->fetchAccessToken();
+
+        $url = `https://api.assertivasolucoes.com.br/autentica/v1/jornadas/partes/gerar-link?protocolo={$protocol}`;
+
+        $response = Http::withToken($token)
+            ->acceptJson()
+            ->get($url);
+
+        if ($response->failed()) {
+            throw new Exception('Erro ao consulta Score Assertiva: ' . $response->body());
+        }
+
+        return $response->json();
+    }
+
+    private function getBodyCreateSignature($userData): array
+    {
+        return [
+            "anexosGlobais" => [
+                "anexosFluxo" => [],
+                "anexos"      => [],
+            ],
+            "partes" => [
+                [
+                    "perfilId" => "0e7680b0-a528-4275-8711-fed682dc5d02",
+                    "fluxoId"  => "4280276b-b27d-4366-ae91-d91e31788084",
+                    "campos"   => [
+                        [
+                            "id"    => "e99a9d68-1026-4830-912e-677906b0e8a3",
+                            "valor" => "{$userData->PESSOA_NOME}",
+                        ],
+                        [
+                            "id"    => "88cf8dea-0308-4ecf-b79a-0e69e987afdd",
+                            "valor" => "{$userData->PESSOA_DOC}",
+                        ],
+                        [
+                            "id"    => "69bb1749-aa9c-4947-809f-78368c681afc",
+                            "valor" => "{$userData->PESSOA_TELEFONE}",
+                        ],
+                        [
+                            "id"    => "c2cf1b39-65f0-4ac8-adc0-a3468c34e2d7",
+                            "valor" => "{$userData->PESSOA_EMAIL}",
+                        ],
+                    ],
+                    "anexos" => [
+                        [
+                            "artefato" => "Proposta de assinatura",
+                            "nome"     => "Documentoassinatura",
+                            "extensao" => "pdf",
+                            "chave"    => "543d47e4-3bbf-48d9-acae-625872ef88db",
+                        ],
+                    ],
+                    "anexosFluxo" => [],
+                ],
+            ],
+        ];
     }
 }

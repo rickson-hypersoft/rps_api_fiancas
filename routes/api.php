@@ -116,4 +116,5 @@ Route::middleware(['api.auth'])->group(function (): void {
 
     // Assertiva Soluções
     Route::get('/consultar-score', [AssertivaSolucoesController::class, 'check']);
+    Route::get('/criar-assinatura/{propostalId}', [AssertivaSolucoesController::class, 'createSignatureAndGetLinkFacial']);
 });
