@@ -10,6 +10,7 @@ use App\Models\Propostal\Propostal;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class AssetsController extends Controller
 {
@@ -22,7 +23,7 @@ class AssetsController extends Controller
         $query = Propostal::query()
             ->where('ID_IMOBILIARIA', $idImobiliaria)
             ->whereNotNull('CONTRATO_STATUS')
-            ->where('CONTRATO_STATUS', '=', 'Pendente');
+            ->where('CONTRATO_STATUS', '=', 'Ativo');
 
         // Filtro por status
         if ($request->filled('status')) {
@@ -140,5 +141,27 @@ class AssetsController extends Controller
         $asset->update($data);
 
         return response()->json("Termo de aceite atualizado");
+    }
+
+    public function storeTerm(Request $request)
+    {
+        // validação simples
+        $request->validate([
+            'file'      => 'required|file|mimes:pdf',
+            'link_hash' => 'required|string',
+        ]);
+
+        $file     = $request->file('file');
+        $linkHash = $request->input('link_hash');
+
+        // cria pasta se não existir
+        $path = "termos/{$linkHash}.pdf";
+
+        Storage::disk('public')->put("termos/{$linkHash}.pdf", file_get_contents($file->getRealPath()));
+
+        return response()->json([
+            'message' => 'PDF salvo com sucesso!',
+            'path'    => $path,
+        ]);
     }
 }

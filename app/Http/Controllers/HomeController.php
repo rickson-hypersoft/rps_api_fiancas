@@ -57,7 +57,7 @@ class HomeController extends Controller
         if ($idImobiliaria !== '' && $idImobiliaria !== '0' && $idImobiliaria !== 0 && $idImobiliaria !== null) {
             $propostasCardQuery->where('ID_IMOBILIARIA', $idImobiliaria);
         }
-        $propostasCard = $propostasCardQuery->orderBy('ID', 'ASC')->get();
+        $propostasCard = $propostasCardQuery->orderBy('ID', 'DESC')->get();
 
         return response()->json([
             'contratos'     => $contratosRaw,

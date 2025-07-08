@@ -21,8 +21,124 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('login', [AuthController::class, 'login']);
 
+Route::get('/limpar-cache', function (): string {
+    Artisan::call('optimize:clear');
+
+    return 'Cache limpo!';
+});
+
+Route::get('/ola', function (): void {
+    $routes = Route::getRoutes();
+
+    $routesData = [];
+
+    foreach ($routes as $route) {
+        $routesData[] = [
+            'method'     => implode('|', $route->methods()),
+            'uri'        => $route->uri(),
+            'name'       => $route->getName(),
+            'action'     => $route->getActionName(),
+            'middleware' => implode(', ', $route->gatherMiddleware()),
+        ];
+    }
+
+    // Monta HTML
+    echo '<!DOCTYPE html>
+    <html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <title>Rotas Laravel</title>
+        <style>
+            table { border-collapse: collapse; width: 100%; }
+            th, td { border: 1px solid #ccc; padding: 8px; }
+            th { background-color: #eee; }
+        </style>
+    </head>
+    <body>
+        <h1>Lista de Rotas</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Método</th>
+                    <th>URI</th>
+                    <th>Nome</th>
+                    <th>Action</th>
+                    <th>Middleware</th>
+                </tr>
+            </thead>
+            <tbody>';
+
+    foreach ($routesData as $route) {
+        echo '<tr>';
+        echo '<td>' . htmlspecialchars($route['method']) . '</td>';
+        echo '<td>' . htmlspecialchars((string) $route['uri']) . '</td>';
+        echo '<td>' . htmlspecialchars((string) $route['name']) . '</td>';
+        echo '<td>' . htmlspecialchars((string) $route['action']) . '</td>';
+        echo '<td>' . htmlspecialchars($route['middleware']) . '</td>';
+        echo '</tr>';
+    }
+
+    echo '</tbody>
+        </table>
+    </body>
+    </html>';
+});
+
 Route::get('/teste', function (): void {
-    echo "Teste";
+    $routes = Route::getRoutes();
+
+    $routesData = [];
+
+    foreach ($routes as $route) {
+        $routesData[] = [
+            'method'     => implode('|', $route->methods()),
+            'uri'        => $route->uri(),
+            'name'       => $route->getName(),
+            'action'     => $route->getActionName(),
+            'middleware' => implode(', ', $route->gatherMiddleware()),
+        ];
+    }
+
+    // Monta HTML
+    echo '<!DOCTYPE html>
+    <html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <title>Rotas Laravel</title>
+        <style>
+            table { border-collapse: collapse; width: 100%; }
+            th, td { border: 1px solid #ccc; padding: 8px; }
+            th { background-color: #eee; }
+        </style>
+    </head>
+    <body>
+        <h1>Lista de Rotas</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Método</th>
+                    <th>URI</th>
+                    <th>Nome</th>
+                    <th>Action</th>
+                    <th>Middleware</th>
+                </tr>
+            </thead>
+            <tbody>';
+
+    foreach ($routesData as $route) {
+        echo '<tr>';
+        echo '<td>' . htmlspecialchars($route['method']) . '</td>';
+        echo '<td>' . htmlspecialchars((string) $route['uri']) . '</td>';
+        echo '<td>' . htmlspecialchars((string) $route['name']) . '</td>';
+        echo '<td>' . htmlspecialchars((string) $route['action']) . '</td>';
+        echo '<td>' . htmlspecialchars($route['middleware']) . '</td>';
+        echo '</tr>';
+    }
+
+    echo '</tbody>
+        </table>
+    </body>
+    </html>';
 });
 
 Route::middleware(['api.auth'])->group(function (): void {
@@ -99,6 +215,7 @@ Route::middleware(['api.auth'])->group(function (): void {
     Route::get('/activation/{link_hash}', [AssetsController::class, 'find']);
     Route::get('/activation/faceId/{link_hash}', [AssetsController::class, 'faceId']);
     Route::get('/activation/term/{link_hash}', [AssetsController::class, 'markTermActive']);
+    Route::post('/activation/upload-term', [AssetsController::class, 'storeTerm']);
 
     Route::prefix('checkout')->group(function (): void {
         Route::post('/canceled/{paymentId}/{linkHash}', [CheckoutController::class, 'cancelarPagamento']);

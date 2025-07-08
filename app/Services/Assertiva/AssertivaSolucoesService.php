@@ -5,10 +5,14 @@ declare(strict_types = 1);
 namespace App\Services\Assertiva;
 
 use App\Http\Resources\Assertiva\AssertivaResource;
+use App\Models\Propostal\Propostal;
 use App\Models\ScoreResponse;
+use App\Services\WhatsAppService;
 use Carbon\Carbon;
 use Exception;
+use GuzzleHttp\Psr7\Utils;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class AssertivaSolucoesService
 {
@@ -36,7 +40,7 @@ class AssertivaSolucoesService
 
     public function checkScore(string $document, int $finaly = 2)
     {
-        $token = $this->fetchAccessToken();
+        $this->fetchAccessToken();
 
         $document = preg_replace('/\D/', '', $document);
 
@@ -58,6 +62,7 @@ class AssertivaSolucoesService
             throw new \InvalidArgumentException('Documento inválido.');
         }
 
+        /*
         $url = "{$this->baseUrl}/{$tipo_consulta}/credito/{$document}";
 
         $query = ['idFinalidade' => $finaly];
@@ -71,8 +76,38 @@ class AssertivaSolucoesService
         }
 
         $return = $response->json();
+        */
 
-        // Implementar o insert na tabela: ASSERTIVA_SCORE_RETORNO
+        $return = [
+            'cabecalho' => [
+                'dataHora'       => now()->format('d/m/Y H:i:s'),
+                'produto'        => 'Assertiva Score',
+                'funcionalidade' => 'Score Completo Sem Ações - Pessoa Física',
+                'protocolo'      => 'b4eefe6b-c77b-485a-8d2b-7059f84debeb',
+            ],
+            'resposta' => [
+                'score' => [
+                    'classe' => 'B',
+                    'faixa'  => [
+                        'titulo'    => 'Médio baixo risco',
+                        'descricao' => 'Consumidores com essa classificação de score apresentam 90% de chances de honrar seus compromissos nos próximos 6 meses.',
+                    ],
+                    'pontos' => 832,
+                ],
+                'rendaPresumida' => [
+                    'valor' => 3000,
+                ],
+                'faturamentoEstimado' => [
+                    'valor' => 0,
+                ],
+                'acors' => [
+                    'ultimaOcorrencia' => 0,
+                    'valorTotal'       => 0,
+                    'qtdAcoes'         => 0,
+                ],
+            ],
+        ];
+
         try {
             return response()->json($this->insertResponseReturnInTable($return, $document, $tipo_consulta));
         } catch (Exception $e) {
@@ -127,8 +162,17 @@ class AssertivaSolucoesService
 
     public function createOrderSignature($userData)
     {
-        $token = $this->fetchAccessToken();
-        $body  = $this->getBodyCreateSignature($userData);
+        $token              = $this->fetchAccessToken();
+        $dadosLinkUploadPDF = $this->getLinkUploadPDF();
+
+        $urlUpload      = $dadosLinkUploadPDF['data']['links'][0]['url'];
+        $chaveUploadPDF = $dadosLinkUploadPDF['data']['links'][0]['chave'];
+
+        if (! $this->uploadPDFAWS($userData->LINK_HASH, $urlUpload)) {
+            return response()->json(['message' => 'Problemas ao enviar PDF pra o servidor da AWS'], 400);
+        }
+
+        $body = $this->getBodyCreateSignature($userData, $chaveUploadPDF);
 
         $url = "https://api.assertivasolucoes.com.br/autentica/v1/jornadas/pedidos";
 
@@ -137,7 +181,7 @@ class AssertivaSolucoesService
             ->post($url, $body);
 
         if ($response->failed()) {
-            throw new Exception('Erro ao consulta Score Assertiva: ' . $response->body());
+            throw new Exception('Erro ao criar parte Assertiva: ' . $response->body());
         }
 
         return $response->json();
@@ -145,22 +189,23 @@ class AssertivaSolucoesService
 
     public function getLink($protocol)
     {
-        $token = $this->fetchAccessToken();
+        $token     = $this->fetchAccessToken();
+        $protocolo = $protocol->PROTOCOLO_PARTE_FACIAL;
 
-        $url = `https://api.assertivasolucoes.com.br/autentica/v1/jornadas/partes/gerar-link?protocolo={$protocol}`;
+        $url = 'https://api.assertivasolucoes.com.br/autentica/v1/jornadas/partes/gerar-link?protocolo=' . $protocolo;
 
         $response = Http::withToken($token)
             ->acceptJson()
             ->get($url);
 
         if ($response->failed()) {
-            throw new Exception('Erro ao consulta Score Assertiva: ' . $response->body());
+            throw new Exception('Erro ao consulta Link Assertiva: ' . $response->body());
         }
 
         return $response->json();
     }
 
-    private function getBodyCreateSignature($userData): array
+    private function getBodyCreateSignature($userData, $chave): array
     {
         return [
             "anexosGlobais" => [
@@ -170,7 +215,7 @@ class AssertivaSolucoesService
             "partes" => [
                 [
                     "perfilId" => "0e7680b0-a528-4275-8711-fed682dc5d02",
-                    "fluxoId"  => "4280276b-b27d-4366-ae91-d91e31788084",
+                    "fluxoId"  => "bb16306a-e13c-485e-8db2-1d8c98d68b8b",
                     "campos"   => [
                         [
                             "id"    => "e99a9d68-1026-4830-912e-677906b0e8a3",
@@ -194,12 +239,130 @@ class AssertivaSolucoesService
                             "artefato" => "Proposta de assinatura",
                             "nome"     => "Documentoassinatura",
                             "extensao" => "pdf",
-                            "chave"    => "543d47e4-3bbf-48d9-acae-625872ef88db",
+                            "chave"    => "{$chave}",
                         ],
                     ],
                     "anexosFluxo" => [],
                 ],
             ],
         ];
+    }
+
+    private function getLinkUploadPDF()
+    {
+        $token = $this->fetchAccessToken();
+
+        $url = 'https://api.assertivasolucoes.com.br/autentica/v1/jornadas/arquivos/obter-link-upload-interno?quantidadeLinks=1';
+
+        $response = Http::withToken($token)
+            ->acceptJson()
+            ->get($url);
+
+        if ($response->failed()) {
+            throw new Exception('Erro ao consulta Score Assertiva: ' . $response->body());
+        }
+
+        return $response->json();
+    }
+
+    private function uploadPDFAWS(string $linkHash, string $url)
+    {
+        $pdfPath = storage_path(implode(DIRECTORY_SEPARATOR, [
+            'app',
+            'public',
+            'termos',
+            $linkHash . '.pdf',
+        ]));
+
+        if (! file_exists($pdfPath)) {
+            throw new Exception("Arquivo PDF não encontrado em: " . $pdfPath);
+        }
+
+        $stream = Utils::tryFopen($pdfPath, 'r');
+
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/octet-stream',
+        ])
+            ->send('PUT', $url, [
+                'body' => $stream,
+            ]);
+
+        if ($response->failed()) {
+            throw new Exception('Erro ao fazer upload do PDF. Status: ' . $response->status());
+        }
+
+        return $response->status();
+    }
+
+    public function verificaStatusFacial()
+    {
+        $token     = $this->fetchAccessToken();
+        $propostas = Propostal::whereNotNull('LINK_FACIAL')
+            ->where('FACIAL', 0)
+            ->get();
+
+        if ($propostas->isEmpty()) {
+            return response()->json(['message' => 'Nenhuma proposta pendente de facial.']);
+        }
+
+        foreach ($propostas as $proposta) {
+            try {
+                $parteId = $proposta->PARTE_ID;
+                $url     = 'https://api.assertivasolucoes.com.br/autentica/v1/jornadas/partes/status-parte?parteId=' . $parteId;
+
+                $response = Http::withToken($token)
+                    ->acceptJson()
+                    ->get($url);
+
+                if ($response->failed()) {
+                    Log::error("Erro ao consultar parteId {$parteId}: " . $response->body());
+
+                    continue;
+                }
+
+                $data = $response->json();
+
+                // Aprovado(s)
+                if (isset($data['data']['status']) && strtolower($data['data']['status']) === 'aprovado(s)') {
+                    $proposta->FACIAL              = 1;
+                    $proposta->TERMO_ATIVO         = 1;
+                    $proposta->DATA_ATIVACAO_TERMO = now()->format('Y-m-d');
+                    $proposta->HORA_ATIVACAO_TERMO = now('H:i:s');
+                    $proposta->save();
+
+                    $linkPagamento = "https://invicta.kinghost.net/fianca_front/ativacao/login/" . $proposta->LINK_HASH;
+                    $mensagem      = "Parabéns! Sua validação facial foi aprovada. Para prosseguir, acesse o link de pagamento:\n$linkPagamento";
+
+                    // $linkPagamento = "http://localhost:8001/ativacao/login/" . $proposta->LINK_HASH;
+                    // $mensagem      = "Parabéns! Sua validação facial foi aprovada. Para prosseguir, acesse o link de pagamento: $linkPagamento";
+
+                    if (strlen((string) $proposta->PESSOA_TELEFONE) === 11 && substr((string) $proposta->PESSOA_TELEFONE, 2, 1) === '9') {
+                        $proposta->PESSOA_TELEFONE = substr((string) $proposta->PESSOA_TELEFONE, 0, 2) . substr((string) $proposta->PESSOA_TELEFONE, 3);
+                    }
+
+                    $numero = '+55' . $proposta->PESSOA_TELEFONE;
+
+                    $whatsApp = new WhatsAppService();
+                    $sent     = $whatsApp->sendMessage(
+                        $numero,
+                        $mensagem
+                    );
+
+                    if ($sent) {
+                        Log::info("WhatsApp enviado para proposta {$proposta->ID}");
+                    } else {
+                        Log::warning("WhatsApp falhou para proposta {$proposta->ID}");
+                    }
+                } else {
+                    Log::info("Status não aprovado para parteId {$parteId}: " . json_encode($data));
+                }
+            } catch (\Throwable $e) {
+                Log::error("Erro ao processar proposta {$proposta->ID}: " . $e->getMessage());
+
+                continue;
+            }
+        }
+
+        return response()->json(['message' => 'Processo de verificação facial concluído.']);
     }
 }

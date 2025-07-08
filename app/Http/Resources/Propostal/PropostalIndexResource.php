@@ -27,13 +27,11 @@ class PropostalIndexResource extends JsonResource
         $valorTotalPagamento = ($this->PROPOSTA_TOTAL_VALOR ?? 0) + ($this->PROPOSTA_SETUP_VALOR ?? 0);
 
         return [
-            'id'                      => $this->ID,
-            'id_imobiliaria'          => $this->ID_IMOBILIARIA,
-            'data'                    => $this->DATA,
-            'hora'                    => $this->HORA,
-            'data_ultima_atualizacao' => $this->DATA_ULTIMA_ATUALIZACAO,
-            'hora_ultima_atualizacao' => $this->HORA_ULTIMA_ATUALIZACAO,
-            'pessoa_tipo'             => match ($this->PESSOA_TIPO) {
+            'id'             => $this->ID,
+            'id_imobiliaria' => $this->ID_IMOBILIARIA,
+            'data'           => $this->DATA,
+            'hora'           => $this->HORA,
+            'pessoa_tipo'    => match ($this->PESSOA_TIPO) {
                 'PF'    => 'Pessoa Física',
                 'PJ'    => 'Pessoa Jurídica',
                 default => 'Tipo Desconhecido',
@@ -57,13 +55,13 @@ class PropostalIndexResource extends JsonResource
                 default => 'Tipo Desconhecido',
             },
             'imovel_aluguel' => $this->IMOVEL_ALUGUEL !== null
-                ? 'R$ ' . number_format(floatval($this->IMOVEL_ALUGUEL), 2, ',', '')
+                ? 'R$ ' . number_format(floatval($this->IMOVEL_ALUGUEL), 2, ',', '.')
                 : null,
             'imovel_condominio' => $this->IMOVEL_CONDOMINIO !== null
-                ? 'R$ ' . number_format(floatval($this->IMOVEL_CONDOMINIO), 2, ',', '')
+                ? 'R$ ' . number_format(floatval($this->IMOVEL_CONDOMINIO), 2, ',', '.')
                 : null,
             'imovel_taxas' => $this->IMOVEL_TAXAS !== null
-                ? 'R$ ' . number_format(floatval($this->IMOVEL_TAXAS), 2, ',', '')
+                ? 'R$ ' . number_format(floatval($this->IMOVEL_TAXAS), 2, ',', '.')
                 : null,
             'imovel_cep'           => $this->formatZipCode($this->IMOVEL_CEP),
             'imovel_endereco'      => $this->toUtf8($this->IMOVEL_ENDERECO),
@@ -76,24 +74,29 @@ class PropostalIndexResource extends JsonResource
             'imovel_tag'           => $this->toUtf8($this->IMOVEL_TAG),
             'imovel_ramo_atv'      => $this->toUtf8($this->IMOVEL_RAMO_ATV),
             'proposta_total_valor' => $this->PROPOSTA_TOTAL_VALOR !== null
-                ? 'R$ ' . number_format(floatval($this->PROPOSTA_TOTAL_VALOR), 2, ',', '')
+                ? 'R$ ' . number_format(floatval($this->PROPOSTA_TOTAL_VALOR), 2, ',', '.')
                 : null,
             'proposta_total_parc'  => $this->PROPOSTA_TOTAL_PARC,
             'proposta_setup_valor' => $this->PROPOSTA_SETUP_VALOR !== null
-                ? 'R$ ' . number_format(floatval($this->PROPOSTA_SETUP_VALOR), 2, ',', '')
+                ? 'R$ ' . number_format(floatval($this->PROPOSTA_SETUP_VALOR), 2, ',', '.')
                 : null,
             'proposta_setup_parc'     => $this->PROPOSTA_SETUP_PARC,
             'proposta_tipo_pagador'   => $this->toUtf8($this->PROPOSTA_TIPO_PAGADOR),
             'proposta_status'         => $this->toUtf8($this->PROPOSTA_STATUS),
             'contrato_id'             => $this->CONTRATO_ID,
-            'proposta_credito_status' => $this->toUtf8($this->PROPOSTA_CREDITO_STATUS),
-            'data_nascimento'         => $this->DATA_NASCIMENTO,
             'contrato_status'         => $this->toUtf8($this->CONTRATO_STATUS),
+            'data_nascimento'         => $this->DATA_NASCIMENTO,
+            'proposta_credito_status' => $this->toUtf8($this->PROPOSTA_CREDITO_STATUS),
             'observacao'              => $this->toUtf8($this->OBSERVACAO),
+            'data_ultima_atualizacao' => $this->DATA_ULTIMA_ATUALIZACAO,
+            'hora_ultima_atualizacao' => $this->HORA_ULTIMA_ATUALIZACAO,
             'endereco_completo'       => "{$this->toUtf8($this->IMOVEL_ENDERECO)}, {$this->toUtf8($this->IMOVEL_NUMERO)}, {$this->toUtf8($this->IMOVEL_BAIRRO)}, {$this->toUtf8($this->IMOVEL_CIDADE)} - {$this->toUtf8($this->IMOVEL_ESTADO)}",
             'link_hash'               => $this->LINK_HASH,
+            'face_id'                 => $this->FACIAL,
+            'id_usuario_integracao'   => $this->ID_USUARIO_INTEGRACAO,
+            'pessoa_complemento'      => $this->PESSOA_COMPLEMENTO,
             'valor_total_pagamento'   => $valorTotalPagamento !== null
-                ? 'R$ ' . number_format(floatval($valorTotalPagamento), 2, ',', '')
+                ? 'R$ ' . number_format(floatval($valorTotalPagamento), 2, ',', '.')
                 : null,
             'anexo_contrato'      => $this->ANX_CONTRATO,
             'anexo_vistoria'      => $this->ANX_VISTORIA,
@@ -103,8 +106,10 @@ class PropostalIndexResource extends JsonResource
             'data_ativacao_termo' => $this->DATA_ATIVACAO_TERMO,
             'termo_ativo'         => $this->TERMO_ATIVO,
             'contrato_sub_status' => $this->toUtf8($this->CONTRATO_SUB_STATUS),
-            'face_id'             => $this->FACIAL,
             'hora_ativacao_termo' => $this->HORA_ATIVACAO_TERMO,
+            'protocolo_facial'    => $this->PROTOCOLO_FACIAL,
+            'pedido_id_facial'    => $this->PEDIDO_ID_FACIAL,
+            'link_facial'         => $this->LINK_FACIAL,
         ];
     }
 }
