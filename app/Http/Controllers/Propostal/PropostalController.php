@@ -25,11 +25,11 @@ class PropostalController extends Controller
             $length      = strlen((string) $search);
 
             $query->where(function ($q) use ($search, $searchIso, $isNumeric, $length): void {
-                if ($isNumeric && $length >= 11 && $length <= 14) {
-                    $q->orWhere('PESSOA_DOC', 'like', "%$search%");
-                } elseif ($isNumeric) {
-                    // Pesquisa por ID somente se for numérico
-                    $q->where('ID', 'like', "%$search%");
+                if ($isNumeric) {
+                    $q->orWhere(function ($subQuery) use ($search): void {
+                        $subQuery->orWhere('PESSOA_DOC', 'like', "%$search%")
+                            ->orWhere('ID', 'like', "%$search%");
+                    });
                 }
 
                 // Pesquisa por PESSOA_NOME e PESSOA_FANTASIA com case-insensitive mantendo acentos
