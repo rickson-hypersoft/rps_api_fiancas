@@ -24,7 +24,7 @@ class FinancialAccountController extends Controller
             $query->whereRaw('UPPER(DESCRICAO) LIKE UPPER(?)', ["%$searchIso%"]);
         }
 
-         if ($request->filled('active')) {
+        if ($request->filled('active')) {
             $query->where('ATIVO', '=', 1);
         }
 

@@ -667,8 +667,6 @@ class CheckoutController extends Controller
         ]);
 
         if ($validator->fails()) {
-            dd("caiu aqui");
-
             return response()->json([
                 "success" => false,
                 "message" => $validator->errors(),

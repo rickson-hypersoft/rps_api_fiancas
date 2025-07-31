@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Services\Assertiva;
 
 use App\Http\Resources\Assertiva\AssertivaResource;
+use App\Models\History;
 use App\Models\Propostal\Propostal;
 use App\Models\ScoreResponse;
 use App\Services\WhatsAppService;
@@ -40,7 +41,7 @@ class AssertivaSolucoesService
 
     public function checkScore(string $document, int $finaly = 2)
     {
-        $this->fetchAccessToken();
+        $token = $this->fetchAccessToken();
 
         $document = preg_replace('/\D/', '', $document);
 
@@ -62,7 +63,6 @@ class AssertivaSolucoesService
             throw new \InvalidArgumentException('Documento inválido.');
         }
 
-        /*
         $url = "{$this->baseUrl}/{$tipo_consulta}/credito/{$document}";
 
         $query = ['idFinalidade' => $finaly];
@@ -76,8 +76,8 @@ class AssertivaSolucoesService
         }
 
         $return = $response->json();
-        */
 
+        /*
         $return = [
             'cabecalho' => [
                 'dataHora'       => now()->format('d/m/Y H:i:s'),
@@ -107,6 +107,7 @@ class AssertivaSolucoesService
                 ],
             ],
         ];
+        */
 
         try {
             return response()->json($this->insertResponseReturnInTable($return, $document, $tipo_consulta));
@@ -129,12 +130,12 @@ class AssertivaSolucoesService
                 'PESSOA_DOC'            => $document,
                 'DATA'                  => $data->format('Y-m-d'),
                 'HORA'                  => $hora->format('H:i:s'),
-                'PRODUTO'               => mb_convert_encoding((string) $returnResponse['cabecalho']['produto'], 'ISO-8859-1'),
-                'FUNCIONALIDADE'        => mb_convert_encoding((string) $returnResponse['cabecalho']['funcionalidade'], 'ISO-8859-1'),
+                'PRODUTO'               => $returnResponse['cabecalho']['produto'],
+                'FUNCIONALIDADE'        => $returnResponse['cabecalho']['funcionalidade'],
                 'PROTOCOLO'             => $returnResponse['cabecalho']['protocolo'],
                 'SCORE_CLASSE'          => $returnResponse['resposta']['score']['classe'],
-                'SCORE_FAIXA_TITULO'    => mb_convert_encoding((string) $returnResponse['resposta']['score']['faixa']['titulo'], 'ISO-8859-1'),
-                'SCORE_FAIXA_DESCRICAO' => mb_convert_encoding((string) $returnResponse['resposta']['score']['faixa']['descricao'], 'ISO-8859-1'),
+                'SCORE_FAIXA_TITULO'    => $returnResponse['resposta']['score']['faixa']['titulo'],
+                'SCORE_FAIXA_DESCRICAO' => $returnResponse['resposta']['score']['faixa']['descricao'],
                 'SCORE_PONTOS'          => $returnResponse['resposta']['score']['pontos'],
                 'RENDA_PRESUMIDA'       => $returnResponse['resposta']['rendaPresumida']['valor'] ?? 0,
                 'EXPIRA_EM'             => $data->addDays(7)->format('Y-m-d'),
@@ -215,7 +216,7 @@ class AssertivaSolucoesService
             "partes" => [
                 [
                     "perfilId" => "0e7680b0-a528-4275-8711-fed682dc5d02",
-                    "fluxoId"  => "bb16306a-e13c-485e-8db2-1d8c98d68b8b",
+                    "fluxoId"  => "5b4028f9-4060-4314-9fab-a379540e98da",
                     "campos"   => [
                         [
                             "id"    => "e99a9d68-1026-4830-912e-677906b0e8a3",
@@ -329,6 +330,19 @@ class AssertivaSolucoesService
                     $proposta->DATA_ATIVACAO_TERMO = now()->format('Y-m-d');
                     $proposta->HORA_ATIVACAO_TERMO = now('H:i:s');
                     $proposta->save();
+
+                    // Grava que o termo foi assinado pelo cliente
+                    $historyData = [
+                        'id_imobiliaria' => $proposta->ID_IMOBILIARIA,
+                        'id_movi'        => $proposta->ID,
+                        'movi'           => 'Contratos',
+                        'data'           => now()->format('Y-m-d'),
+                        'historico'      => 'Inquilino aceitou o termo',
+                        'id_usuario'     => $proposta->$_COOKIE,
+                        'hora'           => now()->format('H:i:s'),
+                    ];
+
+                    History::create($historyData);
 
                     $linkPagamento = "https://invicta.kinghost.net/fianca_front/ativacao/login/" . $proposta->LINK_HASH;
                     $mensagem      = "Parabéns! Sua validação facial foi aprovada. Para prosseguir, acesse o link de pagamento:\n$linkPagamento";
