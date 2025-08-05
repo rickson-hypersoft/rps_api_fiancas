@@ -7,7 +7,7 @@ namespace App\Http\Controllers\Delinquencies;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\DelinquenciesRequest;
 use App\Http\Resources\DelinquenciesResource;
-use App\Models\Deliquencies;
+use App\Models\Delinquencies;
 use Illuminate\Http\Request;
 
 class DelinquenciesController extends Controller
@@ -16,48 +16,49 @@ class DelinquenciesController extends Controller
     {
         $request->all();
 
-        $deliquencies = Deliquencies::query();
+        $delinquencies = Delinquencies::all();
 
         return response()->json(
-            DelinquenciesResource::collection($deliquencies)
+            DelinquenciesResource::collection($delinquencies)
         );
     }
 
     public function store(DelinquenciesRequest $request)
     {
-        $deliquencies = Deliquencies::create($request->validated());
+        $delinquenciesData = $this->convertIsoAndTransformUpperCase($request->validated());
+        $delinquencies     = Delinquencies::create($delinquenciesData);
 
         return response()->json(
-            new DelinquenciesResource($deliquencies),
+            new DelinquenciesResource($delinquencies),
             201
         );
     }
 
     public function update(DelinquenciesRequest $request, int | string $id)
     {
-        $deliquencies = Deliquencies::findOrFail($id);
+        $delinquencies = Delinquencies::findOrFail($id);
 
-        $deliquencies->update($request->validated());
+        $delinquencies->update($request->validated());
 
         return response()->json(
-            new DelinquenciesResource($deliquencies),
+            new DelinquenciesResource($delinquencies),
             200
         );
     }
 
     public function show(int | string $id)
     {
-        $deliquencies = Deliquencies::findOrFail($id);
+        $delinquencies = Delinquencies::findOrFail($id);
 
         return response()->json(
-            new DelinquenciesResource($deliquencies)
+            new DelinquenciesResource($delinquencies)
         );
     }
 
     public function destroy(int | string $id)
     {
-        $deliquencies = Deliquencies::findOrFail($id);
-        $deliquencies->delete();
+        $delinquencies = Delinquencies::findOrFail($id);
+        $delinquencies->delete();
 
         return response()->json(null, 204);
     }

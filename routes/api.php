@@ -7,6 +7,7 @@ use App\Http\Controllers\Assets\AssetsController;
 use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\Delinquencies\DelinquenciesController;
 use App\Http\Controllers\Financial\FinancialAccountController;
 use App\Http\Controllers\Financial\FinancialCategoryController;
 use App\Http\Controllers\Financial\FinancialMoviController;
@@ -20,12 +21,6 @@ use App\Http\Controllers\WhatsAppController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('login', [AuthController::class, 'login']);
-
-Route::get('/limpar-cache', function (): string {
-    Artisan::call('optimize:clear');
-
-    return 'Cache limpo!';
-});
 
 Route::get('/ola', function (): void {
     $routes = Route::getRoutes();
