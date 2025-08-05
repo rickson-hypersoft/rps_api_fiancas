@@ -1,0 +1,42 @@
+<?php
+
+declare(strict_types = 1);
+
+namespace App\Http\Resources;
+
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+/**
+ * @mixin \App\Models\Deliquencies
+ * @property \App\Models\Deliquencies $resource
+ */
+class DelinquenciesResource extends JsonResource
+{
+    use ResourceTrait;
+
+    /**
+     * Transform the resource into an array.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(Request $request): array
+    {
+        return [
+            'id'                  => $this->ID,
+            'contrato_id'         => $this->CONTRATO_ID,
+            'imovel_situacao'     => $this->IMOVEL_SITUACAO,
+            'valor_original'      => $this->VALOR_ORIGINAL,
+            'vencimento_original' => $this->VENCIMENTO_ORIGINAL,
+            'conta_bancaria_id'   => $this->CONTA_BANCARIA_ID,
+            'observacao'          => $this->OBSERVACAO,
+            'status'              => $this->STATUS,
+            'data_criacao'        => $this->DATA_CRIACAO,
+            'hora_criacao'        => $this->HORA_CRIACAO,
+            'data_pagamento'      => $this->DATA_PAGAMENTO,
+            'hora_pagamento'      => $this->HORA_PAGAMENTO,
+            'tipo_inadimplencia'  => $this->TIPO_INADIMPLENCIA,
+            'valor_aprovado'      => $this->VALOR_APROVADO,
+        ];
+    }
+}

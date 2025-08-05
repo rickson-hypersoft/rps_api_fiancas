@@ -234,4 +234,12 @@ Route::middleware(['api.auth'])->group(function (): void {
     // Assertiva Soluções
     Route::get('/consultar-score', [AssertivaSolucoesController::class, 'check']);
     Route::get('/criar-assinatura/{propostalId}', [AssertivaSolucoesController::class, 'createSignatureAndGetLinkFacial']);
+
+    Route::prefix('delinquencies')->group(function (): void {
+        Route::get('/', [DelinquenciesController::class, 'index']);
+        Route::post('/', [DelinquenciesController::class, 'store']);
+        Route::get('/{id}', [DelinquenciesController::class, 'show']);
+        Route::put('/{id}', [DelinquenciesController::class, 'update']);
+        Route::delete('/{id}', [DelinquenciesController::class, 'destroy']);
+    });
 });
