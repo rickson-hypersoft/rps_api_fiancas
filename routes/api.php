@@ -231,7 +231,7 @@ Route::middleware(['api.auth'])->group(function (): void {
     Route::get('/criar-assinatura/{propostalId}', [AssertivaSolucoesController::class, 'createSignatureAndGetLinkFacial']);
 
     Route::prefix('delinquencies')->group(function (): void {
-        Route::get('/', [DelinquenciesController::class, 'index']);
+        Route::get('/{id_imobiliaria}', [DelinquenciesController::class, 'index']);
         Route::post('/', [DelinquenciesController::class, 'store']);
         Route::get('/{id}', [DelinquenciesController::class, 'show']);
         Route::put('/{id}', [DelinquenciesController::class, 'update']);

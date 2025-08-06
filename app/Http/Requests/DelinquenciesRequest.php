@@ -25,6 +25,7 @@ class DelinquenciesRequest extends FormRequest
     {
         return [
             'contrato_id'         => 'required|numeric',
+            'id_imobiliaria'      => 'required|numeric',
             'imovel_situacao'     => 'nullable|string|max:50',
             'tipo_conta'          => 'nullable|string|max:50',
             'valor_original'      => 'required|numeric',

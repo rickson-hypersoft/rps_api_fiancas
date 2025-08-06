@@ -12,11 +12,12 @@ use Illuminate\Http\Request;
 
 class DelinquenciesController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, string | int $idImobiliaria)
     {
         $request->all();
 
-        $delinquencies = Delinquencies::all();
+        $delinquencies = Delinquencies::where('ID_IMOBILIARIA', '=', $idImobiliaria)
+            ->get();
 
         return response()->json(
             DelinquenciesResource::collection($delinquencies)
