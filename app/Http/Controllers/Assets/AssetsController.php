@@ -120,7 +120,12 @@ class AssetsController extends Controller
 
         $propostal = new PropostalIndexResource($query);
 
-        return response()->json(['data' => $propostal]);
+        $canDelinquencies = DB::table('INADIMPLENCIAS')
+            ->where('ID_IMOBILIARIA', $idImobiliaria)
+            ->where('CONTRATO_ID', $idContrato)
+            ->exists();
+
+        return response()->json(['data' => $propostal, 'inadimplencia' => $canDelinquencies]);
     }
 
     public function faceId(Request $request, string $linkHash)

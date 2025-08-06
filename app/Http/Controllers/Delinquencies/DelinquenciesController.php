@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\DelinquenciesRequest;
 use App\Http\Resources\DelinquenciesResource;
 use App\Models\Delinquencies;
+use App\Models\Propostal\Propostal;
 use Illuminate\Http\Request;
 
 class DelinquenciesController extends Controller
@@ -47,9 +48,12 @@ class DelinquenciesController extends Controller
         );
     }
 
-    public function show(int | string $id)
+    public function show(int | string $idImobiliaria, int | string $id)
     {
         $delinquencies = Delinquencies::findOrFail($id);
+
+        Propostal::where('ID', $delinquencies->CONTRADO_ID)
+            ->first();
 
         return response()->json(
             new DelinquenciesResource($delinquencies)

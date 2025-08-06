@@ -233,7 +233,7 @@ Route::middleware(['api.auth'])->group(function (): void {
     Route::prefix('delinquencies')->group(function (): void {
         Route::get('/{id_imobiliaria}', [DelinquenciesController::class, 'index']);
         Route::post('/', [DelinquenciesController::class, 'store']);
-        Route::get('/{id}', [DelinquenciesController::class, 'show']);
+        Route::get('/{id_imobiliaria}/{id}', [DelinquenciesController::class, 'show']);
         Route::put('/{id}', [DelinquenciesController::class, 'update']);
         Route::delete('/{id}', [DelinquenciesController::class, 'destroy']);
     });

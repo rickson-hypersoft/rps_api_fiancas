@@ -24,7 +24,7 @@ class DelinquenciesResource extends JsonResource
     {
         return [
             'id'                  => $this->ID,
-            'id_imobiliaria'     => $this->ID_IMOBILIARIA,
+            'id_imobiliaria'      => $this->ID_IMOBILIARIA,
             'contrato_id'         => $this->CONTRATO_ID,
             'imovel_situacao'     => $this->IMOVEL_SITUACAO,
             'valor_original'      => $this->VALOR_ORIGINAL,
