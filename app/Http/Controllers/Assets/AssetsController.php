@@ -123,7 +123,7 @@ class AssetsController extends Controller
         $canDelinquencies = DB::table('INADIMPLENCIAS')
             ->where('ID_IMOBILIARIA', $idImobiliaria)
             ->where('CONTRATO_ID', $idContrato)
-            ->exists();
+            ->get();
 
         return response()->json(['data' => $propostal, 'inadimplencia' => $canDelinquencies]);
     }

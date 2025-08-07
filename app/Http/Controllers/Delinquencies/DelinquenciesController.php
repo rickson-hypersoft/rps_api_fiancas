@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Delinquencies;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\DelinquenciesRequest;
 use App\Http\Resources\DelinquenciesResource;
+use App\Http\Resources\Propostal\PropostalResource;
 use App\Models\Delinquencies;
 use App\Models\Propostal\Propostal;
 use Illuminate\Http\Request;
@@ -52,11 +53,13 @@ class DelinquenciesController extends Controller
     {
         $delinquencies = Delinquencies::findOrFail($id);
 
-        Propostal::where('ID', $delinquencies->CONTRADO_ID)
+        $propostal = Propostal::where('ID', $delinquencies->CONTRATO_ID)
             ->first();
 
+        $propostalReturn = new PropostalResource($propostal);
+
         return response()->json(
-            new DelinquenciesResource($delinquencies)
+            ['propostal' => $propostalReturn, 'deliquencies' => new DelinquenciesResource($delinquencies)]
         );
     }
 
