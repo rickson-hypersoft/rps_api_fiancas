@@ -6,6 +6,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
+use App\Models\Propostal\Propostal;
 use Illuminate\Database\Eloquent\Model;
 
 class Delinquencies extends Model
@@ -21,4 +22,9 @@ class Delinquencies extends Model
     public $timestamps = false;
 
     protected $guarded = [];
+
+    public function propostal()
+    {
+        return $this->belongsTo(Propostal::class, 'CONTRATO_ID', 'ID');
+    }
 }

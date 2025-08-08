@@ -231,10 +231,13 @@ Route::middleware(['api.auth'])->group(function (): void {
     Route::get('/criar-assinatura/{propostalId}', [AssertivaSolucoesController::class, 'createSignatureAndGetLinkFacial']);
 
     Route::prefix('delinquencies')->group(function (): void {
-        Route::get('/{id_imobiliaria}', [DelinquenciesController::class, 'index']);
+        // Rotas com imobiliária
+        Route::get('{id_imobiliaria}', [DelinquenciesController::class, 'index']);
+        Route::get('{id_imobiliaria}/{id}', [DelinquenciesController::class, 'show']);
+
+        // REST padrão para store/update/delete
         Route::post('/', [DelinquenciesController::class, 'store']);
-        Route::get('/{id_imobiliaria}/{id}', [DelinquenciesController::class, 'show']);
-        Route::put('/{id}', [DelinquenciesController::class, 'update']);
-        Route::delete('/{id}', [DelinquenciesController::class, 'destroy']);
+        Route::put('{id}', [DelinquenciesController::class, 'update']);
+        Route::delete('{id}', [DelinquenciesController::class, 'destroy']);
     });
 });
