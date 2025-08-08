@@ -30,14 +30,14 @@ class DelinquenciesResource extends JsonResource
             'valor_original'      => $this->VALOR_ORIGINAL,
             'vencimento_original' => $this->VENCIMENTO_ORIGINAL,
             'conta_bancaria_id'   => $this->CONTA_BANCARIA_ID,
-            'observacao'          => $this->OBSERVACAO,
-            'status'              => $this->STATUS,
+            'observacao'          => $this->toUtf8($this->OBSERVACAO),
+            'status'              => $this->toUtf8($this->STATUS),
             'data_criacao'        => $this->DATA_CRIACAO,
             'hora_criacao'        => $this->HORA_CRIACAO,
             'data_pagamento'      => $this->DATA_PAGAMENTO,
             'hora_pagamento'      => $this->HORA_PAGAMENTO,
             'tipo_inadimplencia'  => $this->TIPO_INADIMPLENCIA,
             'valor_aprovado'      => $this->VALOR_APROVADO,
-        ];
+            'forma_pagamento'     => $this->FORMA_PAGAMENTO,        ];
     }
 }

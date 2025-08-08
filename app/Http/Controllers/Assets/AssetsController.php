@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Http\Controllers\Assets;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\DelinquenciesResource;
 use App\Http\Resources\Propostal\PropostalIndexResource;
 use App\Models\Propostal\Propostal;
 
@@ -124,6 +125,8 @@ class AssetsController extends Controller
             ->where('ID_IMOBILIARIA', $idImobiliaria)
             ->where('CONTRATO_ID', $idContrato)
             ->get();
+
+        $canDelinquencies = $canDelinquencies->isNotEmpty() ? $canDelinquencies->map(fn ($item): DelinquenciesResource => new DelinquenciesResource($item)) : [];
 
         return response()->json(['data' => $propostal, 'inadimplencia' => $canDelinquencies]);
     }
