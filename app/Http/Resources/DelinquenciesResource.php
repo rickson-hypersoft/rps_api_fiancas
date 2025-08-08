@@ -38,6 +38,8 @@ class DelinquenciesResource extends JsonResource
             'hora_pagamento'      => $this->HORA_PAGAMENTO,
             'tipo_inadimplencia'  => $this->TIPO_INADIMPLENCIA,
             'valor_aprovado'      => $this->VALOR_APROVADO,
-            'forma_pagamento'     => $this->FORMA_PAGAMENTO,        ];
+            'forma_pagamento'     => $this->FORMA_PAGAMENTO,
+            'tipo_conta'          => $this->toUtf8($this->TIPO_CONTA),
+        ];
     }
 }
