@@ -74,6 +74,9 @@ class DelinquenciesController extends Controller
     public function store(DelinquenciesRequest $request)
     {
         $delinquenciesData = $this->convertIsoAndTransformUpperCase($request->validated());
+        $delinquenciesData['DATA_CRIACAO'] = now()->format('Y-m-d');
+        $delinquenciesData['HORA_CRIACAO'] = now()->format('H:i:s');
+        $delinquenciesData['STATUS'] = utf8_decode('Pendência Aberta');
         $delinquencies     = Delinquencies::create($delinquenciesData);
 
         return response()->json(
