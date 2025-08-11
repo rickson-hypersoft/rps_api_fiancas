@@ -237,7 +237,7 @@ Route::middleware(['api.auth'])->group(function (): void {
 
         // REST padrão para store/update/delete
         Route::post('/', [DelinquenciesController::class, 'store']);
-        Route::put('{id}', [DelinquenciesController::class, 'update']);
+        Route::put('/{id}', [DelinquenciesController::class, 'update']);
         Route::delete('{id}', [DelinquenciesController::class, 'destroy']);
     });
 });

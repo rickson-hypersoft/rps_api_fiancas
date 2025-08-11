@@ -9,6 +9,7 @@ use App\Http\Requests\DelinquenciesRequest;
 use App\Http\Resources\DelinquenciesResource;
 use App\Http\Resources\Propostal\PropostalResource;
 use App\Models\Delinquencies;
+use App\Models\DelinquenciesItem;
 use App\Models\Propostal\Propostal;
 use Illuminate\Http\Request;
 
@@ -73,11 +74,11 @@ class DelinquenciesController extends Controller
 
     public function store(DelinquenciesRequest $request)
     {
-        $delinquenciesData = $this->convertIsoAndTransformUpperCase($request->validated());
+        $delinquenciesData                 = $this->convertIsoAndTransformUpperCase($request->validated());
         $delinquenciesData['DATA_CRIACAO'] = now()->format('Y-m-d');
         $delinquenciesData['HORA_CRIACAO'] = now()->format('H:i:s');
-        $delinquenciesData['STATUS'] = utf8_decode('Pendência Aberta');
-        $delinquencies     = Delinquencies::create($delinquenciesData);
+        $delinquenciesData['STATUS']       = mb_convert_encoding('Pendência Aberta', 'ISO-8859-1');
+        $delinquencies                     = Delinquencies::create($delinquenciesData);
 
         return response()->json(
             new DelinquenciesResource($delinquencies),
@@ -85,11 +86,47 @@ class DelinquenciesController extends Controller
         );
     }
 
-    public function update(DelinquenciesRequest $request, int | string $id)
+    public function update(Request $request, int | string $id)
     {
         $delinquencies = Delinquencies::findOrFail($id);
 
-        $delinquencies->update($request->validated());
+        $requestData = [
+            'TIPO_CONTA'          => $request->all()['tipo_conta'],
+            'VALOR_ORIGINAL'      => $request->all()['valor_original'],
+            'VENCIMENTO_ORIGINAL' => $request->all()['vencimento_original'],
+        ];
+
+        $delinquencies->update($requestData);
+
+        // Caso tenha mais boletos a serem adicionados
+        if (! empty($request->input('outrosBoletos'))) {
+            foreach ($request->input('outrosBoletos') as $tipo => $dados) {
+                $tipoFormatado = match ($tipo) {
+                    'agua'            => 'Água',
+                    'luz'             => 'Luz',
+                    'gas'             => 'Gás',
+                    'iptu'            => 'IPTU',
+                    'condominio'      => 'Condomínio',
+                    'seguro'          => 'Seguro',
+                    'seguro_incendio' => 'Seguro incêndio',
+                    default           => ucfirst((string) $tipo),
+                };
+
+                DelinquenciesItem::updateOrCreate(
+                    [
+                        'CONTRATO_ID'      => $delinquencies->CONTRATO_ID,
+                        'INADIMPLENCIA_ID' => $id,
+                        'TIPO_CONTA'       => mb_convert_encoding($tipoFormatado, 'ISO-8859-1'),
+                    ],
+                    [
+                        'VALOR_ORIGINAL'      => $dados['valor_original'] ?? null,
+                        'VENCIMENTO_ORIGINAL' => $dados['vencimento_original'] ?? null,
+                        'OBSERVACAO'          => '',
+                        'ID_IMOBILIARIA'      => $delinquencies->ID_IMOBILIARIA,
+                    ]
+                );
+            }
+        }
 
         return response()->json(
             new DelinquenciesResource($delinquencies),
