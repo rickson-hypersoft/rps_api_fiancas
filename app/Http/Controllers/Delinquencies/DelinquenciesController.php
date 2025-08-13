@@ -154,6 +154,17 @@ class DelinquenciesController extends Controller
         ]);
     }
 
+    public function find(int | string $id)
+    {
+        // Buscar a primeira delinquência para obter o CONTRATO_ID
+        $delinquency = Delinquencies::where('ID', $id)
+            ->findOrFail($id);
+
+        return response()->json([
+            'delinquencies' => new DelinquenciesResource($delinquency),
+        ]);
+    }
+
     public function destroy(int | string $id)
     {
         $delinquencies = Delinquencies::findOrFail($id);

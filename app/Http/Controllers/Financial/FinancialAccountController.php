@@ -28,6 +28,12 @@ class FinancialAccountController extends Controller
             $query->where('ATIVO', '=', 1);
         }
 
+        if ($request->filled('type')) {
+            $type    = $request->input('type');
+            $typeIso = iconv('UTF-8', 'ISO-8859-1//TRANSLIT//IGNORE', (string) $type);
+            $query->whereRaw('UPPER(TIPO_CONTA) LIKE UPPER(?)', ["%$typeIso%"]);
+        }
+
         $financialAccounts = $query->orderBy('DESCRICAO', 'asc')
             ->paginate($perPage);
 
