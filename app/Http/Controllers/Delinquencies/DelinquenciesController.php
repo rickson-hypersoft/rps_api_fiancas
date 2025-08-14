@@ -91,9 +91,12 @@ class DelinquenciesController extends Controller
         $delinquencies = Delinquencies::findOrFail($id);
 
         $requestData = [
-            'TIPO_CONTA'          => $request->all()['tipo_conta'],
-            'VALOR_ORIGINAL'      => $request->all()['valor_original'],
-            'VENCIMENTO_ORIGINAL' => $request->all()['vencimento_original'],
+            'TIPO_CONTA'          => isset($request->all()['tipo_conta']) ? $request->all()['tipo_conta'] : $delinquencies->TIPO_CONTA,
+            'VALOR_ORIGINAL'      => isset($request->all()['valor_original']) ? $request->all()['valor_original'] : $delinquencies->VALOR_ORIGINAL,
+            'VENCIMENTO_ORIGINAL' => isset($request->all()['vencimento_original']) ? $request->all()['vencimento_original'] : $delinquencies->VENCIMENTO_ORIGINAL,
+            'CONTA_BANCARIA_ID'  => isset($request->all()['conta_bancaria_id']) ? $request->all()['conta_bancaria_id'] : null,
+            'TIPO_INADIMPLENCIA'  => isset($request->all()['tipo_inadimplencia']) ? $request->all()['tipo_inadimplencia'] : null,
+            'FORMA_PAGAMENTO'  => isset($request->all()['forma_pagamento']) ? $request->all()['forma_pagamento'] : null,
         ];
 
         $delinquencies->update($requestData);
@@ -168,7 +171,7 @@ class DelinquenciesController extends Controller
     public function destroy(int | string $id)
     {
         $delinquencies = Delinquencies::findOrFail($id);
-        $delinquencies->delete();
+        $delinquencies->update(['STATUS' => 'Pendência Cancelada']);
 
         return response()->json(null, 204);
     }
