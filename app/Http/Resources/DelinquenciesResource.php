@@ -39,7 +39,8 @@ class DelinquenciesResource extends JsonResource
             'tipo_inadimplencia'  => $this->TIPO_INADIMPLENCIA,
             'valor_aprovado'      => $this->VALOR_APROVADO,
             'forma_pagamento'     => $this->FORMA_PAGAMENTO,
-            'tipo_conta'          => $this->toUtf8($this->TIPO_CONTA),
+            'tipo_conta'        => $this->toUtf8($this->TIPO_CONTA),
+            'attachments'         => AttachamentResource::collection($this->whenLoaded('attachments')),
         ];
     }
 }

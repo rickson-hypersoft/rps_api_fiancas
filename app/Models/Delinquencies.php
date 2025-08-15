@@ -40,4 +40,10 @@ class Delinquencies extends Model
             }
         });
     }
+
+    public function attachments()
+{
+    return $this->hasMany(Attachment::class, 'ID_MOVI', 'ID')
+        ->where('MOVI', 'inadimplencias');
+}
 }

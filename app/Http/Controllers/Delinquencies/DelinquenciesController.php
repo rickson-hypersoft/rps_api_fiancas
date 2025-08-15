@@ -4,14 +4,15 @@ declare(strict_types = 1);
 
 namespace App\Http\Controllers\Delinquencies;
 
+use App\Models\Attachment;
+use Illuminate\Http\Request;
+use App\Models\Delinquencies;
+use App\Models\DelinquenciesItem;
+use App\Models\Propostal\Propostal;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\DelinquenciesRequest;
 use App\Http\Resources\DelinquenciesResource;
 use App\Http\Resources\Propostal\PropostalResource;
-use App\Models\Delinquencies;
-use App\Models\DelinquenciesItem;
-use App\Models\Propostal\Propostal;
-use Illuminate\Http\Request;
 
 class DelinquenciesController extends Controller
 {
@@ -91,12 +92,12 @@ class DelinquenciesController extends Controller
         $delinquencies = Delinquencies::findOrFail($id);
 
         $requestData = [
-            'TIPO_CONTA'          => isset($request->all()['tipo_conta']) ? $request->all()['tipo_conta'] : $delinquencies->TIPO_CONTA,
-            'VALOR_ORIGINAL'      => isset($request->all()['valor_original']) ? $request->all()['valor_original'] : $delinquencies->VALOR_ORIGINAL,
-            'VENCIMENTO_ORIGINAL' => isset($request->all()['vencimento_original']) ? $request->all()['vencimento_original'] : $delinquencies->VENCIMENTO_ORIGINAL,
-            'CONTA_BANCARIA_ID'  => isset($request->all()['conta_bancaria_id']) ? $request->all()['conta_bancaria_id'] : null,
-            'TIPO_INADIMPLENCIA'  => isset($request->all()['tipo_inadimplencia']) ? $request->all()['tipo_inadimplencia'] : null,
-            'FORMA_PAGAMENTO'  => isset($request->all()['forma_pagamento']) ? $request->all()['forma_pagamento'] : null,
+            'TIPO_CONTA'          => $request->all()['tipo_conta'] ?? $delinquencies->TIPO_CONTA,
+            'VALOR_ORIGINAL'      => $request->all()['valor_original'] ?? $delinquencies->VALOR_ORIGINAL,
+            'VENCIMENTO_ORIGINAL' => $request->all()['vencimento_original'] ?? $delinquencies->VENCIMENTO_ORIGINAL,
+            'CONTA_BANCARIA_ID'  => $request->all()['conta_bancaria_id'] ?? null,
+            'TIPO_INADIMPLENCIA'  => $request->all()['tipo_inadimplencia'] ?? null,
+            'FORMA_PAGAMENTO'  => $request->all()['forma_pagamento'] ?? null,
         ];
 
         $delinquencies->update($requestData);
@@ -144,7 +145,7 @@ class DelinquenciesController extends Controller
             ->findOrFail($id);
 
         // Buscar todas as delinquências desse mesmo contrato
-        $delinquencies = Delinquencies::where('ID_IMOBILIARIA', $idImobiliaria)
+        $delinquencies = Delinquencies::with('attachments')->where('ID_IMOBILIARIA', $idImobiliaria)
             ->where('CONTRATO_ID', $delinquency->CONTRATO_ID)
             ->get();
 
@@ -171,7 +172,7 @@ class DelinquenciesController extends Controller
     public function destroy(int | string $id)
     {
         $delinquencies = Delinquencies::findOrFail($id);
-        $delinquencies->update(['STATUS' => 'Pendência Cancelada']);
+        $delinquencies->update(['STATUS' => mb_convert_encoding('Pendência Cancelada', 'ISO-8859-1')]);
 
         return response()->json(null, 204);
     }
