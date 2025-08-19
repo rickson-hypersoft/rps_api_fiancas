@@ -27,6 +27,7 @@ class HistoryResource extends JsonResource
             'hora'           => $this->HORA,
             'historico'      => $this->toUtf8($this->HISTORICO),
             'id_usuario'     => $this->ID_USUARIO,
+            'usuario'        => UserResource::make($this->whenLoaded('user')),
         ];
     }
 }

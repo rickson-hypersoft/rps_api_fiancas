@@ -11,7 +11,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * @mixin \App\Models\Deliquencies
  * @property \App\Models\Deliquencies $resource
  */
-class DelinquenciesResource extends JsonResource
+class DelinquenciesResourceAttachment extends JsonResource
 {
     use ResourceTrait;
 
@@ -40,6 +40,8 @@ class DelinquenciesResource extends JsonResource
             'valor_aprovado'      => $this->VALOR_APROVADO,
             'forma_pagamento'     => $this->FORMA_PAGAMENTO,
             'tipo_conta'          => $this->toUtf8($this->TIPO_CONTA),
+            'attachments'         => AttachamentResource::collection($this->whenLoaded('attachments')),
+            'histories'           => HistoryResource::collection($this->whenLoaded('histories')),
         ];
     }
 }

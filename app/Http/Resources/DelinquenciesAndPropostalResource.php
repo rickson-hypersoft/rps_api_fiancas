@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Http\Resources;
 
+use App\Http\Resources\Propostal\PropostalResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -11,7 +12,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * @mixin \App\Models\Deliquencies
  * @property \App\Models\Deliquencies $resource
  */
-class DelinquenciesResource extends JsonResource
+class DelinquenciesAndPropostalResource extends JsonResource
 {
     use ResourceTrait;
 
@@ -40,6 +41,7 @@ class DelinquenciesResource extends JsonResource
             'valor_aprovado'      => $this->VALOR_APROVADO,
             'forma_pagamento'     => $this->FORMA_PAGAMENTO,
             'tipo_conta'          => $this->toUtf8($this->TIPO_CONTA),
+            'propostal'           => new PropostalResource($this->whenLoaded('propostal')),
         ];
     }
 }

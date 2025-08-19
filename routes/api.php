@@ -232,6 +232,8 @@ Route::middleware(['api.auth'])->group(function (): void {
 
     Route::prefix('delinquencies')->group(function (): void {
         // Rotas com imobiliária
+        Route::get('/export/{id_imobiliaria}', [DelinquenciesController::class, 'export']);
+        Route::get('/anexos/{id}', [DelinquenciesController::class, 'getAttachments']);
         Route::get('delinquencie/{id}', [DelinquenciesController::class, 'find']);
         Route::get('{id_imobiliaria}', [DelinquenciesController::class, 'index']);
         Route::get('{id_imobiliaria}/{id}', [DelinquenciesController::class, 'show']);

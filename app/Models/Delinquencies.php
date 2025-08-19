@@ -42,8 +42,14 @@ class Delinquencies extends Model
     }
 
     public function attachments()
-{
-    return $this->hasMany(Attachment::class, 'ID_MOVI', 'ID')
-        ->where('MOVI', 'inadimplencias');
-}
+    {
+        return $this->hasMany(Attachment::class, 'ID_MOVI', 'ID')
+            ->where('MOVI', 'inadimplencias');
+    }
+
+    public function histories()
+    {
+        return $this->hasMany(History::class, 'ID_MOVI', 'ID')
+            ->where('MOVI', mb_convert_encoding('Inadimplência', 'ISO-8859-1'));
+    }
 }

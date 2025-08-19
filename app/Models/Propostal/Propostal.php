@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Models\Propostal;
 
+use App\Models\Delinquencies;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Facades\DB;
 
@@ -31,5 +32,10 @@ class Propostal extends Authenticatable
                 $model->ID = $novoId[0]->ID;
             }
         });
+    }
+
+    public function delinquencies()
+    {
+        return $this->hasMany(Delinquencies::class, 'CONTRATO_ID', 'ID');
     }
 }

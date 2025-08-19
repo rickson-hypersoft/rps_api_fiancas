@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
@@ -54,5 +55,10 @@ class User extends Authenticatable implements JWTSubject
     public function realEstatesSector(): HasOne
     {
         return $this->hasOne(RealEstateSector::class, 'ID_IMOBILIARIA', 'ID');
+    }
+
+    public function histories(): HasMany
+    {
+        return $this->hasMany(History::class, 'ID_USUARIO', 'ID');
     }
 }
