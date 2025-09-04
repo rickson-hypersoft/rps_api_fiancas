@@ -101,6 +101,7 @@ class DelinquenciesController extends Controller
             'CONTA_BANCARIA_ID'   => $request->all()['conta_bancaria_id'] ?? null,
             'TIPO_INADIMPLENCIA'  => $request->all()['tipo_inadimplencia'] ?? null,
             'FORMA_PAGAMENTO'     => $request->all()['forma_pagamento'] ?? null,
+            'OBSERVACAO'          => $request->all()['observacao'] ?? null,
         ];
 
         $delinquencies->update($requestData);

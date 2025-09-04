@@ -106,7 +106,7 @@ class WhatsAppController extends Controller
 
             case 'proposta':
                 $nomeCompleto    = $propostal->PESSOA_NOME ?? 'Cliente';
-                $linkContrato    = "http://localhost:8001/ativacao/{$propostal->LINK_HASH}" ?? '#';
+                $linkContrato    = "http://localhost:8001/ativacao/{$propostal->LINK_FACIAL}" ?? '#';
                 $imobiliaria     = $propostal->ID_IMOBILIARIA ?? 'A imobiliária';
                 $imobiliariaInfo = RealEstateSector::where('ID', '=', $imobiliaria)->firstOrFail();
                 $nomeImobiliaria = $imobiliariaInfo['RAZAO'];

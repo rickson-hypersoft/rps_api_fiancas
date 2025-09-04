@@ -123,11 +123,13 @@ class AttachmentController extends Controller
 
     public function search(Request $request): JsonResponse
     {
-        $anexos = Attachment::where('ID_IMOBILIARIA', $request->id_imobiliaria)
+        $attachments = Attachment::where('ID_IMOBILIARIA', $request->id_imobiliaria)
             ->where('ID_MOVI', $request->id_movi)
-            ->where('MOVI', $request->movi ?? 'contratos') // valor padrão "contratos"
-            ->where('MOVI_SUB', $request->movi_sub)
-            ->get(['NOME_ARQUIVO', 'NOME_ARQUIVO_ORIGINAL', 'MOVI_SUB', 'DATA']);
+            ->whereRaw('LOWER(MOVI) = ?', [strtolower($request->movi ?? 'contratos')])
+            ->whereRaw('LOWER(MOVI_SUB) = ?', [strtolower(mb_convert_encoding($request->movi_sub, 'ISO-8859-1'))])
+            ->get(['ID', 'ID_IMOBILIARIA', 'ID_MOVI', 'NOME_ARQUIVO', 'NOME_ARQUIVO_ORIGINAL', 'MOVI_SUB', 'DATA', 'DESCRICAO', 'MOVI']);
+
+        $anexos = AttachamentResource::collection($attachments);
 
         return response()->json($anexos);
     }
