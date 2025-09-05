@@ -20,6 +20,7 @@ class AuthController extends Controller
     {
         $loginDataRaw  = $request->input('login');
         $loginPassword = $request->input('password');
+        $remember      = $request->boolean('remember', false);
 
         if (! is_string($loginDataRaw)) {
             return response()->json(['success' => false, 'message' => 'Login inválido!'], 422);
@@ -51,11 +52,15 @@ class AuthController extends Controller
                 return response()->json(['success' => false, 'message' => 'Usuário não autenticado!'], 401);
             }
 
+            $ttl = $remember ? 43200 : config('jwt.ttl');
+
             $customClaims = [
                 'user_category'    => is_string($user->CATEGORIA) ? mb_convert_encoding($user->CATEGORIA, 'UTF-8', 'ISO-8859-1') : null,
                 'user_role'        => is_string($user->NIVEL) ? mb_convert_encoding($user->NIVEL, 'ISO-8859-1', 'UTF-8') : null,
                 'user_permissions' => is_string($user->PERMISSOES) ? mb_convert_encoding($user->PERMISSOES, 'ISO-8859-1', 'UTF-8') : null,
             ];
+
+            JWTAuth::factory()->setTTL($ttl);
 
             $token = JWTAuth::claims($customClaims)->attempt($credentials);
 
@@ -66,6 +71,7 @@ class AuthController extends Controller
 
             return response()->json([
                 'token'                     => $token,
+                'expires_in'                => $ttl * 60,
                 'user'                      => new UserResource($user),
                 'realEstateSectorOrCompany' => $category == 'Imobiliária' ?
                     new RealEstateSectorResource($realEstateSector) :
