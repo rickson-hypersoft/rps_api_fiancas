@@ -95,7 +95,7 @@ class DelinquenciesController extends Controller
         $delinquencies = Delinquencies::findOrFail($id);
 
         $requestData = [
-            'TIPO_CONTA'          => $request->all()['tipo_conta'] ?? $delinquencies->TIPO_CONTA,
+            'TIPO_CONTA'          => isset($request->all()['tipo_conta']) ? utf8_decode($request->all()['tipo_conta']) : $delinquencies->TIPO_CONTA,
             'VALOR_ORIGINAL'      => $request->all()['valor_original'] ?? $delinquencies->VALOR_ORIGINAL,
             'VENCIMENTO_ORIGINAL' => $request->all()['vencimento_original'] ?? $delinquencies->VENCIMENTO_ORIGINAL,
             'CONTA_BANCARIA_ID'   => $request->all()['conta_bancaria_id'] ?? null,
@@ -145,46 +145,49 @@ class DelinquenciesController extends Controller
             }
         }
 
-        if (! empty($request->input('novasContas'))) {
-            foreach ($request->input('novasContas') as $tipo => $dados) {
-                if ($tipo === 'conta') {
-                    continue; // ignora a chave 'conta'
-                }
-
-                $tipoFormatado = match ($tipo) {
-                    'agua'            => 'Água',
-                    'luz'             => 'Luz',
-                    'gas'             => 'Gás',
-                    'iptu'            => 'IPTU',
-                    'condominio'      => 'Condomínio',
-                    'seguro'          => 'Seguro',
-                    'seguro_incendio' => 'Seguro incêndio',
-                    default           => ucfirst((string) $tipo),
-                };
-
-                $valorOriginal = is_array($dados['valor_original'] ?? null)
-                    ? ($dados['valor_original'][0] ?? null)
-                    : ($dados['valor_original'] ?? null);
-
-                $vencimentoOriginal = is_array($dados['vencimento_original'] ?? null)
-                    ? ($dados['vencimento_original'][0] ?? null)
-                    : ($dados['vencimento_original'] ?? null);
-
-                DelinquenciesItem::updateOrCreate(
-                    [
-                        'CONTRATO_ID'      => $delinquencies->CONTRATO_ID,
-                        'INADIMPLENCIA_ID' => $id,
-                        'TIPO_CONTA'       => mb_convert_encoding($tipoFormatado, 'ISO-8859-1'),
-                    ],
-                    [
-                        'VALOR_ORIGINAL'      => $valorOriginal,
-                        'VENCIMENTO_ORIGINAL' => $vencimentoOriginal,
-                        'OBSERVACAO'          => '',
-                        'ID_IMOBILIARIA'      => $delinquencies->ID_IMOBILIARIA,
-                    ]
-                );
-            }
+       if (! empty($request->input('novasContas'))) {
+    foreach ($request->input('novasContas') as $tipo => $dados) {
+        if ($tipo === 'conta') {
+            continue; // ignora a lista de tipos
         }
+
+        $tipoFormatado = match ($tipo) {
+            'agua'            => 'Água',
+            'luz'             => 'Luz',
+            'gas'             => 'Gás',
+            'iptu'            => 'IPTU',
+            'condominio'      => 'Condomínio',
+            'seguro'          => 'Seguro',
+            'seguro_incendio' => 'Seguro incêndio',
+            default           => ucfirst((string) $tipo),
+        };
+
+        $valores      = $dados['valor_original'] ?? [];
+        $vencimentos  = $dados['vencimento_original'] ?? [];
+
+        foreach ($valores as $i => $valorOriginal) {
+            if (empty($valorOriginal)) {
+                continue; // ignora valores nulos/vazios
+            }
+
+            $vencimentoOriginal = $vencimentos[$i] ?? null;
+
+            DelinquenciesItem::updateOrCreate(
+                [
+                    'CONTRATO_ID'        => $delinquencies->CONTRATO_ID,
+                    'INADIMPLENCIA_ID'   => $id,
+                    'TIPO_CONTA'         => mb_convert_encoding($tipoFormatado, 'ISO-8859-1'),
+                    'VENCIMENTO_ORIGINAL'=> $vencimentoOriginal,
+                ],
+                [
+                    'VALOR_ORIGINAL'     => $valorOriginal,
+                    'OBSERVACAO'         => '',
+                    'ID_IMOBILIARIA'     => $delinquencies->ID_IMOBILIARIA,
+                ]
+            );
+        }
+    }
+}
 
         return response()->json(
             new DelinquenciesResource($delinquencies),

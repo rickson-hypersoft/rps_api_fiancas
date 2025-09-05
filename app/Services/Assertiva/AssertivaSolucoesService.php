@@ -77,38 +77,6 @@ class AssertivaSolucoesService
 
         $return = $response->json();
 
-        /*
-        $return = [
-            'cabecalho' => [
-                'dataHora'       => now()->format('d/m/Y H:i:s'),
-                'produto'        => 'Assertiva Score',
-                'funcionalidade' => 'Score Completo Sem Ações - Pessoa Física',
-                'protocolo'      => 'b4eefe6b-c77b-485a-8d2b-7059f84debeb',
-            ],
-            'resposta' => [
-                'score' => [
-                    'classe' => 'B',
-                    'faixa'  => [
-                        'titulo'    => 'Médio baixo risco',
-                        'descricao' => 'Consumidores com essa classificação de score apresentam 90% de chances de honrar seus compromissos nos próximos 6 meses.',
-                    ],
-                    'pontos' => 832,
-                ],
-                'rendaPresumida' => [
-                    'valor' => 3000,
-                ],
-                'faturamentoEstimado' => [
-                    'valor' => 0,
-                ],
-                'acors' => [
-                    'ultimaOcorrencia' => 0,
-                    'valorTotal'       => 0,
-                    'qtdAcoes'         => 0,
-                ],
-            ],
-        ];
-        */
-
         try {
             return response()->json($this->insertResponseReturnInTable($return, $document, $tipo_consulta));
         } catch (Exception $e) {
@@ -131,11 +99,11 @@ class AssertivaSolucoesService
                 'DATA'                  => $data->format('Y-m-d'),
                 'HORA'                  => $hora->format('H:i:s'),
                 'PRODUTO'               => $returnResponse['cabecalho']['produto'],
-                'FUNCIONALIDADE'        => $returnResponse['cabecalho']['funcionalidade'],
+                'FUNCIONALIDADE'        => utf8_decode($returnResponse['cabecalho']['funcionalidade']),
                 'PROTOCOLO'             => $returnResponse['cabecalho']['protocolo'],
                 'SCORE_CLASSE'          => $returnResponse['resposta']['score']['classe'],
-                'SCORE_FAIXA_TITULO'    => $returnResponse['resposta']['score']['faixa']['titulo'],
-                'SCORE_FAIXA_DESCRICAO' => $returnResponse['resposta']['score']['faixa']['descricao'],
+                'SCORE_FAIXA_TITULO'    => utf8_decode($returnResponse['resposta']['score']['faixa']['titulo']),
+                'SCORE_FAIXA_DESCRICAO' => utf8_decode($returnResponse['resposta']['score']['faixa']['descricao']),
                 'SCORE_PONTOS'          => $returnResponse['resposta']['score']['pontos'],
                 'RENDA_PRESUMIDA'       => $returnResponse['resposta']['rendaPresumida']['valor'] ?? 0,
                 'EXPIRA_EM'             => $data->addDays(7)->format('Y-m-d'),
