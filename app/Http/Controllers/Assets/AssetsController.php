@@ -172,4 +172,17 @@ class AssetsController extends Controller
             'path'    => $path,
         ]);
     }
+
+   public function download($link)
+    {
+        $filePath = 'termos/' . $link . '.pdf'; // caminho correto dentro do disco 'public'
+
+        // Checa se existe
+        if (!Storage::disk('public')->exists($filePath)) {
+            return response()->json(['message' => 'Arquivo não encontrado.'], 404);
+        }
+
+        // Retorna o arquivo para download
+        return Storage::disk('public')->download($filePath);
+    }
 }

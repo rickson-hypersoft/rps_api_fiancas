@@ -168,7 +168,7 @@ class AssertivaSolucoesService
             ->get($url);
 
         if ($response->failed()) {
-            throw new Exception('Erro ao consulta Link Assertiva: ' . $response->body());
+            throw new Exception('Erro ao consulta Link Assertiva: ' . $response->body() . $protocolo);
         }
 
         return $response->json();

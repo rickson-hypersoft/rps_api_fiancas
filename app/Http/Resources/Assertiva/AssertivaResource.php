@@ -41,7 +41,7 @@ class AssertivaResource extends JsonResource
             'tipo_consulta'         => $this->TIPO_CONSULTA,
             'acoes_ult_ocorrencia'  => $this->ACOES_ULT_OCORRENCIA,
             'acoes_valor_total'     => $this->ACOES_VALOR_TOTAL,
-            'acoes_qtd'             => $this->acoes_qtd,
+            'acoes_qtd'             => $this->ACOES_QTD,
         ];
     }
 }

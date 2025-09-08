@@ -19,6 +19,7 @@ use App\Http\Controllers\RealEstateSectorController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WhatsAppController;
 use Illuminate\Support\Facades\Route;
+use Twilio\Rest\Serverless\V1\Service\AssetContext;
 
 Route::post('login', [AuthController::class, 'login']);
 
@@ -243,4 +244,6 @@ Route::middleware(['api.auth'])->group(function (): void {
         Route::put('/{id}', [DelinquenciesController::class, 'update']);
         Route::delete('{id}', [DelinquenciesController::class, 'destroy']);
     });
+
+    Route::get('/download/{linkHash}', [AssetsController::class, 'download']);
 });

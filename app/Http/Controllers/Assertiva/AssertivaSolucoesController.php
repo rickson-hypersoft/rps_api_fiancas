@@ -52,15 +52,31 @@ class AssertivaSolucoesController extends Controller
                 'dados' => $propostal,
             ]);
 
-            $linkFacial = $this->assertivaService->getLink($propostal);
+            $maxAttempts = 10;
+$attempt = 0;
+$linkFacial = null;
 
-            \Log::info('Facial', [
-                'dados' => $linkFacial,
-            ]);
+while ($attempt < $maxAttempts) {
+    $attempt++;
+    $linkFacial = $this->assertivaService->getLink($propostal);
 
-            $propostal->update([
-                'LINK_FACIAL' => $linkFacial['data']['url'],
-            ]);
+    if (isset($linkFacial['status']) && $linkFacial['status'] === true && isset($linkFacial['data']['url'])) {
+        break; // link pronto
+    }
+
+    sleep(2);
+}
+
+if (!isset($linkFacial['data']['url'])) {
+    \Log::warning("Link ainda não disponível para proposta {$propostal->ID}");
+    return response()->json([
+        'error' => 'Link facial ainda não disponível, tente novamente mais tarde.',
+    ], 202);
+}
+
+$propostal->update([
+    'LINK_FACIAL' => $linkFacial['data']['url'],
+]);
 
             \Log::info('Proposta 2', [
                 'dados' => $propostal,
