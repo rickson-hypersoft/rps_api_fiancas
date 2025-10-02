@@ -35,15 +35,15 @@ class HomeController extends Controller
         // ---------- CONTRATOS ----------
         $contratosQuery = DB::table('PROPOSTAS')
             ->selectRaw("
-            CASE
-                WHEN CONTRATO_STATUS = 'Ativo' AND ANX_CONTRATO = 1 AND ANX_VISTORIA = 1 AND ANX_APOLICE = 1 THEN 'Ativo'
-                WHEN CONTRATO_STATUS = 'Ativo' AND (ANX_CONTRATO = 0 OR ANX_VISTORIA = 0 OR ANX_APOLICE = 0) THEN 'Pendente'
-                WHEN PROPOSTA_STATUS = 'Reprovada' THEN 'Em renovação'
-                WHEN PROPOSTA_STATUS IN ('Pendentes', 'Rascunho') THEN 'Cancelado'
-                ELSE 'Outro'
-            END AS CONTRATO_STATUS,
-            COUNT(*) AS total
-        ");
+        CASE
+            WHEN CONTRATO_STATUS = 'Ativo' THEN 'Ativo'
+            WHEN CONTRATO_STATUS LIKE 'Pendente%' THEN 'Pendente'
+            WHEN CONTRATO_STATUS = 'Reprovada' THEN 'Em renovação'
+            WHEN CONTRATO_STATUS = 'Cancelado' THEN 'Cancelado'
+            ELSE 'Outro'
+        END AS CONTRATO_STATUS,
+        COUNT(*) AS total
+    ");
 
         if ($idImobiliaria !== '' && $idImobiliaria !== '0' && $idImobiliaria !== 0 && $idImobiliaria !== null) {
             $contratosQuery->where('ID_IMOBILIARIA', $idImobiliaria);

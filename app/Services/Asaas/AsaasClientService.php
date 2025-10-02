@@ -42,6 +42,16 @@ class AsaasClientService
         return Http::withHeaders($this->headers())->get("$this->url/payments/$id")->json();
     }
 
+    public function cancelPayment(string $id): array
+    {
+        return Http::withHeaders($this->headers())->delete("$this->url/payments/$id")->json();
+    }
+
+    public function getInstallmentId(string $id): array
+    {
+        return Http::withHeaders($this->headers())->get("$this->url/installments/$id/payments")->json();
+    }
+
     public function updatePayment(string $id, array $data): array
     {
         return Http::withHeaders($this->headers())->put("$this->url/payments/$id", $data)->json();

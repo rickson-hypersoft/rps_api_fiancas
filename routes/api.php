@@ -19,7 +19,6 @@ use App\Http\Controllers\RealEstateSectorController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WhatsAppController;
 use Illuminate\Support\Facades\Route;
-use Twilio\Rest\Serverless\V1\Service\AssetContext;
 
 Route::post('login', [AuthController::class, 'login']);
 
@@ -199,11 +198,13 @@ Route::middleware(['api.auth'])->group(function (): void {
     Route::post('/history/create', [HistoryController::class, 'store']);
     Route::get('/histories/{id_movi}', [HistoryController::class, 'index']);
 
+    Route::put('/canceled/{idContrato}', [AssetsController::class, 'cancelarContrato']);
     // Contratos
     Route::prefix('assets')->group(function (): void {
         Route::get('/{idIMobiliaria}', [AssetsController::class, 'index']);
         Route::get('/{idIMobiliaria}/{idContrato}', [AssetsController::class, 'findAsset']);
     });
+    Route::get('/payments/{idContrato}', [AssetsController::class, 'getPagamentos']);
 
     // Route::get('/assetsHome/{idImobiliaria}', [AssetsController::class, 'index']);
 

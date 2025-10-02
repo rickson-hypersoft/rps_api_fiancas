@@ -112,8 +112,9 @@ class FinancialMoviController extends Controller
             ], 422);
         }
 
-        $financialMoviData = $validator->validated();
-        $financialMoviData = $this->convertIsoAndTransformUpperCase($financialMoviData);
+        $financialMoviData          = $validator->validated();
+        $financialMoviData['valor'] = number_format($financialMoviData['valor'], 2, '.', '');
+        $financialMoviData          = $this->convertIsoAndTransformUpperCase($financialMoviData);
 
         $financialMovi = FinancialMovi::create($financialMoviData);
 

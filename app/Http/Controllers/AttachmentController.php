@@ -126,7 +126,7 @@ class AttachmentController extends Controller
         $attachments = Attachment::where('ID_IMOBILIARIA', $request->id_imobiliaria)
             ->where('ID_MOVI', $request->id_movi)
             ->whereRaw('LOWER(MOVI) = ?', [strtolower($request->movi ?? 'contratos')])
-            ->whereRaw('MOVI_SUB = ?', utf8_decode($request->movi_sub))
+            ->whereRaw('MOVI_SUB = ?', mb_convert_encoding($request->movi_sub, 'ISO-8859-1'))
             ->get(['ID', 'ID_IMOBILIARIA', 'ID_MOVI', 'NOME_ARQUIVO', 'NOME_ARQUIVO_ORIGINAL', 'MOVI_SUB', 'DATA', 'DESCRICAO', 'MOVI']);
 
         $anexos = AttachamentResource::collection($attachments);

@@ -99,11 +99,11 @@ class AssertivaSolucoesService
                 'DATA'                  => $data->format('Y-m-d'),
                 'HORA'                  => $hora->format('H:i:s'),
                 'PRODUTO'               => $returnResponse['cabecalho']['produto'],
-                'FUNCIONALIDADE'        => utf8_decode($returnResponse['cabecalho']['funcionalidade']),
+                'FUNCIONALIDADE'        => mb_convert_encoding((string) $returnResponse['cabecalho']['funcionalidade'], 'ISO-8859-1'),
                 'PROTOCOLO'             => $returnResponse['cabecalho']['protocolo'],
                 'SCORE_CLASSE'          => $returnResponse['resposta']['score']['classe'],
-                'SCORE_FAIXA_TITULO'    => utf8_decode($returnResponse['resposta']['score']['faixa']['titulo']),
-                'SCORE_FAIXA_DESCRICAO' => utf8_decode($returnResponse['resposta']['score']['faixa']['descricao']),
+                'SCORE_FAIXA_TITULO'    => mb_convert_encoding((string) $returnResponse['resposta']['score']['faixa']['titulo'], 'ISO-8859-1'),
+                'SCORE_FAIXA_DESCRICAO' => mb_convert_encoding((string) $returnResponse['resposta']['score']['faixa']['descricao'], 'ISO-8859-1'),
                 'SCORE_PONTOS'          => $returnResponse['resposta']['score']['pontos'],
                 'RENDA_PRESUMIDA'       => $returnResponse['resposta']['rendaPresumida']['valor'] ?? 0,
                 'EXPIRA_EM'             => $data->addDays(7)->format('Y-m-d'),
@@ -176,6 +176,8 @@ class AssertivaSolucoesService
 
     private function getBodyCreateSignature($userData, $chave): array
     {
+        $userName = mb_convert_encoding((string) $userData->PESSOA_NOME, 'ISO-8859-1');
+
         return [
             "anexosGlobais" => [
                 "anexosFluxo" => [],
@@ -188,7 +190,7 @@ class AssertivaSolucoesService
                     "campos"   => [
                         [
                             "id"    => "e99a9d68-1026-4830-912e-677906b0e8a3",
-                            "valor" => "{$userData->PESSOA_NOME}",
+                            "valor" => "{$userName}",
                         ],
                         [
                             "id"    => "88cf8dea-0308-4ecf-b79a-0e69e987afdd",
