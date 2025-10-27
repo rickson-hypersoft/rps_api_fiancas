@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Services\Assertiva;
 
+use App\Http\Controllers\WhatsAppController;
 use App\Http\Resources\Assertiva\AssertivaResource;
 use App\Models\History;
 use App\Models\Propostal\Propostal;
@@ -314,7 +315,7 @@ class AssertivaSolucoesService
 
                     History::create($historyData);
 
-                    $linkPagamento = "https://invicta.kinghost.net/fianca_front/ativacao/login/" . $proposta->LINK_HASH;
+                    $linkPagamento = "https://www.invictafiancas.com.br/fianca/ativacao/login/" . $proposta->LINK_HASH;
                     $mensagem      = "Parabéns! Sua validação facial foi aprovada. Para prosseguir, acesse o link de pagamento:\n$linkPagamento";
 
                     // $linkPagamento = "http://localhost:8001/ativacao/login/" . $proposta->LINK_HASH;
@@ -326,11 +327,15 @@ class AssertivaSolucoesService
 
                     $numero = '+55' . $proposta->PESSOA_TELEFONE;
 
-                    $whatsApp = new WhatsAppService();
-                    $sent     = $whatsApp->sendMessage(
-                        $numero,
-                        $mensagem
-                    );
+                    $whatsAppService = new WhatsAppService();
+                    $whatsapp = new WhatsAppController($whatsAppService);
+                   $request = new \Illuminate\Http\Request([
+                        'to' => $numero,
+                        'media_url' => null,
+                        'data' => [],
+                    ]);
+
+                    $sent = $whatsapp->sendMessageByType($request, 'pagamento_inicial', $linkPagamento);
 
                     if ($sent) {
                         Log::info("WhatsApp enviado para proposta {$proposta->ID}");

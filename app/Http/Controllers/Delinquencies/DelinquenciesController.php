@@ -10,6 +10,7 @@ use App\Http\Resources\AttachamentResource;
 use App\Http\Resources\DelinquenciesAndPropostalResource;
 use App\Http\Resources\DelinquenciesResource;
 use App\Http\Resources\DelinquenciesResourceAttachment;
+use App\Http\Resources\Propostal\PropostalIndexResource;
 use App\Http\Resources\Propostal\PropostalResource;
 use App\Models\Attachment;
 use App\Models\Delinquencies;
@@ -211,7 +212,7 @@ class DelinquenciesController extends Controller
         $propostal = Propostal::where('ID', $delinquency->CONTRATO_ID)->first();
 
         return response()->json([
-            'propostal'     => new PropostalResource($propostal),
+            'propostal'     => new PropostalIndexResource($propostal),
             'delinquencies' => DelinquenciesResourceAttachment::collection($delinquencies),
         ]);
     }

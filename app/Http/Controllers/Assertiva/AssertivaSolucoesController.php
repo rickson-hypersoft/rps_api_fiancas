@@ -54,18 +54,18 @@ class AssertivaSolucoesController extends Controller
 
             $maxAttempts = 10;
             $attempt     = 0;
-            $linkFacial  = null;
+            // $linkFacial  = null;
+            $linkFacial = $this->assertivaService->getLink($propostal);
 
-            while ($attempt < $maxAttempts) {
-                $attempt++;
-                $linkFacial = $this->assertivaService->getLink($propostal);
+            // while ($attempt < $maxAttempts) {
+            //     $attempt++;
 
-                if (isset($linkFacial['status']) && $linkFacial['status'] === true && isset($linkFacial['data']['url'])) {
-                    break; // link pronto
-                }
+            //     if (isset($linkFacial['status']) && $linkFacial['status'] === true && isset($linkFacial['data']['url'])) {
+            //         break; // link pronto
+            //     }
 
-                sleep(2);
-            }
+            //     sleep(2);
+            // }
 
             if (! isset($linkFacial['data']['url'])) {
                 \Log::warning("Link ainda não disponível para proposta {$propostal->ID}");

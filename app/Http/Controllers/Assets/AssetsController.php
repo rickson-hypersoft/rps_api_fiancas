@@ -197,8 +197,8 @@ class AssetsController extends Controller
 
         $asset->update([
             'CONTRATO_STATUS'      => 'Cancelado',
-            'MOTIVO_CANCELAMENTO'  => $request->input('motivo_rescisao'),
-            'DETALHE_CANCELAMENTO' => $request->input('detalhe'),
+            'MOTIVO_CANCELAMENTO'  => utf8_decode($request->input('motivo_rescisao')),
+            'DETALHE_CANCELAMENTO' => utf8_decode($request->input('detalhe')),
             'DATA_CANCELAMENTO'    => now(),
             'DATA_ENTREGA_CHAVE'   => $request->input('data_entrega'),
         ]);

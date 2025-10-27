@@ -1,9 +1,10 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Models\Delinquencies;
 use App\Models\Propostal\Propostal;
 use App\Models\RealEstateSector;
 use App\Services\WhatsAppService;
@@ -18,9 +19,9 @@ class WhatsAppController extends Controller
     }
 
     /**
-     * Envia uma ou mais mensagens de WhatsApp com base em um tipo predefinido.
+     * Envia uma mensagem de WhatsApp com base em um tipo predefinido.
      *
-     * @param string $messageType O tipo de mensagem a ser enviada (ex: 'welcome', 'proposta').
+     * @param string $messageType
      * @return \Illuminate\Http\JsonResponse
      */
     public function sendMessageByType(Request $request, string $messageType, string $linkHash)
@@ -48,88 +49,181 @@ class WhatsAppController extends Controller
         $mediaUrl = $request->input('media_url');
         $data     = $request->input('data', []);
 
+        // Recupera o conteúdo da mensagem (ou dados para template)
         $messages = $this->getMessageContent($messageType, $linkHash, $data);
 
-        if ($messages === [] || ($messages === '' || $messages === '0') || $messages === null) {
+        if ($messages === null) {
             return response()->json([
                 'message' => "Tipo de mensagem '$messageType' inválido ou sem conteúdo configurado.",
             ], 400);
         }
 
-        // Garante que $messages seja sempre um array para que o foreach funcione corretamente
-        if (! is_array($messages)) {
+        // 🔹 Caso especial: se for “proposta”, envia template diretamente
+        if ($messageType === 'proposta') {
+            $templateSid = 'HXc07f067606e2063e65dcbadef61e0938'; // <-- seu template aprovado no Twilio
+
+            $sent = $this->whatsAppService->sendTemplateMessage(
+                $to,
+                $templateSid,
+                $messages // aqui “$messages” já são as variáveis do template
+            );
+
+            return $sent
+                ? response()->json(['message' => 'Template enviado com sucesso!'], 200)
+                : response()->json(['message' => 'Falha ao enviar template. Verifique os logs.'], 500);
+        }
+
+        if ($messageType === 'proposta_inicial') {
+            $templateSid = 'HXc4b0f8d7cf4e0b6ebaba646d12f006ce'; // <-- seu template aprovado no Twilio
+
+            $sent = $this->whatsAppService->sendTemplateMessage(
+                $to,
+                $templateSid,
+                $messages // aqui “$messages” já são as variáveis do template
+            );
+
+            return $sent
+                ? response()->json(['message' => 'Template enviado com sucesso!'], 200)
+                : response()->json(['message' => 'Falha ao enviar template. Verifique os logs.'], 500);
+        }
+
+         if ($messageType === 'pagamento_inicial') {
+            $templateSid = 'HX6984983bfe4eb2f67e5ce3176bdcda94'; // <-- seu template aprovado no Twilio
+
+            $sent = $this->whatsAppService->sendTemplateMessage(
+                $to,
+                $templateSid,
+                $messages // aqui “$messages” já são as variáveis do template
+            );
+
+            return $sent
+                ? response()->json(['message' => 'Template enviado com sucesso!'], 200)
+                : response()->json(['message' => 'Falha ao enviar template. Verifique os logs.'], 500);
+        }
+
+        if ($messageType === 'abertura_inadimplencia') {
+            $templateSid = 'HX46bd1629a8dc071078d87bb3a0bff6e4'; // <-- seu template aprovado no Twilio
+
+            $sent = $this->whatsAppService->sendTemplateMessage(
+                $to,
+                $templateSid,
+                $messages // aqui “$messages” já são as variáveis do template
+            );
+
+            return $sent
+                ? response()->json(['message' => 'Template enviado com sucesso!'], 200)
+                : response()->json(['message' => 'Falha ao enviar template. Verifique os logs.'], 500);
+        }
+
+        // 🔹 Caso seja outro tipo (ex: welcome, custom)
+        if (!is_array($messages)) {
             $messages = [$messages];
         }
 
-        $allSent      = true;
-        $messageIndex = 0; // Adiciona um contador para controlar a iteração
+        $allSent = true;
+        $messageIndex = 0;
 
         foreach ($messages as $msgContent) {
             $sent = false;
 
-            // A mídia (mediaUrl) será enviada apenas com a primeira mensagem
             if ($mediaUrl && $messageIndex === 0) {
                 $sent = $this->whatsAppService->sendMediaMessage($to, $mediaUrl, $msgContent);
             } else {
-                // Se estiver usando o Job (RECOMENDADO para assíncrono):
-                // \App\Jobs\SendWhatsAppMessageJob::dispatch($to, $msgContent);
                 $sent = $this->whatsAppService->sendMessage($to, $msgContent);
             }
 
-            if (! $sent) {
+            if (!$sent) {
                 $allSent = false;
-                Log::error("Falha ao enviar uma das mensagens do tipo '$messageType' para $to. Conteúdo: " . $msgContent);
-
-                break; // Parar se uma falha ocorrer
+                Log::error("Falha ao enviar mensagem '$messageType' para $to. Conteúdo: " . $msgContent);
+                break;
             }
-            $messageIndex++; // Incrementa o contador
+
+            $messageIndex++;
         }
 
-        if ($allSent) {
-            // Se estiver usando Jobs, a resposta seria 202 Accepted.
-            // return response()->json(['message' => 'Mensagem(ns) agendada(s) para envio.'], 202);
-            return response()->json(['message' => 'Mensagem(ns) enviada(s) com sucesso!'], 200);
-        }
-
-        return response()->json(['message' => 'Falha ao enviar uma ou mais mensagens. Verifique os logs do servidor.'], 500);
+        return $allSent
+            ? response()->json(['message' => 'Mensagem(ns) enviada(s) com sucesso!'], 200)
+            : response()->json(['message' => 'Falha ao enviar uma ou mais mensagens.'], 500);
     }
 
-    protected function getMessageContent(string $messageType, string $linkHash, array $data = []): string | array | null
+    /**
+     * Monta o conteúdo da mensagem ou dados do template.
+     */
+    protected function getMessageContent(string $messageType, string $linkHash, array $data = []): string|array|null
     {
-        $propostal = Propostal::where('LINK_HASH', '=', $linkHash)->firstOrFail();
+        $propostal = Propostal::where('LINK_HASH', '=', $linkHash)->first();
+        $inadimplencia = Delinquencies::where('CONTRATO_ID', '=', $propostal->ID)->first();
+
+        if (!$propostal) {
+            return null;
+        }
 
         switch ($messageType) {
             case 'welcome':
                 $name = $data['name'] ?? 'cliente';
-
                 return "Bem-vindo(a), $name! Agradecemos por se cadastrar em nossa plataforma.";
 
             case 'proposta':
-                $nomeCompleto    = $propostal->PESSOA_NOME ?? 'Cliente';
-                $linkContrato    = "http://localhost:8001/ativacao/{$propostal->LINK_FACIAL}" ?? '#';
-                $imobiliaria     = $propostal->ID_IMOBILIARIA ?? 'A imobiliária';
-                $imobiliariaInfo = RealEstateSector::where('ID', '=', $imobiliaria)->firstOrFail();
-                $nomeImobiliaria = $imobiliariaInfo['RAZAO'];
+                $imobiliariaInfo = RealEstateSector::where('ID', '=', $propostal->ID_IMOBILIARIA)->first();
+                $nomeCompleto = $propostal->PESSOA_NOME ?? 'Cliente';
+                $nomeImobiliaria = $imobiliariaInfo['RAZAO'] ?? 'A imobiliária';
+                $enderecoLocacao = "{$propostal->IMOVEL_ENDERECO}, {$propostal->IMOVEL_BAIRRO}, {$propostal->IMOVEL_NUMERO}, {$propostal->IMOVEL_CIDADE} - {$propostal->IMOVEL_ESTADO}" ?? 'Endereço não informado';
+                $telefone = $propostal->PESSOA_TELEFONE ?? 'não informado';
+                $email = $propostal->PESSOA_EMAIL ?? 'não informado';
 
-                $enderecoLocacao = "{$propostal->IMOVEL_ENDERECO}, {$propostal->IMOVEL_BAIRRO}, {$propostal->IMOVEL_NUMERO}, {$propostal->IMOVEL_CIDADE} - {$propostal->IMOVEL_ESTADO}" ?? 'endereço não informado';
-                $telefone        = $propostal->PESSOA_TELEFONE ?? 'não informado';
-                $email           = $propostal->PESSOA_EMAIL ?? 'não informado';
+                // 🔹 Retorna apenas variáveis para o template do Twilio
+                return [
+                    "1" => $nomeCompleto,
+                    "2" => $nomeImobiliaria,
+                    "3" => $enderecoLocacao,
+                    "4" => $nomeCompleto,
+                    "5" => $telefone,
+                    "6" => $email,
+                ];
 
-                $message1 = "Olá $nomeCompleto, Parabéns!! Falta pouco para ativar seu contrato da Invicta.\n\nPara finalizar a contratação dos serviços e alugar sem burocracia, acesse o link abaixo:\n$linkContrato";
+            case 'proposta_inicial':
+                $nomeCompleto = $propostal->PESSOA_NOME;
+                $linkAtivacao = $propostal->LINK_FACIAL;
 
-                $message2 = "Olá $nomeCompleto\n\n" .
-                    "Somos a Invicta empresa de garantia de fiança para locação.\n\n" .
-                    "$nomeImobiliaria encaminhou seus dados para análise e sua solicitação foi aprovada!\n\n" .
-                    "Para prosseguir, confirme os dados abaixo:\n\n" .
-                    "Endereço para locação: $enderecoLocacao\n" .
-                    "Nome completo: $nomeCompleto\n" .
-                    "Telefone: $telefone\n" .
-                    "E-mail: $email\n\n" .
-                    "Se estiver correto, clique em 'sim'. Caso contrário, clique em 'não' e forneça os dados corretos.\n\n" .
-                    "Um abraço,\n" .
-                    "Time Loft Fiança";
+                // 🔹 Retorna apenas variáveis para o template do Twilio
+                return [
+                    "1" => $nomeCompleto,
+                    "2" => $linkAtivacao,
+                ];
 
-                return [$message1, $message2];
+            case 'pagamento_inicial':
+                $nomeCompleto = $propostal->PESSOA_NOME;
+                $linkAtivacao = $propostal->LINK_FACIAL;
+
+                // 🔹 Retorna apenas variáveis para o template do Twilio
+                return [
+                    "1" => $nomeCompleto,
+                    "2" => $linkAtivacao,
+                ];
+
+         case 'abertura_inadimplencia':
+            $nomeCompleto = $propostal->PESSOA_NOME;
+            $valorOriginal = $inadimplencia->VALOR_ORIGINAL;
+            $vencimentoOriginal = $inadimplencia->VENCIMENTO_ORIGINAL;
+            $tipoInadimplencia = $inadimplencia->TIPO_CONTA;
+
+            // 🔹 Converte o valor para float antes de formatar
+            $valorOriginalNumerico = floatval($valorOriginal);
+            $valorOriginalFormatado = 'R$ ' . number_format($valorOriginalNumerico, 2, ',', '.');
+
+            // 🔹 Formata a data para padrão brasileiro (d/m/Y)
+            $vencimentoOriginalFormatado = '';
+            if (!empty($vencimentoOriginal)) {
+                $vencimentoOriginalFormatado = date('d/m/Y', strtotime($vencimentoOriginal));
+            }
+
+            // 🔹 Retorna variáveis para o template do Twilio
+            return [
+                "1" => $nomeCompleto,
+                "2" => $valorOriginalFormatado,
+                "3" => $vencimentoOriginalFormatado,
+                "4" => utf8_encode($tipoInadimplencia),
+            ];
 
             case 'custom':
                 return $data['message'] ?? null;
