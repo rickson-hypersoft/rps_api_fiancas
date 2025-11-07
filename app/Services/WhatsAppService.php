@@ -105,25 +105,26 @@ class WhatsAppService
     }
 
     // Você pode adicionar outros métodos aqui, como enviar templates, etc.
-   public function sendTemplateMessage(string $to, string $templateSid, array $variables = []): bool
-{
-    if (!str_starts_with($to, 'whatsapp:')) {
-        $to = 'whatsapp:' . $to;
+    public function sendTemplateMessage(string $to, string $templateSid, array $variables = []): bool
+    {
+        if (! str_starts_with($to, 'whatsapp:')) {
+            $to = 'whatsapp:' . $to;
+        }
+
+        try {
+            $this->twilioClient->messages->create($to, [
+                'from'             => $this->fromWhatsAppNumber,
+                'contentSid'       => $templateSid,
+                'contentVariables' => json_encode($variables),
+            ]);
+
+            Log::info("Template WhatsApp enviado para {$to}");
+
+            return true;
+        } catch (Exception $e) {
+            Log::error("Erro ao enviar template WhatsApp para {$to}: " . $e->getMessage());
+
+            return false;
+        }
     }
-
-    try {
-        $this->twilioClient->messages->create($to, [
-            'from' => $this->fromWhatsAppNumber,
-            'contentSid' => $templateSid,
-            'contentVariables' => json_encode($variables),
-        ]);
-
-        Log::info("Template WhatsApp enviado para {$to}");
-        return true;
-    } catch (\Exception $e) {
-        Log::error("Erro ao enviar template WhatsApp para {$to}: " . $e->getMessage());
-        return false;
-    }
-}
-
 }

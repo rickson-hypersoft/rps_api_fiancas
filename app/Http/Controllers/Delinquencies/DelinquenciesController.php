@@ -11,7 +11,6 @@ use App\Http\Resources\DelinquenciesAndPropostalResource;
 use App\Http\Resources\DelinquenciesResource;
 use App\Http\Resources\DelinquenciesResourceAttachment;
 use App\Http\Resources\Propostal\PropostalIndexResource;
-use App\Http\Resources\Propostal\PropostalResource;
 use App\Models\Attachment;
 use App\Models\Delinquencies;
 use App\Models\DelinquenciesItem;

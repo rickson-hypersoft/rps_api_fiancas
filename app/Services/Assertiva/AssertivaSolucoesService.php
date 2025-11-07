@@ -328,11 +328,11 @@ class AssertivaSolucoesService
                     $numero = '+55' . $proposta->PESSOA_TELEFONE;
 
                     $whatsAppService = new WhatsAppService();
-                    $whatsapp = new WhatsAppController($whatsAppService);
-                   $request = new \Illuminate\Http\Request([
-                        'to' => $numero,
+                    $whatsapp        = new WhatsAppController($whatsAppService);
+                    $request         = new \Illuminate\Http\Request([
+                        'to'        => $numero,
                         'media_url' => null,
-                        'data' => [],
+                        'data'      => [],
                     ]);
 
                     $sent = $whatsapp->sendMessageByType($request, 'pagamento_inicial', $linkPagamento);
