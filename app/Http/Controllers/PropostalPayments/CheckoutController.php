@@ -13,6 +13,7 @@ use App\Models\Propostal\PropostalPayments;
 use App\Services\Asaas\AsaasClientService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class CheckoutController extends Controller
@@ -95,6 +96,23 @@ class CheckoutController extends Controller
     {
         [$customerId, $propostal] = $this->initCheckout($request, $linkHash);
 
+        Log::info('Informações de iniciar o checkout: ', [$customerId, $propostal]);
+
+        $pagamentoRealizado = PropostalPayments::where('ID_USUARIO_INTEGRACAO', $customerId)
+            ->where('LINK_HASH', $linkHash)
+            ->where('METODO_PAGAMENTO', 'PIX')
+            ->where('STATUS', 'RECEIVED')
+            ->where('ATIVO', 1)
+            ->first();
+
+        if ($pagamentoRealizado) {
+            return response()->json([
+                'success'   => true,
+                'pago'      => true,
+                'pagamento' => $pagamentoRealizado,
+            ]);
+        }
+
         $pagamentoExistente = PropostalPayments::where('ID_USUARIO_INTEGRACAO', $customerId)
             ->where('LINK_HASH', $linkHash)
             ->where('METODO_PAGAMENTO', 'PIX')
@@ -102,6 +120,8 @@ class CheckoutController extends Controller
             ->where('ATIVO', 1)
             ->latest('DATA_VENCIMENTO')
             ->first();
+
+        Log::info('Pagamento existente: ', [$pagamentoExistente]);
 
         if ($pagamentoExistente) {
             // Já existe pagamento pendente — não cria novo, apenas retorna dados
@@ -113,13 +133,12 @@ class CheckoutController extends Controller
                 : null;
 
             return response()->json([
-                'success' => true,
-                'teste'   => 1,
-                // 'detalhe_pagamento' => $detailedResponses,
-                // 'id_pagamento'      => $pagamentoExistente->ID_PAGAMENTO_INTEGRACAO,
-                // 'proposta'          => new PropostalIndexResource($propostal),
-                // 'data_vencimento'   => $dataFormatada,
-                // 'reutilizado'       => true, // opcional para controle
+                'success'           => true,
+                'detalhe_pagamento' => $detailedResponses,
+                'id_pagamento'      => $pagamentoExistente->ID_PAGAMENTO_INTEGRACAO,
+                'proposta'          => new PropostalIndexResource($propostal),
+                'data_vencimento'   => $dataFormatada,
+                'reutilizado'       => true, // opcional para controle
             ]);
         }
 
@@ -133,6 +152,8 @@ class CheckoutController extends Controller
         ];
 
         $response = $this->asaasService->createPayment($payload);
+
+        Log::info('Pagamento existente: ', [$response]);
 
         if ($response['success'] && isset($response['data']['id'])) {
             $statusPagamento = $response['data']['status'] ?? null;
@@ -211,11 +232,11 @@ class CheckoutController extends Controller
 
         if (! empty($detailedResponses)) {
             return response()->json([
-                'success' => true,
-                'teste'   => 2,
-                // 'detalhe_pagamento' => $detailedResponses,
-                // 'id_pagamento'      => $response['data']['id'],
-                // 'proposta'          => new PropostalIndexResource($propostal),
+                'success'           => true,
+                'teste'             => 2,
+                'detalhe_pagamento' => $detailedResponses,
+                'id_pagamento'      => $response['data']['id'],
+                'proposta'          => new PropostalIndexResource($propostal),
                 // 'data_vencimento'   => $dataFormatada,
             ]);
         }
@@ -226,6 +247,21 @@ class CheckoutController extends Controller
     public function criarPagamentoBoleto(Request $request, string $linkHash)
     {
         [$customerId, $propostal] = $this->initCheckout($request, $linkHash);
+
+        $pagamentoRealizado = PropostalPayments::where('ID_USUARIO_INTEGRACAO', $customerId)
+            ->where('LINK_HASH', $linkHash)
+            ->where('METODO_PAGAMENTO', 'BOLETO')
+            ->where('STATUS', 'RECEIVED')
+            ->where('ATIVO', 1)
+            ->first();
+
+        if ($pagamentoRealizado) {
+            return response()->json([
+                'success'   => true,
+                'pago'      => true,
+                'pagamento' => $pagamentoRealizado,
+            ]);
+        }
 
         $pagamentoExistente = PropostalPayments::where('ID_USUARIO_INTEGRACAO', $customerId)
             ->where('LINK_HASH', $linkHash)

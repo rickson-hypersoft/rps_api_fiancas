@@ -10,7 +10,8 @@ class AsaasClientService
 {
     protected string $token;
 
-    protected string $url = 'https://api-sandbox.asaas.com/v3';
+    // protected string $url = 'https://api-sandbox.asaas.com/v3';
+    protected string $url = 'https://api.asaas.com/v3';
 
     public function __construct()
     {
