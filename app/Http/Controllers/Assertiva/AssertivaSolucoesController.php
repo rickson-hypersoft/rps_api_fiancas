@@ -4,12 +4,13 @@ declare(strict_types = 1);
 
 namespace App\Http\Controllers\Assertiva;
 
-use App\Http\Controllers\Controller;
-use App\Http\Resources\Propostal\PropostalIndexResource;
-use App\Models\Propostal\Propostal;
-use App\Services\Assertiva\AssertivaSolucoesService;
 use Exception;
 use Illuminate\Http\Request;
+use App\Models\Propostal\Propostal;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
+use App\Services\Assertiva\AssertivaSolucoesService;
+use App\Http\Resources\Propostal\PropostalIndexResource;
 
 class AssertivaSolucoesController extends Controller
 {
@@ -109,5 +110,65 @@ class AssertivaSolucoesController extends Controller
                 'error' => 'Erro interno na comunicação com a Assertiva.',
             ], 400);
         }
+    }
+
+    public function aprovarFacial($propostalId)
+    {
+        $propostal = Propostal::where('ID', '=', $propostalId)->first();
+        $parteId   = $propostal->PARTE_ID;
+
+        $dataReturn = $this->assertivaService->aprovarFacial($parteId);
+
+        Log::info('Aprovar Facial', [
+            'dados' => $dataReturn,
+        ]);
+
+        if ($dataReturn['success']) {
+            $propostal->update([
+                'FACIAL_SCORE_TOTAL' => null,
+                'FACIAL_MATCHES'     => null,
+            ]);
+
+            return response()->json([
+                'success'  => true,
+                'mensagem' => 'Parte aprovada manualmente com sucesso!',
+            ]);
+        }
+
+        return response()->json(['error' => $dataReturn], 400);
+    }
+
+    public function reenviarLinkFacial($propostalId)
+    {
+        $propostal = Propostal::where('ID', '=', $propostalId)->first();
+        $parteId   = $propostal->PARTE_ID;
+
+        $dataReturn = $this->assertivaService->reenviarLinkFacial($parteId);
+
+        if ($dataReturn['success']) {
+            $linkFacial = $this->assertivaService->getLink($propostal);
+
+            if (! isset($linkFacial['data']['url'])) {
+                return response()->json([
+                    'error' => 'Link facial ainda não disponível, tente novamente mais tarde.',
+                ], 202);
+            }
+
+            $propostal->update([
+                'FACIAL_SCORE_TOTAL' => null,
+                'FACIAL_MATCHES'     => null,
+            ]);
+
+            return response()->json([
+                'success'  => true,
+                'mensagem' => 'Link para validação reenviada com sucesso!',
+            ]);
+        }
+
+        Log::info('Reenviar Link Facial', [
+            'dados' => $dataReturn,
+        ]);
+
+        return response()->json(['error' => $dataReturn['data']], 400);
     }
 }

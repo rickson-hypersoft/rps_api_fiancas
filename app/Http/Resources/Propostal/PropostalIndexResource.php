@@ -114,6 +114,8 @@ class PropostalIndexResource extends JsonResource
             'detalhe_cancelamento' => $this->toUtf8($this->DETALHE_CANCELAMENTO),
             'data_cancelamento'    => $this->DATA_CANCELAMENTO,
             'data_entrega_chave'   => $this->DATA_ENTREGA_CHAVE,
+            'facial_score_total'   => $this->FACIAL_SCORE_TOTAL,
+            'facial_matches'       => $this->FACIAL_MATCHES,
         ];
     }
 }

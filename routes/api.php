@@ -231,6 +231,8 @@ Route::middleware(['api.auth'])->group(function (): void {
     // Assertiva Soluções
     Route::get('/consultar-score', [AssertivaSolucoesController::class, 'check']);
     Route::get('/criar-assinatura/{propostalId}', [AssertivaSolucoesController::class, 'createSignatureAndGetLinkFacial']);
+    Route::get('/reenviar-link-facial/{id}', [AssertivaSolucoesController::class, 'reenviarLinkFacial']);
+    Route::get('/aprovar-facial/{id}', [AssertivaSolucoesController::class, 'aprovarFacial']);
 
     Route::prefix('delinquencies')->group(function (): void {
         // Rotas com imobiliária

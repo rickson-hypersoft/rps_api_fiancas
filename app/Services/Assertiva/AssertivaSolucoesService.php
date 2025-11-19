@@ -354,4 +354,55 @@ class AssertivaSolucoesService
 
         return response()->json(['message' => 'Processo de verificação facial concluído.']);
     }
+
+    public function aprovarFacial($parteId)
+    {
+        $token = $this->fetchAccessToken();
+
+        $url = 'https://api.assertivasolucoes.com.br/autentica/v1/jornadas/partes/aprovar';
+
+        $body = [
+            'parteId' => $parteId,
+        ];
+
+        $response = Http::withToken($token)
+            ->acceptJson()
+            ->put($url, $body);
+
+        if ($response->failed()) {
+            throw new Exception('Erro ao aprovar parte Assertiva: ' . $response->body());
+        }
+
+        return $response->json();
+    }
+
+    public function reenviarLinkFacial($parteId)
+    {
+        $token = $this->fetchAccessToken();
+        $url   = 'https://api.assertivasolucoes.com.br/autentica/v1/jornadas/partes/reenviar';
+
+        $body = [
+            'parteId' => $parteId,
+        ];
+
+        $response = Http::withToken($token)
+            ->acceptJson()
+            ->put($url, $body);
+
+        $json = $response->json();
+
+        if ($response->failed()) {
+            return [
+            'success' => false,
+            'data'    => $json,
+            'status'  => $response->status(),
+        ];
+        }
+
+         return [
+            'success' => true,
+            'data'    => $json,
+            'status'  => $response->status()
+         ];
+    }
 }
