@@ -144,6 +144,8 @@ class AssertivaSolucoesService
 
         $body = $this->getBodyCreateSignature($userData, $chaveUploadPDF);
 
+        \Log::info("Valor body:", [$body]);
+
         $url = "https://api.assertivasolucoes.com.br/autentica/v1/jornadas/pedidos";
 
         $response = Http::withToken($token)
@@ -178,6 +180,10 @@ class AssertivaSolucoesService
     private function getBodyCreateSignature($userData, $chave): array
     {
         $userName = mb_convert_encoding((string) $userData->PESSOA_NOME, 'ISO-8859-1');
+
+        \Log::info('getBodyCreateSignature', [
+            'dados' => $userData,
+        ]);
 
         return [
             "anexosGlobais" => [
@@ -376,7 +382,10 @@ class AssertivaSolucoesService
         return $response->json();
     }
 
-    public function reenviarLinkFacial($parteId)
+    /**
+     * @return mixed[]
+     */
+    public function reenviarLinkFacial($parteId): array
     {
         $token = $this->fetchAccessToken();
         $url   = 'https://api.assertivasolucoes.com.br/autentica/v1/jornadas/partes/reenviar';
@@ -393,16 +402,16 @@ class AssertivaSolucoesService
 
         if ($response->failed()) {
             return [
-            'success' => false,
+                'success' => false,
+                'data'    => $json,
+                'status'  => $response->status(),
+            ];
+        }
+
+        return [
+            'success' => true,
             'data'    => $json,
             'status'  => $response->status(),
         ];
-        }
-
-         return [
-            'success' => true,
-            'data'    => $json,
-            'status'  => $response->status()
-         ];
     }
 }

@@ -5,7 +5,9 @@ declare(strict_types = 1);
 namespace App\Http\Controllers\Financial;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\ExtractResource;
 use App\Http\Resources\Financial\FinancialMoviResource;
+use App\Models\Extract;
 use App\Models\FinancialMovi;
 use App\Services\Financial\FinancialMoviService;
 use Illuminate\Http\JsonResponse;
@@ -175,5 +177,68 @@ class FinancialMoviController extends Controller
             "success" => true,
             "message" => "Movimentação financeira deletada com sucesso.",
         ], 200);
+    }
+
+    public function getExtract(Request $request): JsonResponse
+    {
+        $baseQuery = Extract::query();
+
+        if ($request->filled('startDate')) {
+            $baseQuery->where('DATE', '>=', $request->get('startDate'));
+        }
+
+        if ($request->filled('finishDate')) {
+            $baseQuery->where('DATE', '<=', $request->get('finishDate'));
+        }
+
+        // ==========
+        // TOTAIS (não dependem do direction)
+        // ==========
+        $recebimentos = (float) (clone $baseQuery)
+            ->where('TYPE', '=', 'PAYMENT_RECEIVED')
+            ->sum('VALUE');
+
+        $taxas = (float) (clone $baseQuery)
+            ->where('TYPE', '=', 'PAYMENT_FEE')
+            ->sum('VALUE'); // vai vir negativo
+
+        $saldoTotal = $recebimentos + $taxas;
+
+        // ==========
+        // LISTAGEM (essa sim depende do direction)
+        // ==========
+        $listQuery = clone $baseQuery;
+
+        if ($request->get('direction') === 'received') {
+            $listQuery->where('TYPE', '=', 'PAYMENT_RECEIVED');
+        }
+
+        if ($request->get('direction') === 'fee') {
+            $listQuery->where('TYPE', '=', 'PAYMENT_FEE');
+        }
+
+        $listQuery->orderBy('DATE', 'desc');
+
+        $perPage = (int) $request->get('perPage', 20);
+        $perPage = max(1, min(100, $perPage));
+
+        $p = $listQuery->paginate($perPage);
+
+        return response()->json([
+            'totals' => [
+                'saldoTotal'   => $saldoTotal,
+                'recebimentos' => $recebimentos,
+                'taxas'        => $taxas,
+            ],
+            'data' => ExtractResource::collection($p->items()),
+            'meta' => [
+                'total'        => $p->total(),
+                'per_page'     => $p->perPage(),
+                'current_page' => $p->currentPage(),
+                'last_page'    => $p->lastPage(),
+                'from'         => $p->firstItem(),
+                'to'           => $p->lastItem(),
+            ],
+        ]);
     }
 }

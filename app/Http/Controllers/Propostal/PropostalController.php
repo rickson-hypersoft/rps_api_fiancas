@@ -56,7 +56,7 @@ class PropostalController extends Controller
 
     public function find(string | int $id): JsonResponse
     {
-        if (is_numeric($id)) {
+        if (ctype_digit((string) $id)) {
             $propostal = Propostal::where('ID', '=', $id)->firstOrFail();
         } else {
             $propostal = Propostal::where('LINK_HASH', '=', $id)->firstOrFail();

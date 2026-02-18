@@ -178,6 +178,7 @@ Route::middleware(['api.auth'])->group(function (): void {
     Route::post('/financial/financial_movi', [FinancialMoviController::class, 'store']);
     Route::put('/financial/financial_movi/{financial_movi}', [FinancialMoviController::class, 'update']);
     Route::delete('/financial/financial_movi/{financial_movi}', [FinancialMoviController::class, 'destroy']);
+    Route::get('/extract/financial_movi', [FinancialMoviController::class, 'getExtract']);
 
     Route::get('/attachment', [AttachmentController::class, 'index']);
     Route::get('/attachment/exists', [AttachmentController::class, 'exists']);
@@ -188,7 +189,6 @@ Route::middleware(['api.auth'])->group(function (): void {
 
     // Propostas
     Route::get('/propostals/{idRealEstateSector}', [PropostalController::class, 'index']);
-    Route::get('/propostal/{propostal}', [PropostalController::class, 'find']);
     Route::post('/propostal/create', [PropostalController::class, 'store']);
     Route::post('/propostal/canceled/{id}', [PropostalController::class, 'canceled']);
     Route::post('/propostal/hash/{id}', [PropostalController::class, 'hashLink']);
@@ -204,25 +204,8 @@ Route::middleware(['api.auth'])->group(function (): void {
         Route::get('/{idIMobiliaria}', [AssetsController::class, 'index']);
         Route::get('/{idIMobiliaria}/{idContrato}', [AssetsController::class, 'findAsset']);
     });
-    Route::get('/payments/{idContrato}', [AssetsController::class, 'getPagamentos']);
 
     // Route::get('/assetsHome/{idImobiliaria}', [AssetsController::class, 'index']);
-
-    Route::get('/activation/{id}/find', [AssetsController::class, 'findAsset']);
-    Route::get('/activation/{link_hash}', [AssetsController::class, 'find']);
-    Route::get('/activation/faceId/{link_hash}', [AssetsController::class, 'faceId']);
-    Route::get('/activation/term/{link_hash}', [AssetsController::class, 'markTermActive']);
-    Route::post('/activation/upload-term', [AssetsController::class, 'storeTerm']);
-
-    Route::prefix('checkout')->group(function (): void {
-        Route::post('/canceled/{paymentId}/{linkHash}', [CheckoutController::class, 'cancelarPagamento']);
-        Route::post('/pix/{linkHash}', [CheckoutController::class, 'criarPagamentoPix']);
-        Route::post('/boleto/{linkHash}', [CheckoutController::class, 'criarPagamentoBoleto']);
-        Route::post('/cartao/{linkHash}', [CheckoutController::class, 'criarPagamentoCartao']);
-
-        Route::get('/info/{id_payment}', [CheckoutController::class, 'recuperarPagamento']);
-    });
-
     Route::post('/enviar-whatsapp/{messageType}/{linkHash}', [WhatsAppController::class, 'sendMessageByType']);
 
     // Home
@@ -250,3 +233,22 @@ Route::middleware(['api.auth'])->group(function (): void {
 
     Route::get('/download/{linkHash}', [AssetsController::class, 'download']);
 });
+
+Route::get('/propostal/{propostal}', [PropostalController::class, 'find']);
+
+Route::get('/activation/{id}/find', [AssetsController::class, 'findAsset']);
+Route::get('/activation/{link_hash}', [AssetsController::class, 'find']);
+Route::get('/activation/faceId/{link_hash}', [AssetsController::class, 'faceId']);
+Route::get('/activation/term/{link_hash}', [AssetsController::class, 'markTermActive']);
+Route::post('/activation/upload-term', [AssetsController::class, 'storeTerm']);
+
+Route::prefix('checkout')->group(function (): void {
+    Route::post('/canceled/{paymentId}/{linkHash}', [CheckoutController::class, 'cancelarPagamento']);
+    Route::post('/pix/{linkHash}', [CheckoutController::class, 'criarPagamentoPix']);
+    Route::post('/boleto/{linkHash}', [CheckoutController::class, 'criarPagamentoBoleto']);
+    Route::post('/cartao/{linkHash}', [CheckoutController::class, 'criarPagamentoCartao']);
+
+    Route::get('/info/{id_payment}', [CheckoutController::class, 'recuperarPagamento']);
+});
+
+Route::get('/payments/{idContrato}', [AssetsController::class, 'getPagamentos']);

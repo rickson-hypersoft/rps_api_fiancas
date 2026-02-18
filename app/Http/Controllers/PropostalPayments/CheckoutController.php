@@ -15,6 +15,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class CheckoutController extends Controller
 {
@@ -47,7 +48,7 @@ class CheckoutController extends Controller
         ]);
     }
 
-    private function initCheckout(Request $request, string $linkHash)
+    private function initCheckout(Request $request, string $linkHash): array
     {
         $propostal = Propostal::where('LINK_HASH', $linkHash)->firstOrFail();
 
@@ -82,11 +83,8 @@ class CheckoutController extends Controller
             new AsaasClientService()
         ))->execute($propostal);
 
-        if ($customerId === null || $customerId === '' || $customerId === '0') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Erro ao criar/atualizar cliente no Asaas.',
-            ], 500);
+        if ($customerId === null || $customerId === '' || $customerId === '0' || $customerId === '0') {
+            throw new HttpException(500, 'Erro ao criar/atualizar cliente no Asaas.');
         }
 
         return [$customerId, $propostal];
@@ -94,7 +92,14 @@ class CheckoutController extends Controller
 
     public function criarPagamentoPix(Request $request, string $linkHash)
     {
-        [$customerId, $propostal] = $this->initCheckout($request, $linkHash);
+        try {
+            [$customerId, $propostal] = $this->initCheckout($request, $linkHash);
+        } catch (HttpException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], $e->getStatusCode());
+        }
 
         Log::info('Informações de iniciar o checkout: ', [$customerId, $propostal]);
 
@@ -167,7 +172,7 @@ class CheckoutController extends Controller
                     'METODO_PAGAMENTO'        => 'PIX',
                     'VALOR'                   => $response['data']['value'],
                     'STATUS'                  => $response['data']['status'] ?? null,
-                    'ID_USUARIO'              => $request['id_usuario'],
+                    'ID_USUARIO'              => 1,
                     'DATA'                    => now()->toDateString(),
                     'HORA'                    => now()->toTimeString(),
                     'DATA_VENCIMENTO'         => $response['data']['dueDate'] ?? null,
@@ -201,7 +206,7 @@ class CheckoutController extends Controller
                 'data'           => now()->format('Y-m-d'),
                 'hora'           => now()->format('H:i:s'),
                 'historico'      => 'Inquilino efetuou o pagamento via PIX',
-                'id_usuario'     => $request['id_usuario'],
+                'id_usuario'     => 1,
             ]);
         }
 
@@ -219,7 +224,7 @@ class CheckoutController extends Controller
             'data'           => now()->format('Y-m-d'),
             'hora'           => now()->format('H:i:s'),
             'historico'      => 'Aguardando pagamento do Inquilino via PIX',
-            'id_usuario'     => $request['id_usuario'],
+            'id_usuario'     => 1,
         ]);
 
         $dataVencimentoAnterior = PropostalPayments::where('LINK_HASH', $linkHash)
@@ -246,7 +251,14 @@ class CheckoutController extends Controller
 
     public function criarPagamentoBoleto(Request $request, string $linkHash)
     {
-        [$customerId, $propostal] = $this->initCheckout($request, $linkHash);
+        try {
+            [$customerId, $propostal] = $this->initCheckout($request, $linkHash);
+        } catch (HttpException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], $e->getStatusCode());
+        }
 
         $pagamentoRealizado = PropostalPayments::where('ID_USUARIO_INTEGRACAO', $customerId)
             ->where('LINK_HASH', $linkHash)
@@ -315,7 +327,7 @@ class CheckoutController extends Controller
                     'METODO_PAGAMENTO'        => 'BOLETO',
                     'VALOR'                   => $response['data']['value'],
                     'STATUS'                  => $response['data']['status'] ?? null,
-                    'ID_USUARIO'              => $request['id_usuario'],
+                    'ID_USUARIO'              => 1,
                     'DATA'                    => now()->toDateString(),
                     'HORA'                    => now()->toTimeString(),
                     'DATA_VENCIMENTO'         => $response['data']['dueDate'] ?? null,
@@ -353,7 +365,7 @@ class CheckoutController extends Controller
                 'data'           => now()->format('Y-m-d'),
                 'hora'           => now()->format('H:i:s'),
                 'historico'      => 'Inquilino efetuou o pagamento via Boleto',
-                'id_usuario'     => $request['id_usuario'],
+                'id_usuario'     => 1,
             ]);
         }
 
@@ -371,7 +383,7 @@ class CheckoutController extends Controller
             'data'           => now()->format('Y-m-d'),
             'hora'           => now()->format('H:i:s'),
             'historico'      => 'Aguardando pagamento do Inquilino via Boleto',
-            'id_usuario'     => $request['id_usuario'],
+            'id_usuario'     => 1,
         ]);
 
         if (! empty($detailedResponses)) {
@@ -392,7 +404,14 @@ class CheckoutController extends Controller
 
     public function criarPagamentoCartao(Request $request, string $linkHash)
     {
-        [$customerId, $propostal] = $this->initCheckout($request, $linkHash);
+        try {
+            [$customerId, $propostal] = $this->initCheckout($request, $linkHash);
+        } catch (HttpException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], $e->getStatusCode());
+        }
 
         $pagamentoExistente = PropostalPayments::where('ID_USUARIO_INTEGRACAO', $customerId)
             ->where('LINK_HASH', $linkHash)
@@ -404,6 +423,7 @@ class CheckoutController extends Controller
 
         if (! $pagamentoExistente) {
             $payloads = $this->buildPayloadPayment($propostal, $request) ?? [];
+            Log::info("payloads", [$payloads]);
 
             if ($payloads === []) {
                 return response()->json([
@@ -457,7 +477,7 @@ class CheckoutController extends Controller
                 $detalhesPagamentos[] = $detalhesArray;
 
                 // Insere pagamento na base
-                $paymentData                            = $this->buildInsertPaymentPropostal($propostal, $responseData, $customerId, $request);
+                $paymentData                            = $this->buildInsertPaymentPropostal($propostal, $responseData, $customerId);
                 $paymentData['ID_PAGAMENTO_INTEGRACAO'] = $asaasPaymentId;
                 $paymentData['LINK_HASH']               = $linkHash;
 
@@ -506,7 +526,7 @@ class CheckoutController extends Controller
                 $detalhesPagamentos[] = $detalhesArray;
 
                 // Insere pagamento na base
-                $paymentData                            = $this->buildInsertPaymentPropostal($propostal, $responseData, $customerId, $request);
+                $paymentData                            = $this->buildInsertPaymentPropostal($propostal, $responseData, $customerId);
                 $paymentData['ID_PAGAMENTO_INTEGRACAO'] = $asaasPaymentId;
                 $paymentData['LINK_HASH']               = $linkHash;
 
@@ -528,7 +548,7 @@ class CheckoutController extends Controller
                 'data'           => now()->format('Y-m-d'),
                 'hora'           => now()->format('H:i:s'),
                 'historico'      => 'Inquilino efetuou o pagamento via Cartão de Crédito',
-                'id_usuario'     => $request['id_usuario'],
+                'id_usuario'     => 1,
             ]);
 
             return response()->json([
@@ -630,7 +650,7 @@ class CheckoutController extends Controller
                 'installmentCount' => $parcelas,
                 'installmentValue' => $valorParcela,
                 'creditCard'       => [
-                    'holderName'  => $request['nome_cartao'],
+                    'holderName'  => mb_convert_encoding((string) $request['nome_cartao'], 'UTF-8', 'ISO-8859-1'),
                     'number'      => preg_replace('/\D/', '', (string) $request['numero_cartao']),
                     'expiryMonth' => substr((string) $request['data_vencimento'], 0, 2),
                     'expiryYear'  => '20' . substr((string) $request['data_vencimento'], -2),
@@ -641,7 +661,7 @@ class CheckoutController extends Controller
                     'email'         => $propostal->PESSOA_EMAIL,
                     'cpfCnpj'       => preg_replace('/\D/', '', (string) $propostal->PESSOA_DOC),
                     'postalCode'    => preg_replace('/\D/', '', (string) $propostal->PESSOA_CEP),
-                    'addressNumber' => $propostal->PESSOA_NUMERO,
+                    'addressNumber' => mb_convert_encoding((string) $propostal->PESSOA_NUMERO, 'UTF-8', 'ISO-8859-1'),
                     'phone'         => $propostal->PESSOA_TELEFONE,
                     'mobilePhone'   => $propostal->PESSOA_TELEFONE,
                 ],
@@ -660,7 +680,7 @@ class CheckoutController extends Controller
         ];
     }
 
-    private function buildInsertPaymentPropostal($propostal, array $response, $customerId, Request $request): array
+    private function buildInsertPaymentPropostal($propostal, array $response, $customerId): array
     {
         $valorUnitario = $response['data']['value'];
 
@@ -682,7 +702,7 @@ class CheckoutController extends Controller
             'METODO_PAGAMENTO'        => 'CREDIT_CARD',
             'VALOR'                   => $valor,
             'STATUS'                  => $response['data']['status'] ?? null,
-            'ID_USUARIO'              => $request['id_usuario'],
+            'ID_USUARIO'              => 1,
             'DATA'                    => now()->toDateString(),
             'HORA'                    => now()->toTimeString(),
             'DATA_VENCIMENTO'         => $response['data']['dueDate'] ?? null,
@@ -699,7 +719,6 @@ class CheckoutController extends Controller
             'data'           => 'required|date',
             'hora'           => 'required',
             'historico'      => 'required|string|max:2000',
-            'id_usuario'     => 'required|numeric',
         ]);
 
         if ($validator->fails()) {
@@ -716,7 +735,6 @@ class CheckoutController extends Controller
             ->where('ID_MOVI', $historyData['ID_MOVI'])
             ->where('MOVI', $historyData['MOVI'])
             ->where('HISTORICO', $historyData['HISTORICO'])
-            ->where('ID_USUARIO', $historyData['ID_USUARIO'])
             ->first();
 
         if ($existing) {
