@@ -35,6 +35,20 @@ class AssertivaSolucoesController extends Controller
     {
         $propostal = Propostal::where('ID', '=', $propostalId)->first();
 
+        if($propostal['PESSOA_TIPO'] == 'PJ') {
+            $propostal->update([
+                'PROTOCOLO_FACIAL'       => 'Não é preciso gerar Protocolo já que o inquilino é do tipo CNPJ',
+                'PEDIDO_ID_FACIAL'       => 'Não é preciso gerar Pedido já que o inquilino é do tipo CNPJ',
+                'PARTE_ID'               => 'Não é preciso gerar Parte já que o inquilino é do tipo CNPJ',
+                'PROTOCOLO_PARTE_FACIAL' => 'Não é preciso gerar Protocolo da facial já que o inquilino é do tipo CNPJ',
+                'LINK_FACIAL'            => 'Não é preciso gerar Link da facial já que o inquilino é do tipo CNPJ'
+            ]);
+
+            return response()->json([
+                'data' => new PropostalIndexResource($propostal),
+            ]);
+        }
+
         try {
             $dataReturn = $this->assertivaService->createOrderSignature($propostal);
 
